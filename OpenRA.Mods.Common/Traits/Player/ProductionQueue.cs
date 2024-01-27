@@ -123,6 +123,10 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Notification displayed when player right-clicks on a build palette icon that is already on hold.")]
 		public readonly string CancelledTextNotification = null;
 
+		// CA Addition
+		[Desc("If true, any units being produced that have been replaced by an upgrade will be completed.")]
+		public readonly bool CompleteUpgradedInProgress = true;
+
 		public override object Create(ActorInitializer init) { return new ProductionQueue(init, this); }
 
 		public void RulesetLoaded(Ruleset rules, ActorInfo ai)
@@ -159,6 +163,10 @@ namespace OpenRA.Mods.Common.Traits
 
 		[Sync]
 		public bool IsValidFaction { get; private set; }
+
+		// CA Additions
+		HashSet<string> lastBuildableNames = new HashSet<string>();
+		string replacedInProduction = null;
 
 		public ProductionQueue(ActorInitializer init, ProductionQueueInfo info)
 		{
@@ -365,18 +373,37 @@ namespace OpenRA.Mods.Common.Traits
 				Queue[0].Tick(playerResources);
 		}
 
+		// CA modified to replace items in the queue with their upgraded counterparts if applicable
 		protected void CancelUnbuildableItems()
 		{
 			if (Queue.Count == 0)
+			{
+				// reset lastBuildableNames to ensure checks will be done immediately when queue is populated again
+				lastBuildableNames = new HashSet<string>();
 				return;
+			}
 
 			var buildableNames = BuildableItems().Select(b => b.Name).ToHashSet();
+
+			// if buildables haven't changed since last tick we don't need to do anything else
+			if (lastBuildableNames == buildableNames)
+				return;
+
+			var rules = Actor.World.Map.Rules;
+			var replacements = new Dictionary<string, ReplacementDetails>();
+
+			if (playerPower == null)
+				playerPower = Actor.Owner.PlayerActor.TraitOrDefault<PowerManager>();
 
 			// EndProduction removes the item from the queue, so we enumerate
 			// by index in reverse to avoid issues with index reassignment
 			for (var i = Queue.Count - 1; i >= 0; i--)
 			{
 				if (buildableNames.Contains(Queue[i].Item))
+					continue;
+
+				Queue[i] = GetReplacement(Queue[i], replacements, buildableNames, rules, out var replaced);
+				if (replaced)
 					continue;
 
 				// Refund spended resources
@@ -390,6 +417,8 @@ namespace OpenRA.Mods.Common.Traits
 				playerResources.GiveCash(Queue[i].TotalCost - Queue[i].RemainingCost);
 				EndProduction(Queue[i]);
 			}
+
+			lastBuildableNames = buildableNames;
 		}
 
 		public bool CanQueue(ActorInfo actor, out string notificationAudio, out string notificationText)
@@ -599,6 +628,10 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			Queue.Remove(item);
 
+			// CA Addition
+			if (item.Started && item.Item == replacedInProduction)
+				HideReplacedInProduction();
+
 			if (item.Infinite)
 				Queue.Add(new ProductionItem(this, item.Item, item.TotalCost, playerPower, item.OnComplete) { Infinite = true });
 		}
@@ -666,7 +699,9 @@ namespace OpenRA.Mods.Common.Traits
 		// Returns false if the unit can't be built
 		protected virtual bool BuildUnit(ActorInfo unit)
 		{
-			var mostLikelyProducerTrait = MostLikelyProducer().Trait;
+			var bi = unit.TraitInfo<BuildableInfo>();
+			var mostLikelyProducer = MostLikelyProducer(bi.BuildAtProductionType);
+			var mostLikelyProducerTrait = mostLikelyProducer.Trait;
 
 			// Cannot produce if I'm dead or trait is disabled
 			if (!Actor.IsInWorld || Actor.IsDead || mostLikelyProducerTrait == null)
@@ -681,16 +716,102 @@ namespace OpenRA.Mods.Common.Traits
 				new FactionInit(BuildableInfo.GetInitialFaction(unit, Faction))
 			};
 
-			var bi = unit.TraitInfo<BuildableInfo>();
 			var type = developerMode.AllTech ? Info.Type : (bi.BuildAtProductionType ?? Info.Type);
 			var item = Queue.First(i => i.Done && i.Item == unit.Name);
-			if (!mostLikelyProducerTrait.IsTraitPaused && mostLikelyProducerTrait.Produce(Actor, unit, type, inits, item.TotalCost))
+
+			if (!mostLikelyProducerTrait.IsTraitPaused && mostLikelyProducerTrait.Produce(mostLikelyProducer.Actor, unit, type, inits, item.TotalCost))
 			{
 				EndProduction(item);
 				return true;
 			}
 
 			return false;
+		}
+
+		// CA additions
+		ProductionItem GetReplacement(ProductionItem queueItem, Dictionary<string, ReplacementDetails> replacements, HashSet<string> buildableNames, Ruleset rules, out bool replaced)
+		{
+			replaced = false;
+
+			// if started already, and not set to complete any in progress, don't replace (will be cancelled and refunded)
+			if (queueItem.Item == null || (queueItem.Started && !Info.CompleteUpgradedInProgress))
+				return queueItem;
+
+			if (!replacements.ContainsKey(queueItem.Item))
+			{
+				var replacedInQueue = rules.Actors[queueItem.Item].TraitInfoOrDefault<ReplacedInQueueInfo>();
+				var replacement = new ReplacementDetails();
+
+				if (replacedInQueue != null)
+				{
+					var replacementName = replacedInQueue.Actors.Where(a => buildableNames.Contains(a)).FirstOrDefault();
+					if (replacementName != null)
+					{
+						replacement.Info = rules.Actors[replacementName];
+						var valued = replacement.Info.TraitInfoOrDefault<ValuedInfo>();
+						replacement.Cost = valued != null ? valued.Cost : 0;
+					}
+				}
+
+				replacements[queueItem.Item] = replacement;
+			}
+
+			if (replacements[queueItem.Item].Info != null)
+			{
+				// if a replacement is buildable, but we've already started producing, we should be able to finish production (as CompleteUpgradedInProgress is true)
+				if (queueItem.Started)
+				{
+					Producible[Actor.World.Map.Rules.Actors[queueItem.Item]].Visible = true;
+					replacedInProduction = queueItem.Item; // rules.Actors[queueItem.Item];
+					replaced = true;
+					return queueItem;
+				}
+
+				var r = replacements[queueItem.Item];
+
+				var replacementItem = new ProductionItem(this, r.Info.Name, r.Cost, playerPower, () => Actor.World.AddFrameEndTask(_ =>
+				{
+					// Make sure the item hasn't been invalidated between the ProductionItem ticking and this FrameEndTask running
+					if (!Queue.Any(j => j.Done && j.Item == r.Info.Name))
+						return;
+
+					var isBuilding = r.Info.HasTraitInfo<BuildingInfo>();
+					if (isBuilding)
+						return;
+
+					if (BuildUnit(r.Info))
+						Game.Sound.PlayNotification(rules, Actor.Owner, "Speech", Info.ReadyAudio, Actor.Owner.Faction.InternalName);
+				}));
+
+				replaced = true;
+				return replacementItem;
+			}
+
+			return queueItem;
+		}
+
+		void HideReplacedInProduction()
+		{
+			if (replacedInProduction != null)
+			{
+				PrerequisitesItemHidden(replacedInProduction);
+				replacedInProduction = null;
+			}
+		}
+
+		TraitPair<Production> MostLikelyProducer(string type)
+		{
+			if (type == null || !Actor.Info.HasTraitInfo<IOccupySpaceInfo>() || productionTraits.Where(p => !p.IsTraitDisabled && p.Info.Produces.Contains(type)).Any())
+				return MostLikelyProducer();
+
+			var producer = Actor.World.ActorsWithTrait<Production>()
+				.Where(x => x.Actor.Owner == Actor.Owner
+					&& !x.Trait.IsTraitDisabled
+					&& x.Trait.Info.Produces.Contains(type))
+				.OrderBy(x => (x.Actor.CenterPosition - Actor.CenterPosition).Length)
+				.FirstOrDefault();
+
+			return producer;
 		}
 	}
 
@@ -794,5 +915,12 @@ namespace OpenRA.Mods.Common.Traits
 		}
 
 		public void Pause(bool paused) { Paused = paused; }
+	}
+
+	// CA addition
+	public class ReplacementDetails
+	{
+		public ActorInfo Info;
+		public int Cost;
 	}
 }
