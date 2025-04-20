@@ -57,8 +57,8 @@ namespace OpenRA.Mods.Common.Traits
 
 		protected override void RemoveCellsFromPlayerShroud(Actor self, Player p)
 		{
-			if (!info.ValidRelationships.HasRelationship(self.Owner.RelationshipWith(p)))
-				return;
+			// if (!info.ValidRelationships.HasRelationship(self.Owner.RelationshipWith(p)))
+			//	return;
 
 			p.Shroud.RemoveSource(this);
 		}
