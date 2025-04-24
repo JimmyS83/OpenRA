@@ -94,6 +94,7 @@ namespace OpenRA.Mods.Common.Orders
 		readonly VariantWrapper[] variants;
 		int variant;
 		bool instantPlace;
+		bool canQueue;
 
 		public PlaceBuildingOrderGenerator(ProductionQueue queue, string name, WorldRenderer worldRenderer, bool instantPlace = false)
 		{
@@ -103,6 +104,7 @@ namespace OpenRA.Mods.Common.Orders
 			resourceLayer = world.WorldActor.TraitOrDefault<IResourceLayer>();
 			viewport = worldRenderer.Viewport;
 			this.instantPlace = instantPlace;
+			this.canQueue = instantPlace;
 
 			// Clear selection if using Left-Click Orders
 			if (Game.Settings.Game.UseClassicMouseStyle)
@@ -139,11 +141,11 @@ namespace OpenRA.Mods.Common.Orders
 				var ret = InnerOrder(world, cell, mi).ToArray();
 
 				// If there was a successful placement order
-				/*if (ret.Any(o =>
+				if (!canQueue && ret.Any(o =>
 						o.OrderString == "PlaceBuilding"
 						|| o.OrderString == "LineBuild"
 						|| o.OrderString == "PlacePlug"))
-					world.CancelInputMode();*/
+					world.CancelInputMode();
 
 				return ret;
 			}
