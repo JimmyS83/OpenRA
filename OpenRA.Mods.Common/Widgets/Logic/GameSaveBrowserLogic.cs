@@ -63,7 +63,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly Widget panel;
 		readonly ScrollPanelWidget gameList;
 		readonly TextFieldWidget saveTextField;
-		readonly List<string> games = new();
+		readonly List<string> games = [];
 		readonly Action onStart;
 		readonly Action onExit;
 		readonly ModData modData;
@@ -118,8 +118,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				saveWidgets.IsVisible = () => true;
 
 				saveTextField = saveWidgets.Get<TextFieldWidget>("SAVE_TEXTFIELD");
-				saveTextField.OnEnterKey = input => saveButton.HandleKeyPress(input);
-				saveTextField.OnEscKey = input => cancelButton.HandleKeyPress(input);
+				saveTextField.OnEnterKey = saveButton.HandleKeyPress;
+				saveTextField.OnEscKey = cancelButton.HandleKeyPress;
 			}
 			else
 			{
@@ -173,7 +173,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				ConfirmationDialogs.ButtonPrompt(modData,
 					title: DeleteSaveTitle,
 					text: DeleteSavePrompt,
-					textArguments: new object[] { "save", Path.GetFileNameWithoutExtension(selectedSave) },
+					textArguments: ["save", Path.GetFileNameWithoutExtension(selectedSave)],
 					onConfirm: () =>
 					{
 						Delete(selectedSave);
@@ -197,7 +197,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				ConfirmationDialogs.ButtonPrompt(modData,
 					title: DeleteAllSavesTitle,
 					text: DeleteAllSavesPrompt,
-					textArguments: new object[] { "count", games.Count },
+					textArguments: ["count", games.Count],
 					onConfirm: () =>
 					{
 						foreach (var s in games.ToList())
@@ -226,7 +226,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			}
 
 			var savePaths = Directory.GetFiles(baseSavePath, "*.orasav", SearchOption.AllDirectories)
-				.OrderByDescending(p => File.GetLastWriteTime(p))
+				.OrderByDescending(File.GetLastWriteTime)
 				.ToList();
 
 			foreach (var savePath in savePaths)
@@ -235,7 +235,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 				// Create the item manually so the click handlers can refer to itself
 				// This simplifies the rename handling (only needs to update ItemKey)
-				var item = gameTemplate.Clone() as ScrollItemWidget;
+				var item = gameTemplate.Clone();
 				item.ItemKey = savePath;
 				item.IsVisible = () => true;
 				item.IsSelected = () => selectedSave == item.ItemKey;
@@ -373,7 +373,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				ConfirmationDialogs.ButtonPrompt(modData,
 					title: OverwriteSaveTitle,
 					text: OverwriteSavePrompt,
-					textArguments: new object[] { "file", saveTextField.Text },
+					textArguments: ["file", saveTextField.Text],
 					onConfirm: Inner,
 					confirmText: OverwriteSaveAccept,
 					onCancel: () => { });

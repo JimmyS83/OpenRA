@@ -33,7 +33,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly string Group = null;
 
 		[Desc("Only enable this queue for certain factions.")]
-		public readonly HashSet<string> Factions = new();
+		public readonly HashSet<string> Factions = [];
 
 		[Desc("Show the queue for these factions, even if it doesn't have any buildable unit in it.")]
 		public readonly HashSet<string> AlwaysShowForFactions = new();
@@ -144,8 +144,8 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly ProductionQueueInfo Info;
 
 		// A list of things we could possibly build
-		public readonly Dictionary<ActorInfo, ProductionState> Producible = new();
-		protected readonly List<ProductionItem> Queue = new();
+		public readonly Dictionary<ActorInfo, ProductionState> Producible = [];
+		protected readonly List<ProductionItem> Queue = [];
 		readonly IEnumerable<ActorInfo> allProducibles;
 		readonly IEnumerable<ActorInfo> buildableProducibles;
 
@@ -329,7 +329,7 @@ namespace OpenRA.Mods.Common.Traits
 		public virtual IEnumerable<ActorInfo> AllItems()
 		{
 			if (productionTraits.Length > 0 && productionTraits.All(p => p.IsTraitDisabled))
-				return Enumerable.Empty<ActorInfo>();
+				return [];
 			if (developerMode.AllTech)
 				return Producible.Keys;
 
@@ -339,9 +339,9 @@ namespace OpenRA.Mods.Common.Traits
 		public virtual IEnumerable<ActorInfo> BuildableItems()
 		{
 			if (productionTraits.Length > 0 && productionTraits.All(p => p.IsTraitDisabled))
-				return Enumerable.Empty<ActorInfo>();
+				return [];
 			if (!Enabled)
-				return Enumerable.Empty<ActorInfo>();
+				return [];
 			if (!Info.PayUpFront && developerMode.AllTech)
 				return Producible.Keys;
 			if (Info.PayUpFront && developerMode.AllTech)
@@ -411,7 +411,7 @@ namespace OpenRA.Mods.Common.Traits
 				if (buildableNames.Contains(Queue[i].Item))
 					continue;
 
-				// Refund spended resources
+				// Refund spent resources
 				if (Queue[i].ResourcesPaid > 0)
 				{
 					playerResources.GiveResources(Queue[i].ResourcesPaid);

@@ -19,7 +19,7 @@ namespace OpenRA.Mods.Common.Traits
 		"this trait grants a level-up to newly spawned actors.")]
 	public class ProducibleWithLevelInfo : TraitInfo, Requires<GainsExperienceInfo>
 	{
-		public readonly string[] Prerequisites = Array.Empty<string>();
+		public readonly string[] Prerequisites = [];
 
 		[Desc("Only grant this level for certain factions.")]
 		public readonly HashSet<string> Factions = new();

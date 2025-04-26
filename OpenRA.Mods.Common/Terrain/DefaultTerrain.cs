@@ -10,9 +10,11 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using OpenRA.FileSystem;
+using OpenRA.Mods.Common.MapGenerator;
 using OpenRA.Primitives;
 using OpenRA.Support;
 
@@ -44,7 +46,7 @@ namespace OpenRA.Mods.Common.Terrain
 		public DefaultTerrainTemplateInfo(ITerrainInfo terrainInfo, MiniYaml my)
 			: base(terrainInfo, my) { }
 
-		protected override TerrainTileInfo LoadTileInfo(ITerrainInfo terrainInfo, MiniYaml my)
+		protected override DefaultTerrainTileInfo LoadTileInfo(ITerrainInfo terrainInfo, MiniYaml my)
 		{
 			var tile = new DefaultTerrainTileInfo();
 			FieldLoader.Load(tile, my);
@@ -68,8 +70,9 @@ namespace OpenRA.Mods.Common.Terrain
 	{
 		public readonly string Name;
 		public readonly string Id;
+		public readonly Size TileSize = new(24, 24);
 		public readonly int SheetSize = 512;
-		public readonly Color[] HeightDebugColors = { Color.Red };
+		public readonly Color[] HeightDebugColors = [Color.Red];
 		public readonly string[] EditorTemplateOrder;
 		public readonly bool IgnoreTileSpriteOffsets;
 		public readonly bool EnableDepth = false;
@@ -79,10 +82,12 @@ namespace OpenRA.Mods.Common.Terrain
 
 		[FieldLoader.Ignore]
 		public readonly IReadOnlyDictionary<ushort, TerrainTemplateInfo> Templates;
+		[FieldLoader.Ignore]
+		public readonly IReadOnlyDictionary<string, IEnumerable<MultiBrushInfo>> MultiBrushCollections;
 
 		[FieldLoader.Ignore]
 		public readonly TerrainTypeInfo[] TerrainInfo;
-		readonly Dictionary<string, byte> terrainIndexByType = new();
+		readonly Dictionary<string, byte> terrainIndexByType = [];
 		readonly byte defaultWalkableTerrainIndex;
 
 		public DefaultTerrain(IReadOnlyFileSystem fileSystem, string filepath)
@@ -117,6 +122,15 @@ namespace OpenRA.Mods.Common.Terrain
 			// Templates
 			Templates = yaml["Templates"].ToDictionary().Values
 				.Select(y => (TerrainTemplateInfo)new DefaultTerrainTemplateInfo(this, y)).ToDictionary(t => t.Id);
+
+			MultiBrushCollections =
+				yaml.TryGetValue("MultiBrushCollections", out var collectionDefinitions)
+					? collectionDefinitions.ToDictionary()
+						.Select(kv => new KeyValuePair<string, IEnumerable<MultiBrushInfo>>(
+							kv.Key,
+							MultiBrushInfo.ParseCollection(kv.Value)))
+						.ToImmutableDictionary()
+					: ImmutableDictionary<string, IEnumerable<MultiBrushInfo>>.Empty;
 		}
 
 		public TerrainTypeInfo this[byte index] => TerrainInfo[index];
@@ -156,6 +170,7 @@ namespace OpenRA.Mods.Common.Terrain
 		}
 
 		string ITerrainInfo.Id => Id;
+		Size ITerrainInfo.TileSize => TileSize;
 		TerrainTypeInfo[] ITerrainInfo.TerrainTypes => TerrainInfo;
 		TerrainTileInfo ITerrainInfo.GetTerrainInfo(TerrainTile r) { return GetTileInfo(r); }
 		bool ITerrainInfo.TryGetTerrainInfo(TerrainTile r, out TerrainTileInfo info) { return TryGetTileInfo(r, out info); }
@@ -167,6 +182,7 @@ namespace OpenRA.Mods.Common.Terrain
 
 		string[] ITemplatedTerrainInfo.EditorTemplateOrder => EditorTemplateOrder;
 		IReadOnlyDictionary<ushort, TerrainTemplateInfo> ITemplatedTerrainInfo.Templates => Templates;
+		IReadOnlyDictionary<string, IEnumerable<MultiBrushInfo>> ITemplatedTerrainInfo.MultiBrushCollections => MultiBrushCollections;
 
 		void ITerrainInfoNotifyMapCreated.MapCreated(Map map)
 		{

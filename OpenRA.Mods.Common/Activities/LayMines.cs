@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Activities;
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Activities
@@ -47,7 +46,7 @@ namespace OpenRA.Mods.Common.Activities
 
 		protected override void OnFirstRun(Actor self)
 		{
-			minefield ??= new List<CPos> { self.Location };
+			minefield ??= [self.Location];
 		}
 
 		CPos? NextValidCell(Actor self)
@@ -219,12 +218,12 @@ namespace OpenRA.Mods.Common.Activities
 				if (!CanLayMine(self, self.Location))
 					return;
 
-				var mine = w.CreateActor(minelayer.Info.Mine, new TypeDictionary
-				{
+				var mine = w.CreateActor(minelayer.Info.Mine,
+				[
 					new LocationInit(self.Location),
 					new OwnerInit(self.Owner),
 					new ParentActorInit(self)
-				});
+				]);
 
 				foreach (var t in self.TraitsImplementing<INotifyMineLaying>())
 					t.MineLaid(self, mine);

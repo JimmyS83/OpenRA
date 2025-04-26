@@ -42,7 +42,7 @@ namespace OpenRA.Mods.Common.Traits
 	public class EditorActorLayer : IWorldLoaded, ITickRender, IRender, IRadarSignature, ICreatePlayers, IRenderAnnotations
 	{
 		public readonly EditorActorLayerInfo Info;
-		readonly List<EditorActorPreview> previews = new();
+		readonly List<EditorActorPreview> previews = [];
 
 		int2 cellOffset;
 		SpatiallyPartitioned<EditorActorPreview> cellMap;
@@ -81,12 +81,12 @@ namespace OpenRA.Mods.Common.Traits
 			cellOffset = new int2(world.Map.AllCells.Min(c => c.X), world.Map.AllCells.Min((c) => c.Y));
 			var cellOffsetMax = new int2(world.Map.AllCells.Max(c => c.X), world.Map.AllCells.Max((c) => c.Y));
 			var mapCellSize = cellOffsetMax - cellOffset;
+			var ts = world.Map.Rules.TerrainInfo.TileSize;
 			cellMap = new SpatiallyPartitioned<EditorActorPreview>(
-				mapCellSize.X, mapCellSize.Y, Exts.IntegerDivisionRoundingAwayFromZero(Info.BinSize, world.Map.Grid.TileSize.Width));
+				mapCellSize.X, mapCellSize.Y, Exts.IntegerDivisionRoundingAwayFromZero(Info.BinSize, ts.Width));
 
-			var ts = world.Map.Grid.TileSize;
-			var width = world.Map.MapSize.X * ts.Width;
-			var height = world.Map.MapSize.Y * ts.Height;
+			var width = world.Map.MapSize.Width * ts.Width;
+			var height = world.Map.MapSize.Height * ts.Height;
 			screenMap = new SpatiallyPartitioned<EditorActorPreview>(width, height, Info.BinSize);
 
 			foreach (var kv in world.Map.ActorDefinitions)
@@ -106,7 +106,7 @@ namespace OpenRA.Mods.Common.Traits
 				p.Tick();
 		}
 
-		static readonly IEnumerable<IRenderable> NoRenderables = Enumerable.Empty<IRenderable>();
+		static readonly IEnumerable<IRenderable> NoRenderables = [];
 		public virtual IEnumerable<IRenderable> Render(Actor self, WorldRenderer wr)
 		{
 			if (wr.World.Type != WorldType.Editor)
@@ -176,7 +176,7 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			// Fallback to the actor's CenterPosition for the ActorMap if it has no Footprint
 			if (preview.Footprint.Count == 0)
-				return new[] { worldRenderer.World.Map.CellContaining(preview.CenterPosition) };
+				return [worldRenderer.World.Map.CellContaining(preview.CenterPosition)];
 			return preview.Footprint.Keys;
 		}
 
@@ -238,7 +238,7 @@ namespace OpenRA.Mods.Common.Traits
 					Name = $"Multi{index}",
 					Faction = "Random",
 					Playable = true,
-					Enemies = new[] { "Creeps" }
+					Enemies = ["Creeps"]
 				};
 
 				Players.Players.Add(pr.Name, pr);
@@ -340,7 +340,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		public void PopulateRadarSignatureCells(Actor self, List<(CPos Cell, Color Color)> destinationBuffer)
 		{
-			foreach (var preview in cellMap.Items)
+			foreach (var preview in cellMap.Keys)
 				foreach (var cell in Footprint(preview))
 					destinationBuffer.Add((cell, preview.RadarColor));
 		}

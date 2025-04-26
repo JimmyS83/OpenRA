@@ -24,15 +24,15 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		[ActorReference]
 		[Desc("Actor types that are valid for naval squads.")]
-		public readonly HashSet<string> NavalUnitsTypes = new();
+		public readonly HashSet<string> NavalUnitsTypes = [];
 
 		[ActorReference]
 		[Desc("Actor types that are excluded from ground attacks.")]
-		public readonly HashSet<string> AirUnitsTypes = new();
+		public readonly HashSet<string> AirUnitsTypes = [];
 
 		[ActorReference]
 		[Desc("Actor types that should generally be excluded from attack squads.")]
-		public readonly HashSet<string> ExcludeFromSquadsTypes = new();
+		public readonly HashSet<string> ExcludeFromSquadsTypes = [];
 
 		[ActorReference]
 		[Desc("Actor types that are randomly sent around the base after their production.")]
@@ -40,15 +40,15 @@ namespace OpenRA.Mods.Common.Traits
 
 		[ActorReference]
 		[Desc("Actor types that are considered construction yards (base builders).")]
-		public readonly HashSet<string> ConstructionYardTypes = new();
+		public readonly HashSet<string> ConstructionYardTypes = [];
 
 		[ActorReference]
 		[Desc("Enemy building types around which to scan for targets for naval squads.")]
-		public readonly HashSet<string> NavalProductionTypes = new();
+		public readonly HashSet<string> NavalProductionTypes = [];
 
 		[ActorReference]
 		[Desc("Own actor types that are prioritized when defending.")]
-		public readonly HashSet<string> ProtectionTypes = new();
+		public readonly HashSet<string> ProtectionTypes = [];
 
 		[ActorReference]
 		[Desc("Units that form a guerrilla squad.")]
@@ -134,13 +134,13 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly int RepeatedAltertTicks = 15;
 
 		public readonly Predicate<Actor> UnitCannotBeOrdered;
-		readonly List<UnitWposWrapper> unitsHangingAroundTheBase = new();
+		readonly List<UnitWposWrapper> unitsHangingAroundTheBase = [];
 
 		// Units that the bot already knows about. Any unit not on this list needs to be given a role.
-		readonly List<Actor> activeUnits = new();
+		readonly List<Actor> activeUnits = [];
 
-		public List<Squad> Squads = new();
-		readonly Stack<Squad> squadsPendingUpdate = new();
+		public List<Squad> Squads = [];
+		readonly Stack<Squad> squadsPendingUpdate = [];
 		readonly ActorIndex.OwnerAndNamesAndTrait<BuildingInfo> constructionYardBuildings;
 
 		IBot bot;
@@ -503,8 +503,8 @@ namespace OpenRA.Mods.Common.Traits
 			if (IsTraitDisabled)
 				return null;
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("Squads", "", Squads.ConvertAll(s => new MiniYamlNode("Squad", s.Serialize()))),
 				new("InitialBaseCenter", FieldSaver.FormatValue(initialBaseCenter)),
 				new("UnitsHangingAroundTheBase", FieldSaver.FormatValue(unitsHangingAroundTheBase
@@ -516,7 +516,7 @@ namespace OpenRA.Mods.Common.Traits
 					.Select(a => a.ActorID)
 					.ToArray())),
 				new("AttackForceTicks", FieldSaver.FormatValue(attackForceTicks)),
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)
@@ -534,7 +534,7 @@ namespace OpenRA.Mods.Common.Traits
 				unitsHangingAroundTheBase.Clear();
 
 				foreach (var a in FieldLoader.GetValue<uint[]>("UnitsHangingAroundTheBase", unitsHangingAroundTheBaseNode.Value)
-					.Select(a => self.World.GetActorById(a)).Where(a => a != null))
+					.Select(self.World.GetActorById).Where(a => a != null))
 				{
 					unitsHangingAroundTheBase.Add(new UnitWposWrapper(a));
 				}
@@ -544,7 +544,7 @@ namespace OpenRA.Mods.Common.Traits
 			{
 				activeUnits.Clear();
 				activeUnits.AddRange(FieldLoader.GetValue<uint[]>("ActiveUnits", activeUnitsNode.Value)
-					.Select(a => self.World.GetActorById(a)).Where(a => a != null));
+					.Select(self.World.GetActorById).Where(a => a != null));
 			}
 
 			if (nodes.TryGetValue("AttackForceTicks", out var protectionForceTicksNode))

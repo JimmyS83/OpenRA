@@ -10,7 +10,6 @@
 #endregion
 
 using System.Linq;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -121,13 +120,13 @@ namespace OpenRA.Mods.Common.Traits
 				if (os == "LineBuild")
 				{
 					// Build the parent actor first
-					var placed = w.CreateActor(actorInfo.Name, new TypeDictionary
-					{
+					var placed = w.CreateActor(actorInfo.Name,
+					[
 						new LocationInit(targetLocation),
 						new OwnerInit(order.Player),
 						new FactionInit(faction),
 						new PlaceBuildingInit()
-					});
+					]);
 
 					var pos = placed.CenterPosition;
 					if (buildingInfo.AudibleThroughFog || (!w.ShroudObscures(pos) && !w.FogObscures(pos)))
@@ -154,15 +153,15 @@ namespace OpenRA.Mods.Common.Traits
 								if (a.TraitsImplementing<Replaceable>().Any(r => !r.IsTraitDisabled && r.Info.Types.Overlaps(replaceableSegments)))
 									self.World.Remove(a);
 
-						w.CreateActor(segmentType, new TypeDictionary
-						{
+						w.CreateActor(segmentType,
+						[
 							new LocationInit(t.Cell),
 							new OwnerInit(order.Player),
 							new FactionInit(faction),
 							new LineBuildDirectionInit(t.Cell.X == targetLocation.X ? LineBuildDirection.Y : LineBuildDirection.X),
-							new LineBuildParentInit(new[] { t.Actor, placed }),
+							new LineBuildParentInit([t.Actor, placed]),
 							new PlaceBuildingInit()
-						});
+						]);
 					}
 				}
 				else if (os == "PlacePlug")
@@ -196,13 +195,13 @@ namespace OpenRA.Mods.Common.Traits
 						|| !buildingInfo.IsCloseEnoughToBase(self.World, order.Player, actorInfo, queue.Actor, targetLocation))
 						return;
 
-					var building = w.CreateActor(actorInfo.Name, new TypeDictionary
-					{
+					var building = w.CreateActor(actorInfo.Name,
+					[
 						new LocationInit(targetLocation),
 						new OwnerInit(order.Player),
 						new FactionInit(faction),
 						new PlaceBuildingInit()
-					});
+					]);
 
 					var pos = building.CenterPosition;
 					if (buildingInfo.AudibleThroughFog || (!w.ShroudObscures(pos) && !w.FogObscures(pos)))

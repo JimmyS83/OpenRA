@@ -348,7 +348,6 @@ namespace OpenRA.Mods.Common.Commands
 			world.IssueOrder(new Order(command, world.LocalPlayer.PlayerActor, false));
 		}
 
-		[Serializable]
 		public class DevException : Exception { }
 	}
 }

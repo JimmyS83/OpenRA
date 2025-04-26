@@ -27,7 +27,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly int IdleBaseUnitsMaximum = -1;
 
 		[Desc("Production queues AI uses for producing units.")]
-		public readonly string[] UnitQueues = { "Vehicle", "Infantry", "Plane", "Ship", "Aircraft" };
+		public readonly string[] UnitQueues = ["Vehicle", "Infantry", "Plane", "Ship", "Aircraft"];
 
 		[Desc("What units to the AI should build.", "What relative share of the total army must be this type of unit.")]
 		public readonly Dictionary<string, int> UnitsToBuild = null;
@@ -59,7 +59,7 @@ namespace OpenRA.Mods.Common.Traits
 		readonly World world;
 		readonly Player player;
 
-		readonly List<string> queuedBuildRequests = new();
+		readonly List<string> queuedBuildRequests = [];
 		readonly ActorIndex.OwnerAndNames unitsToBuild;
 
 		IBotRequestPauseUnitProduction[] requestPause;
@@ -230,11 +230,11 @@ namespace OpenRA.Mods.Common.Traits
 			if (IsTraitDisabled)
 				return null;
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("QueuedBuildRequests", FieldSaver.FormatValue(queuedBuildRequests.ToArray())),
 				new("IdleUnitCount", FieldSaver.FormatValue(idleUnitCount))
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)

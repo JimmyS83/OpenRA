@@ -1,6 +1,7 @@
 General:
 	Name: Arrakis
 	Id: ARRAKIS
+	TileSize: 32, 32
 	SheetSize: 1024
 	EditorTemplateOrder: Basic, Dune, Sand-Detail, Rock-Detail, Ice-Detail, Rock-Sand-Smooth, Sand-Sand-Cliff, Sand-Rock-Cliff, Sand-Ice-Cliff, Rock-Rock-Cliff, Rock-Sand-Cliff, Cliff-Type-Changer, Cliff-Ends, Sand-Platform, Bridge, Rotten-Base, Dead-Worm, Unidentified
 	IgnoreTileSpriteOffsets: True
@@ -6717,7 +6718,7 @@ Templates:
 	Template@1141:
 		Id: 1141
 		Images: customtiles.r16
-		Frames: 29
+		Frames: 48
 		Size: 1,1
 		Categories: Sand-Platform
 		Tiles:

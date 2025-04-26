@@ -82,14 +82,14 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly Widget newSpectatorTemplate;
 
 		readonly ScrollPanelWidget lobbyChatPanel;
-		readonly Dictionary<TextNotificationPool, Widget> chatTemplates = new();
+		readonly Dictionary<TextNotificationPool, Widget> chatTemplates = [];
 		readonly TextFieldWidget chatTextField;
 		readonly CachedTransform<int, string> chatAvailableIn;
 		readonly string chatDisabled;
 
 		readonly ScrollPanelWidget players;
 
-		readonly Dictionary<string, LobbyFaction> factions = new();
+		readonly Dictionary<string, LobbyFaction> factions = [];
 
 		readonly IColorPickerManagerInfo colorManager;
 
@@ -104,7 +104,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		bool teamChat;
 		bool updateDiscordStatus = true;
 		bool resetOptionsButtonEnabled;
-		Dictionary<int, SpawnOccupant> spawnOccupants = new();
+		Dictionary<int, SpawnOccupant> spawnOccupants = [];
 
 		readonly string chatLineSound;
 		readonly string playerJoinedSound;
@@ -189,8 +189,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					"onMouseDown", (Action<MapPreviewWidget, MapPreview, MouseInput>)((preview, mapPreview, mi) =>
 						LobbyUtils.SelectSpawnPoint(orderManager, preview, mapPreview, mi))
 				},
-				{ "getSpawnOccupants", (Func<Dictionary<int, SpawnOccupant>>)(() => spawnOccupants) },
-				{ "getDisabledSpawnPoints", (Func<HashSet<int>>)(() => orderManager.LobbyInfo.DisabledSpawnPoints) },
+				{ "getSpawnOccupants", () => spawnOccupants },
+				{ "getDisabledSpawnPoints", () => orderManager.LobbyInfo.DisabledSpawnPoints },
 				{ "showUnoccupiedSpawnpoints", true },
 				{ "mapUpdatesEnabled", true },
 				{
@@ -207,7 +207,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			UpdateCurrentMap();
 
-			var playerBin = Ui.LoadWidget("LOBBY_PLAYER_BIN", lobby.Get("TOP_PANELS_ROOT"), new WidgetArgs());
+			var playerBin = Ui.LoadWidget("LOBBY_PLAYER_BIN", lobby.Get("TOP_PANELS_ROOT"), []);
 			playerBin.IsVisible = () => panel == PanelType.Players;
 
 			players = playerBin.Get<ScrollPanelWidget>("LOBBY_PLAYERS");
@@ -370,7 +370,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var optionsBin = Ui.LoadWidget("LOBBY_OPTIONS_BIN", lobby.Get("TOP_PANELS_ROOT"), new WidgetArgs()
 			{
 				{ "orderManager", orderManager },
-				{ "getMap", (Func<MapPreview>)(() => map) },
+				{ "getMap", () => map },
 				{ "configurationDisabled", configurationDisabled }
 			});
 
@@ -464,7 +464,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				};
 			}
 
-			var forceStartBin = Ui.LoadWidget("FORCE_START_DIALOG", lobby.Get("TOP_PANELS_ROOT"), new WidgetArgs());
+			var forceStartBin = Ui.LoadWidget("FORCE_START_DIALOG", lobby.Get("TOP_PANELS_ROOT"), []);
 			forceStartBin.IsVisible = () => panel == PanelType.ForceStart;
 			forceStartBin.Get("KICK_WARNING").IsVisible = () => orderManager.LobbyInfo.Clients.Any(c => c.IsInvalid);
 			var forceStartButton = forceStartBin.Get<ButtonWidget>("OK_BUTTON");
@@ -492,7 +492,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				foreach (var item in templateIds.Nodes)
 				{
 					var key = FieldLoader.GetValue<TextNotificationPool>("key", item.Key);
-					chatTemplates[key] = Ui.LoadWidget(item.Value.Value, null, new WidgetArgs());
+					chatTemplates[key] = Ui.LoadWidget(item.Value.Value, null, []);
 				}
 			}
 
@@ -655,7 +655,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			// We don't have the map
 			else if (map.Status != MapStatus.DownloadAvailable && Game.Settings.Game.AllowDownloading)
-				modData.MapCache.QueryRemoteMapDetails(services.MapRepository, new[] { uid });
+				modData.MapCache.QueryRemoteMapDetails(services.MapRepository, [uid]);
 		}
 
 		void UpdatePlayerList()
@@ -751,7 +751,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					}
 					else
 					{
-						LobbyUtils.SetupNameWidget(template, client, orderManager, worldRenderer);
+						LobbyUtils.SetupNameWidget(template, client, orderManager, worldRenderer, map);
 						LobbyUtils.SetupTeamWidget(template, client);
 						LobbyUtils.SetupHandicapWidget(template, client);
 						LobbyUtils.SetupSpawnWidget(template, client);
@@ -803,7 +803,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 						LobbyUtils.SetupPlayerActionWidget(template, client, orderManager, worldRenderer,
 							lobby, () => panel = PanelType.Kick, () => panel = PanelType.Players);
 					else
-						LobbyUtils.SetupNameWidget(template, client, orderManager, worldRenderer);
+						LobbyUtils.SetupNameWidget(template, client, orderManager, worldRenderer, map);
 
 					if (client.IsAdmin)
 						LobbyUtils.SetupReadyWidget(template, client);
@@ -887,7 +887,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				if (orderManager.LobbyInfo.GlobalSettings.Dedicated)
 				{
 					var endpoint = CurrentServerSettings.Target.GetConnectEndPoints().First();
-					secret = string.Concat(endpoint.Address, "|", endpoint.Port);
+					secret = $"{endpoint.Address}|{endpoint.Port}";
 				}
 
 				var state = skirmishMode ? DiscordState.InSkirmishLobby : DiscordState.InMultiplayerLobby;

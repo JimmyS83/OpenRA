@@ -11,7 +11,9 @@
 
 using System;
 using System.Linq;
+using OpenRA.FileSystem;
 using OpenRA.Mods.Common.Terrain;
+using OpenRA.Primitives;
 using OpenRA.Widgets;
 
 namespace OpenRA.Mods.Common.Widgets.Logic
@@ -58,7 +60,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 				var maxTerrainHeight = world.Map.Grid.MaximumTerrainHeight;
 				var tileset = modData.DefaultTerrainInfo[tilesetDropDown.GetText()];
-				var map = new Map(Game.ModData, tileset, width + 2, height + maxTerrainHeight + 2);
+				var map = new Map(Game.ModData, tileset, new Size(width + 2, height + maxTerrainHeight + 2));
 
 				var tl = new PPos(1, 1 + maxTerrainHeight);
 				var br = new PPos(width, height + maxTerrainHeight);
@@ -69,24 +71,12 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				if (map.Rules.TerrainInfo is ITerrainInfoNotifyMapCreated notifyMapCreated)
 					notifyMapCreated.MapCreated(map);
 
-				Action<string> afterSave = uid =>
-				{
-					map.Dispose();
-					Game.LoadEditor(uid);
-
-					Ui.CloseWindow();
-					onSelect(uid);
-				};
-
-				Ui.OpenWindow("SAVE_MAP_PANEL", new WidgetArgs()
-				{
-					{ "onSave", afterSave },
-					{ "onExit", () => { Ui.CloseWindow(); onExit(); } },
-					{ "map", map },
-					{ "world", world },
-					{ "playerDefinitions", map.PlayerDefinitions },
-					{ "actorDefinitions", map.ActorDefinitions }
-				});
+				var package = new ZipFileLoader.ReadWriteZipFile();
+				map.Save(package);
+				map = new Map(modData, package);
+				Game.LoadEditor(map);
+				Ui.CloseWindow();
+				onSelect(map.Uid);
 			};
 		}
 	}

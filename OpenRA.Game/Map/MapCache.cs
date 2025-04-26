@@ -27,7 +27,7 @@ namespace OpenRA
 	{
 		public static readonly MapPreview UnknownMap = new(null, null, MapGridType.Rectangular, null);
 		public IReadOnlyDictionary<IReadOnlyPackage, MapClassification> MapLocations => mapLocations;
-		readonly Dictionary<IReadOnlyPackage, MapClassification> mapLocations = new();
+		readonly Dictionary<IReadOnlyPackage, MapClassification> mapLocations = [];
 		public bool LoadPreviewImages = true;
 
 		readonly Cache<string, MapPreview> previews;
@@ -36,17 +36,17 @@ namespace OpenRA
 		Thread previewLoaderThread;
 		bool previewLoaderThreadShutDown = true;
 		readonly object syncRoot = new();
-		readonly Queue<MapPreview> generateMinimap = new();
+		readonly Queue<MapPreview> generateMinimap = [];
 
-		public HashSet<string> StringPool { get; } = new();
+		public HashSet<string> StringPool { get; } = [];
 
-		readonly List<MapDirectoryTracker> mapDirectoryTrackers = new();
+		readonly List<MapDirectoryTracker> mapDirectoryTrackers = [];
 
 		/// <summary>
 		/// The most recently modified or loaded map at runtime.
 		/// </summary>
 		public string LastModifiedMap { get; private set; } = null;
-		readonly Dictionary<string, string> mapUpdates = new();
+		readonly Dictionary<string, string> mapUpdates = [];
 
 		string lastLoadedLastModifiedMap;
 
@@ -87,8 +87,6 @@ namespace OpenRA
 			if (!modData.Manifest.Contains<MapGrid>())
 				return;
 
-			var mapGrid = modData.Manifest.Get<MapGrid>();
-
 			// Enumerate map directories
 			foreach (var kv in modData.Manifest.MapFolders)
 			{
@@ -120,28 +118,29 @@ namespace OpenRA
 				}
 
 				mapLocations.Add(package, classification);
-				mapDirectoryTrackers.Add(new MapDirectoryTracker(mapGrid, package, classification));
+				mapDirectoryTrackers.Add(new MapDirectoryTracker(package, classification));
 			}
 
 			// PERF: Load the mod YAML once outside the loop, and reuse it when resolving each maps custom YAML.
 			var modDataRules = modData.GetRulesYaml();
+			var gridType = modData.Manifest.Get<MapGrid>().Type;
 			foreach (var kv in MapLocations)
 			{
 				foreach (var map in kv.Key.Contents)
-					LoadMapInternal(map, kv.Key, kv.Value, mapGrid, null, modDataRules);
+					LoadMapInternal(map, kv.Key, kv.Value, null, gridType, modDataRules);
 			}
 
 			// We only want to track maps in runtime, not at loadtime
 			LastModifiedMap = null;
 		}
 
-		public void LoadMap(string map, IReadOnlyPackage package, MapClassification classification, MapGrid mapGrid, string oldMap)
+		public void LoadMap(string map, IReadOnlyPackage package, MapClassification classification, string oldMap)
 		{
-			LoadMapInternal(map, package, classification, mapGrid, oldMap, null);
+			LoadMapInternal(map, package, classification, oldMap);
 		}
 
-		void LoadMapInternal(string map, IReadOnlyPackage package, MapClassification classification, MapGrid mapGrid, string oldMap,
-			IEnumerable<List<MiniYamlNode>> modDataRules)
+		void LoadMapInternal(string map, IReadOnlyPackage package, MapClassification classification, string oldMap,
+			MapGridType? gridType = null, MiniYamlNode[][] modDataRules = null)
 		{
 			IReadOnlyPackage mapPackage = null;
 			try
@@ -152,10 +151,8 @@ namespace OpenRA
 					if (mapPackage != null)
 					{
 						var uid = Map.ComputeUID(mapPackage);
-						previews[uid].UpdateFromMap(mapPackage, package, classification, modData.Manifest.MapCompatibility, mapGrid.Type, modDataRules);
-
-						// Freeing the package to save memory if there is a lot of Maps
-						previews[uid].DisposePackage();
+						previews[uid].UpdateFromMapWithoutOwningPackage(mapPackage, package, classification, gridType, modDataRules);
+						mapPackage.Dispose();
 
 						if (oldMap != uid)
 						{
@@ -246,37 +243,37 @@ namespace OpenRA
 				var stringPool = new HashSet<string>(); // Reuse common strings in YAML
 
 				// Limit each query to 50 maps at a time to avoid request size limits
-				for (var i = 0; i < queryUids.Count; i += 50)
+				foreach (var batchUids in queryUids.Chunk(50))
 				{
-					var batchUids = queryUids.Skip(i).Take(50).ToList();
 					var url = repositoryUrl + "hash/" + string.Join(",", batchUids) + "/yaml";
-					try
+					using (new PerfTimer("RemoteMapDetails"))
 					{
-						var httpResponseMessage = await client.GetAsync(url);
-						var result = await httpResponseMessage.Content.ReadAsStreamAsync();
-
-						var yaml = MiniYaml.FromStream(result, url, stringPool: stringPool);
-						foreach (var kv in yaml)
-							previews[kv.Key].UpdateRemoteSearch(MapStatus.DownloadAvailable, kv.Value, modData.Manifest.MapCompatibility, mapDetailsReceived);
-
-						foreach (var uid in batchUids)
+						try
 						{
-							var p = previews[uid];
-							if (p.Status != MapStatus.DownloadAvailable)
-								p.UpdateRemoteSearch(MapStatus.Unavailable, null, null);
+							var result = await client.GetStreamAsync(url);
+							var yaml = MiniYaml.FromStream(result, url, stringPool: stringPool);
+							foreach (var kv in yaml)
+								previews[kv.Key].UpdateRemoteSearch(MapStatus.DownloadAvailable, kv.Value, mapDetailsReceived);
+
+							foreach (var uid in batchUids)
+							{
+								var p = previews[uid];
+								if (p.Status != MapStatus.DownloadAvailable)
+									p.UpdateRemoteSearch(MapStatus.Unavailable, null, null);
+							}
 						}
-					}
-					catch (Exception e)
-					{
-						Log.Write("debug", "Remote map query failed with error:");
-						Log.Write("debug", e);
-						Log.Write("debug", $"URL was: {url}");
-
-						foreach (var uid in batchUids)
+						catch (Exception e)
 						{
-							var p = previews[uid];
-							p.UpdateRemoteSearch(MapStatus.Unavailable, null, null);
-							mapQueryFailed?.Invoke(p);
+							Log.Write("debug", "Remote map query failed with error:");
+							Log.Write("debug", e);
+							Log.Write("debug", $"URL was: {url}");
+
+							foreach (var uid in batchUids)
+							{
+								var p = previews[uid];
+								p.UpdateRemoteSearch(MapStatus.Unavailable, null, null);
+								mapQueryFailed?.Invoke(p);
+							}
 						}
 					}
 				}
@@ -343,7 +340,9 @@ namespace OpenRA
 			}
 
 			// Release the buffer by forcing changes to be written out to the texture, allowing the buffer to be reclaimed by GC.
-			Game.RunAfterTick(sheetBuilder.Current.ReleaseBuffer);
+			if (sheetBuilder.Current != null)
+				Game.RunAfterTick(sheetBuilder.Current.ReleaseBuffer);
+
 			Log.Write("debug", "MapCache.LoadAsyncInternal ended");
 		}
 

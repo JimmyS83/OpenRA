@@ -29,7 +29,7 @@ namespace OpenRA.Graphics
 			public IHardwareCursor[] Cursors;
 		}
 
-		readonly Dictionary<string, Cursor> cursors = new();
+		readonly Dictionary<string, Cursor> cursors = [];
 		readonly SheetBuilder sheetBuilder;
 		readonly GraphicSettings graphicSettings;
 
@@ -128,7 +128,7 @@ namespace OpenRA.Graphics
 				}
 			}
 
-			sheetBuilder.Current.ReleaseBuffer();
+			sheetBuilder.Current?.ReleaseBuffer();
 
 			hardwareCursorsDoubled = graphicSettings.CursorDouble;
 		}
@@ -233,7 +233,7 @@ namespace OpenRA.Graphics
 			var height = frame.Size.Height;
 
 			if (width == 0 || height == 0)
-				return Array.Empty<byte>();
+				return [];
 
 			var data = new byte[4 * width * height];
 			unsafe

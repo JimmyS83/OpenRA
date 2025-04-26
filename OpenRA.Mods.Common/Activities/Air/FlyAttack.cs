@@ -44,6 +44,7 @@ namespace OpenRA.Mods.Common.Activities
 			this.target = target;
 			this.forceAttack = forceAttack;
 			this.targetLineColor = targetLineColor;
+			ChildHasPriority = false;
 
 			aircraft = self.Trait<Aircraft>();
 			attackAircraft = self.Trait<AttackAircraft>();
@@ -74,6 +75,12 @@ namespace OpenRA.Mods.Common.Activities
 
 		public override bool Tick(Actor self)
 		{
+			if (!IsCanceling && !HasArmamentsFor(target))
+				Cancel(self, true);
+
+			if (!TickChild(self))
+				return false;
+
 			returnToBase = false;
 
 			// Refuse to take off if it would land immediately again.
@@ -198,6 +205,11 @@ namespace OpenRA.Mods.Common.Activities
 				if (!returnToBase || !attackAircraft.Info.AbortOnResupply)
 					yield return new TargetLineNode(useLastVisibleTarget ? lastVisibleTarget : target, targetLineColor.Value);
 			}
+		}
+
+		bool HasArmamentsFor(Target target)
+		{
+			return !attackAircraft.IsTraitDisabled && attackAircraft.ChooseArmamentsForTarget(target, forceAttack).Any();
 		}
 	}
 

@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Graphics;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -90,21 +89,21 @@ namespace OpenRA.Mods.Common.Traits
 			if (unitGroup.BaseActor != null)
 			{
 				var facing = unitGroup.BaseActorFacing ?? new WAngle(w.SharedRandom.Next(1024));
-				var baseActor = w.CreateActor(unitGroup.BaseActor.ToLowerInvariant(), new TypeDictionary
-				{
+				var baseActor = w.CreateActor(unitGroup.BaseActor.ToLowerInvariant(),
+				[
 					new LocationInit(p.HomeLocation + unitGroup.BaseActorOffset),
 					new OwnerInit(p),
 					new SkipMakeAnimsInit(),
 					new FacingInit(facing),
 					new SpawnedByMapInit(),
-				});
+				]);
 				var baseActorIsMovable =
 					(baseActor.OccupiesSpace is Mobile mobile && !mobile.IsTraitDisabled && !mobile.IsTraitPaused && !mobile.IsImmovable) ||
 					(baseActor.OccupiesSpace is Aircraft aircraft && !aircraft.IsTraitDisabled && !aircraft.IsTraitPaused && !aircraft.ForceLanding);
 				if (baseActorIsMovable)
 				{
 					// If the base is movable, we want support actors to be able to path to its location.
-					homeLocations = new[] { baseActor.Location };
+					homeLocations = [baseActor.Location];
 				}
 				else
 				{
@@ -117,7 +116,7 @@ namespace OpenRA.Mods.Common.Traits
 			else
 			{
 				// If there is no base actor, we want support actors to be able to path to the home location.
-				homeLocations = new[] { p.HomeLocation };
+				homeLocations = [p.HomeLocation];
 			}
 
 			var buildingSpawnCells = w.Map.FindTilesInAnnulus(p.HomeLocation, unitGroup.InnerBuildingRadius + 1, unitGroup.OuterBuildingRadius);
@@ -178,14 +177,14 @@ namespace OpenRA.Mods.Common.Traits
 				var subCell = ip.SharesCell ? w.ActorMap.FreeSubCell(validCell) : 0;
 				var facing = unitGroup.SupportActorsFacing ?? new WAngle(w.SharedRandom.Next(1024));
 
-				w.CreateActor(s.ToLowerInvariant(), new TypeDictionary
-				{
+				w.CreateActor(s.ToLowerInvariant(),
+				[
 					new OwnerInit(p),
 					new LocationInit(validCell),
 					new SubCellInit(subCell),
 					new FacingInit(facing),
 					new SpawnedByMapInit(),
-				});
+				]);
 			}
 
 			foreach (var pa in unitGroup.SupportProxyActors)

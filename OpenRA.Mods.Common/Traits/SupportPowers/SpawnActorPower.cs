@@ -16,7 +16,6 @@ using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Effects;
 using OpenRA.Mods.Common.Graphics;
 using OpenRA.Mods.Common.Orders;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -96,11 +95,11 @@ namespace OpenRA.Mods.Common.Traits
 					w.Add(new SpriteEffect(position, w, Info.EffectImage, Info.EffectSequence, palette));
 				}
 
-				var actor = w.CreateActor(Info.Actors.First(a => a.Key == level).Value, new TypeDictionary
-				{
+				var actor = w.CreateActor(Info.Actors.First(a => a.Key == level).Value,
+				[
 					new LocationInit(cell),
 					new OwnerInit(self.Owner),
-				});
+				]);
 
 				if (Info.LifeTime > -1)
 				{

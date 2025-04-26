@@ -20,7 +20,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 
 	public class Squad
 	{
-		public List<UnitWposWrapper> Units = new();
+		public List<UnitWposWrapper> Units = [];
 		public SquadType Type;
 
 		internal IBot Bot;
@@ -117,7 +117,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 			if (unitsNode != null)
 			{
 				foreach (var a in FieldLoader.GetValue<uint[]>("Units", unitsNode.Value.Value)
-					.Select(a => squadManager.World.GetActorById(a)))
+					.Select(squadManager.World.GetActorById))
 				{
 					squad.Units.Add(new UnitWposWrapper(a));
 				}

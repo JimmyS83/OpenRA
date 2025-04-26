@@ -7,6 +7,7 @@ Player:
 
 World:
 	-CrateSpawner:
+	-AutoSave:
 	-SpawnStartingUnits:
 	-MapStartingLocations:
 	ActorSpawnManager:
@@ -25,6 +26,10 @@ World:
 ^Building:
 	DamageMultiplier@UNKILLABLE:
 		Modifier: 0
+
+^Vehicle:
+	WithDecoration@CARRYALL:
+		RequiresSelection: true
 
 wall:
 	DamageMultiplier@UNKILLABLE:

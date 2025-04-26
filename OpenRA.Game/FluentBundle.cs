@@ -111,8 +111,7 @@ namespace OpenRA
 
 		public bool TryGetMessage(string key, out string value, object[] args = null)
 		{
-			if (key == null)
-				throw new ArgumentNullException(nameof(key));
+			ArgumentNullException.ThrowIfNull(key);
 
 			try
 			{
@@ -129,7 +128,7 @@ namespace OpenRA
 						throw new ArgumentException("Expected a comma separated list of name, value arguments " +
 							"but the number of arguments is not a multiple of two", nameof(args));
 
-					fluentArgs = new Dictionary<string, IFluentType>();
+					fluentArgs = [];
 					for (var i = 0; i < args.Length; i += 2)
 					{
 						var argKey = args[i] as string;

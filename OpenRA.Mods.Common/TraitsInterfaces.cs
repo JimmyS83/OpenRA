@@ -15,6 +15,7 @@ using OpenRA.Activities;
 using OpenRA.Graphics;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Graphics;
+using OpenRA.Mods.Common.MapGenerator;
 using OpenRA.Mods.Common.Terrain;
 using OpenRA.Mods.Common.Widgets;
 using OpenRA.Primitives;
@@ -974,5 +975,35 @@ namespace OpenRA.Mods.Common.Traits
 		/// If it returns true, there *might* be a path.
 		/// </remarks>
 		bool PathMightExistForLocomotorBlockedByImmovable(Locomotor locomotor, CPos source, CPos target);
+	}
+
+	public interface IEditorToolInfo : ITraitInfoInterface
+	{
+		string Label { get; }
+		string PanelWidget { get; }
+	}
+
+	public class MapGenerationException : Exception
+	{
+		public MapGenerationException(string message)
+			: base(message) { }
+		public MapGenerationException(string message, Exception inner)
+			: base(message, inner) { }
+	}
+
+	public interface IMapGeneratorSettings
+	{
+		List<MapGeneratorOption> Options { get; }
+
+		int PlayerCount { get; }
+
+		void Randomize(MersenneTwister random);
+
+		MapGenerationArgs Compile(ITerrainInfo terrainInfo, Size size);
+	}
+
+	public interface IEditorMapGeneratorInfo : IMapGeneratorInfo
+	{
+		IMapGeneratorSettings GetSettings();
 	}
 }

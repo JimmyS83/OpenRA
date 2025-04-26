@@ -25,6 +25,7 @@ namespace OpenRA
 	public interface ITerrainInfo
 	{
 		string Id { get; }
+		Size TileSize { get; }
 		TerrainTypeInfo[] TerrainTypes { get; }
 		TerrainTileInfo GetTerrainInfo(TerrainTile r);
 		bool TryGetTerrainInfo(TerrainTile r, out TerrainTileInfo info);
@@ -60,7 +61,7 @@ namespace OpenRA
 	{
 		public readonly string Type;
 		public readonly BitSet<TargetableType> TargetTypes;
-		public readonly HashSet<string> AcceptsSmudgeType = new();
+		public readonly HashSet<string> AcceptsSmudgeType = [];
 		public readonly Color Color;
 		public readonly bool RestrictPlayerColor = false;
 

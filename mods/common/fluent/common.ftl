@@ -17,7 +17,6 @@ notification-insufficient-enabled-spawn-points = Unable to start the game until 
 notification-malformed-command = Malformed { $command } command.
 notification-state-unchanged-ready = Cannot change state when marked as ready.
 notification-invalid-faction-selected = Invalid faction selected: { $faction }.
-notification-supported-factions = Supported values: { $factions }.
 notification-state-unchanged-game-started = State cannot be changed once the game has started ({ $command }).
 notification-requires-host = Only the host can do that.
 notification-invalid-bot-slot = Cannot add bots to a slot with another client.
@@ -205,6 +204,9 @@ label-chat-availability =
         [one] Chat available in { $seconds } second...
        *[other] Chat available in { $seconds } seconds...
     }
+
+## LobbyLogic, ServerListLogic
+label-bot-player = AI Player
 
 ## IngameMenuLogic
 menu-ingame =
@@ -407,6 +409,22 @@ checkbox-frame-limiter = Enable Frame Limiter ({ $fps } FPS)
 label-original-notice = The default is "{ $key }"
 label-duplicate-notice = This is already used for "{ $key }" in the { $context } context
 hotkey-context-any = Any
+
+## GameplaySettingsLogic
+auto-save-interval =
+    .disabled = Disabled
+    .options =
+        { $seconds ->
+            [one] 1 second
+           *[other] { $seconds } seconds
+        }
+    .minute-options =
+        { $minutes ->
+            [one] 1 minute
+           *[other] { $minutes } minutes
+        }
+
+auto-save-max-file-number = { $saves } saves
 
 ## InputSettingsLogic
 options-mouse-scroll-type =
@@ -1131,3 +1149,8 @@ keycode =
     .sleep = Sleep
     .mouse4 = Mouse 4
     .mouse5 = Mouse 5
+
+## MapGeneratorToolLogic
+label-map-generator-failed-cancel = Dismiss
+notification-map-generator-generated = Generated using { $name }
+notification-map-generator-failed = Map generation failed

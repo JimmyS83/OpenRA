@@ -22,11 +22,11 @@ namespace OpenRA.Mods.Common.Traits.Sound
 
 		[Desc("Initial delay (in ticks) before playing the sound for the first time.",
 			"Two values indicate a random delay range.")]
-		public readonly int[] Delay = { 0 };
+		public readonly int[] Delay = [0];
 
 		[Desc("Interval between playing the sound (in ticks).",
 			"Two values indicate a random delay range.")]
-		public readonly int[] Interval = { 0 };
+		public readonly int[] Interval = [0];
 
 		[Desc("Do the sounds play under shroud or fog.")]
 		public readonly bool AudibleThroughFog = false;
@@ -40,7 +40,7 @@ namespace OpenRA.Mods.Common.Traits.Sound
 	sealed class AmbientSound : ConditionalTrait<AmbientSoundInfo>, ITick, INotifyRemovedFromWorld
 	{
 		readonly bool loop;
-		readonly HashSet<ISound> currentSounds = new();
+		readonly HashSet<ISound> currentSounds = [];
 		WPos cachedPosition;
 		int delay;
 

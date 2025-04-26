@@ -276,6 +276,7 @@ World:
 	LoadWidgetAtGameStart:
 	ScriptTriggers:
 	CellTriggerOverlay:
+	AutoSave:
 	TimeLimitManager:
 		TimeLimitDisplayOrder: 2
 		TimeLimitWarnings:
@@ -318,3 +319,4 @@ EditorWorld:
 	BuildableTerrainOverlay:
 		AllowedTerrainTypes: Clear, Road
 	MarkerLayerOverlay:
+	Inherits@MapGenerators: ^MapGenerators

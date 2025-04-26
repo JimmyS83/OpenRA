@@ -29,7 +29,7 @@ namespace OpenRA.Mods.Common.Traits
 	public class BuildingInfo : TraitInfo, IOccupySpaceInfo, IPlaceBuildingDecorationInfo
 	{
 		[Desc("Where you are allowed to place the building (Water, Clear, ...)")]
-		public readonly HashSet<string> TerrainTypes = new();
+		public readonly HashSet<string> TerrainTypes = [];
 
 		[Desc("Terrain that the building can be placed on, but not at the same time with ones defined under `TerrainTypes`.")]
 		public readonly HashSet<string> SecondaryTerrainTypes = new();
@@ -59,9 +59,9 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Clear smudges from underneath the building footprint on transform.")]
 		public readonly bool RemoveSmudgesOnTransform = true;
 
-		public readonly string[] BuildSounds = Array.Empty<string>();
+		public readonly string[] BuildSounds = [];
 
-		public readonly string[] UndeploySounds = Array.Empty<string>();
+		public readonly string[] UndeploySounds = [];
 
 		[Desc("Do the sounds play under shroud or fog.")]
 		public readonly bool AudibleThroughFog = false;
@@ -74,7 +74,7 @@ namespace OpenRA.Mods.Common.Traits
 		protected static object LoadFootprint(MiniYaml yaml)
 		{
 			var footprintYaml = yaml.NodeWithKeyOrDefault("Footprint");
-			var footprintChars = footprintYaml?.Value.Value.Where(x => !char.IsWhiteSpace(x)).ToArray() ?? new[] { 'x' };
+			var footprintChars = footprintYaml?.Value.Value.Where(x => !char.IsWhiteSpace(x)).ToArray() ?? ['x'];
 
 			var dimensionsYaml = yaml.NodeWithKeyOrDefault("Dimensions");
 			var dim = dimensionsYaml != null ? FieldLoader.GetValue<CVec>("Dimensions", dimensionsYaml.Value.Value) : new CVec(1, 1);

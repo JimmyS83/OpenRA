@@ -29,12 +29,12 @@ namespace OpenRA.Mods.Common.Activities
 		readonly Color? targetLineColor;
 
 		static readonly BlockedByActor[] PathSearchOrder =
-		{
+		[
 			BlockedByActor.All,
 			BlockedByActor.Stationary,
 			BlockedByActor.Immovable,
 			BlockedByActor.None
-		};
+		];
 
 		int carryoverProgress;
 		int lastMovePartCompletedTick;
@@ -67,7 +67,7 @@ namespace OpenRA.Mods.Common.Activities
 					return (true, PathFinder.NoPath);
 
 				return (false, mobile.PathFinder.FindPathToTargetCell(
-					self, new[] { mobile.ToCell }, destination, check, laneBias: false));
+					self, [mobile.ToCell], destination, check, laneBias: false));
 			};
 
 			this.destination = destination;
@@ -92,7 +92,7 @@ namespace OpenRA.Mods.Common.Activities
 					return (true, PathFinder.NoPath);
 
 				return (false, mobile.PathFinder.FindPathToTargetCell(
-					self, new[] { mobile.ToCell }, this.destination.Value, check, ignoreActor: ignoreActor));
+					self, [mobile.ToCell], this.destination.Value, check, ignoreActor: ignoreActor));
 			};
 
 			// Note: Will be recalculated from OnFirstRun if evaluateNearestMovableCell is true
@@ -385,7 +385,7 @@ namespace OpenRA.Mods.Common.Activities
 			if (path != null)
 				return Enumerable.Reverse(path).Select(c => Target.FromCell(self.World, c));
 			if (destination != null)
-				return new Target[] { Target.FromCell(self.World, destination.Value) };
+				return [Target.FromCell(self.World, destination.Value)];
 			return Target.None;
 		}
 

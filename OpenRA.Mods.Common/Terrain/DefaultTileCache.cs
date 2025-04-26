@@ -19,23 +19,11 @@ using OpenRA.Support;
 
 namespace OpenRA.Mods.Common.Terrain
 {
-	public class TheaterTemplate
-	{
-		public readonly Sprite[] Sprites;
-		public readonly int Stride;
-		public readonly int Variants;
-
-		public TheaterTemplate(Sprite[] sprites, int stride, int variants)
-		{
-			Sprites = sprites;
-			Stride = stride;
-			Variants = variants;
-		}
-	}
+	public record TheaterTemplate(Sprite[] Sprites, int Stride, int Variants);
 
 	public sealed class DefaultTileCache : IDisposable
 	{
-		readonly Dictionary<ushort, TheaterTemplate> templates = new();
+		readonly Dictionary<ushort, TheaterTemplate> templates = [];
 		readonly Cache<SheetType, SheetBuilder> sheetBuilders;
 		readonly MersenneTwister random;
 
@@ -157,7 +145,7 @@ namespace OpenRA.Mods.Common.Terrain
 
 			MissingTile = sheetBuilders[missingSheetType].Add(new byte[missingDataLength], missingFrameType, new Size(1, 1));
 			foreach (var sb in sheetBuilders.Values)
-				sb.Current.ReleaseBuffer();
+				sb.Current?.ReleaseBuffer();
 		}
 
 		public bool HasTileSprite(TerrainTile r, int? variant = null)
