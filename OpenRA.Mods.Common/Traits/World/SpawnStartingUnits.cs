@@ -135,13 +135,13 @@ namespace OpenRA.Mods.Common.Traits
 				var cell = validCells.Random(w.SharedRandom);
 				var facing = unitGroup.SupportActorsFacing ?? new WAngle(w.SharedRandom.Next(1024));
 
-				w.CreateActor(b.ToLowerInvariant(), new TypeDictionary
-				{
+				w.CreateActor(b.ToLowerInvariant(),
+				[
 					new OwnerInit(p),
 					new LocationInit(cell),
 					new SkipMakeAnimsInit(),
 					new FacingInit(facing)
-				});
+				]);
 			}
 
 			var supportSpawnCells = w.Map
@@ -189,10 +189,10 @@ namespace OpenRA.Mods.Common.Traits
 
 			foreach (var pa in unitGroup.SupportProxyActors)
 			{
-				w.CreateActor(pa.ToLowerInvariant(), new TypeDictionary
-				{
+				w.CreateActor(pa.ToLowerInvariant(),
+				[
 					new OwnerInit(p)
-				});
+				]);
 			}
 		}
 	}

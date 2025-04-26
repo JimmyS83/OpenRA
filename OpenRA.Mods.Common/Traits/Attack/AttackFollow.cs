@@ -456,7 +456,7 @@ namespace OpenRA.Mods.Common.Traits
 
 			bool HasArmamentsFor(Target target)
 			{
-				return !attack.IsTraitDisabled && attack.ChooseArmamentsForTarget(target, forceAttack).Any();
+				return attacks.Any(a => !a.IsTraitDisabled && a.ChooseArmamentsForTarget(target, forceAttack).Any());
 			}
 		}
 	}

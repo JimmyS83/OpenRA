@@ -40,10 +40,10 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly string[] SupportActors = [];
 
 		[Desc("A group of buildings ready to work.")]
-		public readonly string[] SupportBuildings = Array.Empty<string>();
+		public readonly string[] SupportBuildings = [];
 
 		[Desc("A group of proxy actors that will be at the start.")]
-		public readonly string[] SupportProxyActors = Array.Empty<string>();
+		public readonly string[] SupportProxyActors = [];
 
 		[Desc("Inner radius for spawning support actors")]
 		public readonly int InnerSupportRadius = 2;

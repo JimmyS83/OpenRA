@@ -229,6 +229,7 @@ namespace OpenRA.Mods.Cnc.Traits
 
 						foreach (var nd in notifiers)
 							nd.DisguiseChanged(self, target);
+					}
 				}
 			}
 			else

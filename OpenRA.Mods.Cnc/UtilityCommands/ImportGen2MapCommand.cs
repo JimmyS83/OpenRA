@@ -71,9 +71,6 @@ namespace OpenRA.Mods.Cnc.UtilityCommands
 			var tileset = mapSection.GetValue("Theater", "");
 			var iniSize = mapSection.GetValue("Size", "0, 0, 0, 0").Split(',').Select(int.Parse).ToArray();
 			var iniBounds = mapSection.GetValue("LocalSize", "0, 0, 0, 0").Split(',').Select(int.Parse).ToArray();
-			var author = args.Length > 2
-				? args[2]
-				: "Westwood Studios";
 
 			if (!utility.ModData.DefaultTerrainInfo.TryGetValue(tileset, out var terrainInfo))
 				throw new InvalidDataException($"Unknown tileset {tileset}");
