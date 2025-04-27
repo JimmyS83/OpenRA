@@ -44,7 +44,7 @@ namespace OpenRA.Mods.Common.Traits
 		protected override void TraitEnabled(Actor self) { PlayerPower.UpdateActor(self); }
 		protected override void TraitDisabled(Actor self) { PlayerPower.UpdateActor(self); }
 
-		void INotifyCreated.Created(Actor self) { self.World.AddFrameEndTask(_ => PlayerPower.UpdateActor(self)); }
+		void INotifyCreated.Created(Actor self) { PlayerPower.UpdateActor(self); }
 		void INotifyActorDisposing.Disposing(Actor self) { PlayerPower.RemoveActor(self); }
 
 		void INotifyOwnerChanged.OnOwnerChanged(Actor self, Player oldOwner, Player newOwner)
