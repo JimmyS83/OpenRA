@@ -588,7 +588,8 @@ namespace OpenRA
 		public int RevokeCondition(int token)
 		{
 			if (!conditionTokens.TryGetValue(token, out var condition))
-				throw new InvalidOperationException($"Attempting to revoke condition with invalid token {token} for {this}.");
+				return InvalidConditionToken;
+			// throw new InvalidOperationException($"Attempting to revoke condition with invalid token {token} for {this}.");
 
 			conditionTokens.Remove(token);
 			UpdateConditionState(condition, token, true);
