@@ -267,15 +267,15 @@ namespace OpenRA.Mods.AS.Traits
 				foreach (var a in actorswithpower)
 				{
 					yield return Tuple.Create(a.Trait,
-						a.Trait.Armaments.Where(x => !x.IsTraitDisabled).Min(x => x.Weapon.MinRange),
-						a.Trait.Armaments.Where(x => !x.IsTraitDisabled).Max(x => x.Weapon.Range));
+						a.Trait.Armaments.Min(x => x.Weapon.MinRange),
+						a.Trait.Armaments.Max(x => x.Weapon.Range));
 				}
 			}
 			else
 			{
 				yield return Tuple.Create(power,
-					power.Armaments.Where(x => !x.IsTraitDisabled).Min(a => a.Weapon.MinRange),
-					power.Armaments.Where(x => !x.IsTraitDisabled).Max(a => a.Weapon.Range));
+					power.Armaments.Min(a => a.Weapon.MinRange),
+					power.Armaments.Max(a => a.Weapon.Range));
 			}
 		}
 
