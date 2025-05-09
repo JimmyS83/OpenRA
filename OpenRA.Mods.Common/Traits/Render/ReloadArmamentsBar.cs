@@ -22,6 +22,9 @@ namespace OpenRA.Mods.Common.Traits.Render
 		[Desc("Armament names")]
 		public readonly string[] Armaments = { "primary", "secondary" };
 
+		[Desc("Armament names")]
+		public readonly bool ShowMaxReloadTime = false;
+
 		public readonly Color Color = Color.Red;
 
 		public override object Create(ActorInitializer init) { return new ReloadArmamentsBar(init.Self, this); }
@@ -50,7 +53,7 @@ namespace OpenRA.Mods.Common.Traits.Render
 			if (!self.Owner.IsAlliedWith(self.World.RenderPlayer))
 				return 0;
 
-			return armaments.Min(a => a.FireDelay / (float)a.Weapon.ReloadDelay);
+			return info.ShowMaxReloadTime ? armaments.Max(a => a.FireDelay / (float)a.Weapon.ReloadDelay) : armaments.Min(a => a.FireDelay / (float)a.Weapon.ReloadDelay);
 		}
 
 		Color ISelectionBar.GetColor() { return info.Color; }
