@@ -140,6 +140,8 @@ namespace OpenRA.Mods.Common.Traits
 		int realignTick = 0;
 		bool realignDesired;
 
+		IEnumerable<int> turnSpeedModifiers;
+
 		public WRot WorldOrientation
 		{
 			get
@@ -174,6 +176,7 @@ namespace OpenRA.Mods.Common.Traits
 			attack = self.TraitsImplementing<AttackTurreted>().SingleOrDefault(at => ((AttackTurretedInfo)at.Info).Turrets.Contains(Info.Turret));
 			facing = self.TraitOrDefault<IFacing>();
 			body = self.Trait<BodyOrientation>();
+			turnSpeedModifiers = self.TraitsImplementing<ITurretTurnSpeedModifier>().ToArray().Select(m => m.GetTurretTurnSpeedModifier(Info.Turret));
 		}
 
 		void ITick.Tick(Actor self)
@@ -241,7 +244,8 @@ namespace OpenRA.Mods.Common.Traits
 			if (desired == LocalOrientation.Yaw)
 				return;
 
-			LocalOrientation = LocalOrientation.WithYaw(Util.TickFacing(LocalOrientation.Yaw, desired, Info.TurnSpeed));
+			var turnSpeed = new WAngle(Util.ApplyPercentageModifiers(Info.TurnSpeed.Angle, turnSpeedModifiers));
+			LocalOrientation = LocalOrientation.WithYaw(Util.TickFacing(LocalOrientation.Yaw, desired, turnSpeed));
 
 			if (desired == LocalOrientation.Yaw)
 			{

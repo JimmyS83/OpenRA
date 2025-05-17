@@ -451,6 +451,9 @@ namespace OpenRA.Mods.Common.Traits
 	public interface ITurnSpeedModifier { int GetTurnSpeedModifier(); }
 
 	[RequireExplicitImplementation]
+	public interface ITurretTurnSpeedModifier { int GetTurretTurnSpeedModifier(string turretName); }
+
+	[RequireExplicitImplementation]
 	public interface IFirepowerModifier { int GetFirepowerModifier(string armamentName); }
 
 	[RequireExplicitImplementation]
