@@ -57,8 +57,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				nameLabel.GetText = () => sp.Name;
 				var nameSize = nameFont.Measure(sp.Name);
 
-				descLabel.GetText = () => sp.Description;
-				var descSize = descFont.Measure(sp.Description);
+				descLabel.GetText = () => sp.Description.Replace("\\n", "\n");
+				var descSize = descFont.Measure(sp.Description.Replace("\\n", "\n"));
 
 				var timeText = sp.TooltipTimeTextOverride();
 				if (timeText == null)
