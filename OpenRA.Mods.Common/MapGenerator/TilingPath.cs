@@ -31,7 +31,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 			/// Direction to use for this terminal.
 			/// If the direction here is null, it will be determined automatically later.
 			/// </summary>
-			public int? Direction;
+			public Direction? Direction;
 
 			/// <summary>
 			/// A string which can match the format used by MultiBrushSegment's Start or End.
@@ -42,11 +42,11 @@ namespace OpenRA.Mods.Common.MapGenerator
 				{
 					var direction =
 						Direction ?? throw new InvalidOperationException("Direction is null");
-					return $"{Type}.{MapGenerator.Direction.ToString(direction)}";
+					return $"{Type}.{direction}";
 				}
 			}
 
-			public Terminal(string type, int? direction)
+			public Terminal(string type, Direction? direction)
 			{
 				Type = type;
 				Direction = direction;
@@ -107,6 +107,25 @@ namespace OpenRA.Mods.Common.MapGenerator
 					FindSegments(multiBrushes, terminalTypesArray, innerTypesArray, innerTypesArray),
 					FindSegments(multiBrushes, innerTypesArray),
 					FindSegments(multiBrushes, innerTypesArray, innerTypesArray, terminalTypesArray));
+			}
+
+			/// <summary>
+			/// Creates a PermittedSegments suitable for a path with given inner and terminal types
+			/// at the start and end.
+			/// </summary>
+			public static PermittedSegments FromTypes(
+				IReadOnlyList<MultiBrush> multiBrushes,
+				IEnumerable<string> startTypes,
+				IEnumerable<string> innerTypes,
+				IEnumerable<string> endTypes)
+			{
+				var startTypesArray = startTypes.ToImmutableArray();
+				var innerTypesArray = innerTypes.ToImmutableArray();
+				var endTypesArray = endTypes.ToImmutableArray();
+				return new(
+					FindSegments(multiBrushes, startTypesArray, innerTypesArray, innerTypesArray),
+					FindSegments(multiBrushes, innerTypesArray),
+					FindSegments(multiBrushes, innerTypesArray, innerTypesArray, endTypesArray));
 			}
 
 			/// <summary>
@@ -222,6 +241,53 @@ namespace OpenRA.Mods.Common.MapGenerator
 			Brushes = permittedTemplates;
 		}
 
+		/// <summary>
+		/// Convenience method to create TilingPaths using common settings.
+		/// Start and end terminal types are the same.
+		/// PermittedSegments are derived from brushes and inner/terminal types.
+		/// Loops will automatically use only the inner type.
+		/// Uses automatic end deviation and loop optimization.
+		/// </summary>
+		public static TilingPath QuickCreate(
+			Map map,
+			IReadOnlyList<MultiBrush> brushes,
+			CPos[] points,
+			int maxDeviation,
+			string innerSegmentType,
+			string terminalSegmentType)
+		{
+			var nonLoopedRoadPermittedTemplates =
+				PermittedSegments.FromInnerAndTerminalTypes(
+					brushes, [innerSegmentType], [terminalSegmentType]);
+			var loopedRoadPermittedTemplates =
+				PermittedSegments.FromType(brushes, [innerSegmentType]);
+
+			var isLoop = points[0] == points[^1];
+			TilingPath path;
+			if (isLoop)
+				path = new TilingPath(
+					map,
+					points,
+					maxDeviation,
+					innerSegmentType,
+					innerSegmentType,
+					loopedRoadPermittedTemplates);
+			else
+				path = new TilingPath(
+					map,
+					points,
+					maxDeviation,
+					terminalSegmentType,
+					terminalSegmentType,
+					nonLoopedRoadPermittedTemplates);
+
+			path
+				.SetAutoEndDeviation()
+				.OptimizeLoop();
+
+			return path;
+		}
+
 		sealed class TilingSegment
 		{
 			public readonly MultiBrush MultiBrush;
@@ -230,9 +296,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 			public readonly CVec Offset;
 			public readonly CVec Moves;
 			public readonly CVec[] RelativePoints;
-			public readonly int[] Directions;
-			public readonly int[] DirectionMasks;
-			public readonly int[] ReverseDirectionMasks;
+			public readonly Direction EndDirection;
 
 			public TilingSegment(MultiBrush multiBrush, int startId, int endId)
 			{
@@ -244,23 +308,13 @@ namespace OpenRA.Mods.Common.MapGenerator
 				RelativePoints = multiBrush.Segment.Points
 					.Select(p => p - multiBrush.Segment.Points[0])
 					.ToArray();
+				EndDirection = multiBrush.Segment.EndDirection;
 
-				Directions = new int[RelativePoints.Length];
-				DirectionMasks = new int[RelativePoints.Length];
-				ReverseDirectionMasks = new int[RelativePoints.Length];
-
-				// Last point has no direction.
-				Directions[^1] = Direction.None;
-				DirectionMasks[^1] = 0;
-				ReverseDirectionMasks[^1] = 0;
 				for (var i = 0; i < RelativePoints.Length - 1; i++)
 				{
-					var direction = Direction.FromCVec(RelativePoints[i + 1] - RelativePoints[i]);
+					var direction = DirectionExts.FromCVec(RelativePoints[i + 1] - RelativePoints[i]);
 					if (direction == Direction.None)
 						throw new ArgumentException("MultiBrushSegment has duplicate points in sequence");
-					Directions[i] = direction;
-					DirectionMasks[i] = 1 << direction;
-					ReverseDirectionMasks[i] = 1 << Direction.Reverse(direction);
 				}
 			}
 		}
@@ -304,6 +358,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 			// order for a transition to be allowed at all, it must satisfy some constraints:
 			//
 			// - It must not regress backward along the path (but no immediate progress is OK).
+			// - If it makes exactly zero progress, it must end facing towards increasing progress.
 			// - It must not deviate at any point in the segment beyond MaxDeviation from the path.
 			// - It must not skip to much later path points (which may be within MaxDeviation).
 			//
@@ -330,8 +385,8 @@ namespace OpenRA.Mods.Common.MapGenerator
 
 			var start = Start;
 			var end = End;
-			start.Direction ??= Direction.FromCVec(Points[1] - Points[0]);
-			end.Direction ??= Direction.FromCVec(IsLoop ? Points[1] - Points[0] : Points[^1] - Points[^2]);
+			start.Direction ??= DirectionExts.FromCVec(Points[1] - Points[0]);
+			end.Direction ??= DirectionExts.FromCVec(IsLoop ? Points[1] - Points[0] : Points[^1] - Points[^2]);
 
 			var maxSkip = MaxSkip > 0 ? MaxSkip : (2 * MaxDeviation + 1);
 
@@ -453,7 +508,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 
 					lows.Clear();
 					highs.Clear();
-					foreach (var offset in Direction.Spread8)
+					foreach (var offset in DirectionExts.Spread8)
 					{
 						var neighbor = xy + offset;
 						if (!deviations.ContainsXY(neighbor) ||
@@ -483,7 +538,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 					size,
 					progressSeeds,
 					ProgressFiller,
-					Direction.Spread8);
+					DirectionExts.Spread8);
 
 				var separationSeeds = new List<(int2, int)>();
 
@@ -502,7 +557,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 
 						if (MinSeparation > 0)
 						{
-							foreach (var offset in Direction.Spread8)
+							foreach (var offset in DirectionExts.Spread8)
 							{
 								var neighbor = xy + offset;
 								if (!deviations.ContainsXY(neighbor) ||
@@ -534,7 +589,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 					size,
 					separationSeeds,
 					SeparationFiller,
-					Direction.Spread8);
+					DirectionExts.Spread8);
 			}
 
 			var pathStart = points[0];
@@ -604,8 +659,10 @@ namespace OpenRA.Mods.Common.MapGenerator
 				return (typeId, new CVec(xy % size.X, xy / size.X), priority);
 			}
 
-			var pathStartTypeId = segmentTypeToId[start.SegmentType];
-			var pathEndTypeId = segmentTypeToId[end.SegmentType];
+			if (!segmentTypeToId.TryGetValue(start.SegmentType, out var pathStartTypeId))
+				return null;
+			if (!segmentTypeToId.TryGetValue(end.SegmentType, out var pathEndTypeId))
+				return null;
 
 			// Lower (closer to zero) costs are better matches.
 			// MaxScore means totally unacceptable.
@@ -665,6 +722,24 @@ namespace OpenRA.Mods.Common.MapGenerator
 				{
 					// Fails progression rule.
 					return MaxCost;
+				}
+
+				// If it's a zero-progress segment without deviation, only allow it if it directs
+				// towards a positive progression.
+				if (lowProgressionAcc == 0 && highProgressionAcc == 0)
+				{
+					var point = to;
+					var pointNext = to + segment.EndDirection.ToCVec();
+					if (!deviations.ContainsXY(pointNext.X, pointNext.Y) || deviations[pointNext.X, pointNext.Y] == OverDeviation)
+					{
+						// Projected point escapes bounds or is in an excluded position.
+						return MaxCost;
+					}
+
+					lowProgressionAcc = Progress(lowProgress[point.X, point.Y], lowProgress[pointNext.X, pointNext.Y]);
+					highProgressionAcc = Progress(highProgress[point.X, point.Y], highProgress[pointNext.X, pointNext.Y]);
+					if (lowProgressionAcc < 0 || highProgressionAcc < 0 || (lowProgressionAcc == 0 && highProgressionAcc == 0))
+						return MaxCost;
 				}
 
 				// Satisfies all requirements.
@@ -782,7 +857,10 @@ namespace OpenRA.Mods.Common.MapGenerator
 				}
 
 				Debug.Assert(candidates.Count >= 1, "TraceBack didn't find an original route");
-				var chosenSegment = candidates[random.Next(candidates.Count)];
+				var weights = candidates
+					.Select(c => c.MultiBrush.Weight)
+					.ToArray();
+				var chosenSegment = candidates[random.PickWeighted(weights)];
 				var chosenFrom = to - chosenSegment.Moves;
 				compositeBrush.MergeFrom(
 					chosenSegment.MultiBrush,
@@ -840,7 +918,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 						fallbackDistances.Size,
 						[(new int2(maxEndDeviation, maxEndDeviation), 0)],
 						FallbacksFiller,
-						Direction.Spread4);
+						DirectionExts.Spread4);
 
 					var bestDistance = fallbackDistances.Data.Min();
 					if (bestDistance == Unreached || bestDistance == Unsolved)
@@ -872,7 +950,7 @@ namespace OpenRA.Mods.Common.MapGenerator
 				(to, toTypeId) = TraceBackStep(to, toTypeId, true);
 
 				// No need to check direction. If that is an issue, I have bigger problems to worry about.
-				while (to != pathStart)
+				while (to != pathStart || toTypeId != pathStartTypeId)
 					(to, toTypeId) = TraceBackStep(to, toTypeId, false);
 			}
 
@@ -922,17 +1000,17 @@ namespace OpenRA.Mods.Common.MapGenerator
 
 			if (inertialRange > points.Length - 1)
 				inertialRange = points.Length - 1;
-			var sd = Direction.FromCVecNonDiagonal(points[inertialRange] - points[0]);
-			var ed = Direction.FromCVecNonDiagonal(points[^1] - points[^(inertialRange + 1)]);
+			var sd = DirectionExts.FromCVecNonDiagonal(points[inertialRange] - points[0]);
+			var ed = DirectionExts.FromCVecNonDiagonal(points[^1] - points[^(inertialRange + 1)]);
 			var newPoints = new CPos[points.Length + extensionLength * 2];
 
 			for (var i = 0; i < extensionLength; i++)
-				newPoints[i] = points[0] - Direction.ToCVec(sd) * (extensionLength - i);
+				newPoints[i] = points[0] - sd.ToCVec() * (extensionLength - i);
 
 			Array.Copy(points, 0, newPoints, extensionLength, points.Length);
 
 			for (var i = 0; i < extensionLength; i++)
-				newPoints[extensionLength + points.Length + i] = points[^1] + Direction.ToCVec(ed) * (i + 1);
+				newPoints[extensionLength + points.Length + i] = points[^1] + ed.ToCVec() * (i + 1);
 
 			return newPoints;
 		}
@@ -1320,13 +1398,53 @@ namespace OpenRA.Mods.Common.MapGenerator
 			for (var i = 1; i < points.Length; i++)
 			{
 				var offset = lastPoint - points[i];
-				if (Direction.ToCVec(Direction.FromCVecNonDiagonal(offset)) != offset)
+				if (DirectionExts.FromCVecNonDiagonal(offset).ToCVec() != offset)
 					return false;
 
 				lastPoint = points[i];
 			}
 
 			return true;
+		}
+
+		/// <summary>Applies StraightenEndsPathPoints to this TilingPath, returning this.</summary>
+		public TilingPath StraightenEnds(
+			int shrink,
+			int grow,
+			int minimumLength,
+			int growthInertialRange)
+		{
+			Points = StraightenEndsPathPoints(
+				Points,
+				CellLayerUtils.CellBounds(Map),
+				shrink,
+				grow,
+				minimumLength,
+				growthInertialRange);
+			return this;
+		}
+
+		/// <summary>
+		/// Straighten the start and end of a path by shrinking and regrowing a straight section.
+		/// </summary>
+		/// <param name="points">Points of the path.</param>
+		/// <param name="bounds">Map bounds, used to identify paths touching edges.</param>
+		/// <param name="shrink">Distance to shrink path ends (before regrowing them).</param>
+		/// <param name="grow">Distance to regrow path ends with straightening (after shrinking).</param>
+		/// <param name="minimumLength">The minimum length (after shrinking, before growth) that paths may be.</param>
+		/// <param name="growthInertialRange">How many points are used to decide the regrowth direction.</param>
+		public static CPos[] StraightenEndsPathPoints(
+			CPos[] points,
+			Rectangle bounds,
+			int shrink,
+			int grow,
+			int minimumLength,
+			int growthInertialRange)
+		{
+			points = ExtendEdgePathPoints(points, bounds, 2 * shrink + minimumLength);
+			points = ShrinkPathPoints(points, shrink, minimumLength);
+			points = InertiallyExtendPathPoints(points, grow, growthInertialRange);
+			return points;
 		}
 
 		/// <summary>Set MaxEndDeviation.</summary>

@@ -15,11 +15,20 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.Common.Traits
 {
 	[TraitLocation(SystemActors.Player)]
-	[Desc("Plays an audio notification and shows a radar ping when a building is attacked.",
+	[Desc("Plays an audio notification and shows a radar ping when attacked.",
 		"Attach this to the player actor.")]
-	public class BaseAttackNotifierInfo : TraitInfo
+	public class DamageNotifierInfo : TraitInfo
 	{
-		[Desc("Minimum duration (in milliseconds) between notification events.")]
+		[Desc("Target types to notify about.",
+			"Leave empty to notify about all target types.")]
+		public readonly BitSet<TargetableType> ValidTargets = default;
+		[Desc("Target types to ignore.",
+			"This overrides ValidTargets.",
+			"Leave empty to notify about all target types.")]
+		public readonly BitSet<TargetableType> InvalidTargets = default;
+
+		[Desc("Minimum duration (in milliseconds) between notification events.",
+			"Set to -1 to make notifications to play only once.")]
 		public readonly int NotifyInterval = 30000;
 
 		[Desc("Ping radar on the damaged actor's location.")]
@@ -32,7 +41,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[NotificationReference("Speech")]
 		[Desc("Speech notification type to play.")]
-		public readonly string Notification = "BaseAttack";
+		public readonly string Notification = null;
 
 		[FluentReference(optional: true)]
 		[Desc("Text notification to display.")]
@@ -47,24 +56,20 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Text notification to display to allies when under attack.")]
 		public readonly string AllyTextNotification = null;
 
-		[Desc("Trigger the notification for non-buildings only.")]
-		public readonly bool RevertUnitTypes = false;
-
-		public override object Create(ActorInitializer init) { return new BaseAttackNotifier(init.Self, this); }
+		public override object Create(ActorInitializer init) { return new DamageNotifier(init.Self, this); }
 	}
 
-	public class BaseAttackNotifier : INotifyDamage
+	public class DamageNotifier : INotifyDamage
 	{
 		readonly RadarPings radarPings;
-		readonly BaseAttackNotifierInfo info;
+		readonly DamageNotifierInfo info;
 
-		long lastAttackTime;
+		long nextActiveTick = 0;
 
-		public BaseAttackNotifier(Actor self, BaseAttackNotifierInfo info)
+		public DamageNotifier(Actor self, DamageNotifierInfo info)
 		{
 			radarPings = self.World.WorldActor.TraitOrDefault<RadarPings>();
 			this.info = info;
-			lastAttackTime = -info.NotifyInterval;
 		}
 
 		void INotifyDamage.Damaged(Actor self, AttackInfo e)
@@ -83,17 +88,24 @@ namespace OpenRA.Mods.Common.Traits
 			if (e.Attacker == self.World.WorldActor)
 				return;
 
-			if ((!info.RevertUnitTypes && !self.Info.HasTraitInfo<BuildingInfo>())
-				|| (info.RevertUnitTypes && self.Info.HasTraitInfo<BuildingInfo>()))
+			if (!info.ValidTargets.IsEmpty && !self.GetEnabledTargetTypes().Overlaps(info.ValidTargets))
+				return;
+
+			if (!info.InvalidTargets.IsEmpty && self.GetEnabledTargetTypes().Overlaps(info.InvalidTargets))
 				return;
 
 			if (e.Attacker.Owner.IsAlliedWith(self.Owner) && e.Damage.Value <= 0)
 				return;
 
-			if (Game.RunTime > lastAttackTime + info.NotifyInterval)
+			if (Game.RunTime >= nextActiveTick)
 			{
-				var rules = self.World.Map.Rules;
+				var visible = self.Owner.IsAlliedWith(self.World.RenderPlayer);
+				if (info.PingRadar)
+					radarPings?.Add(() => visible, self.CenterPosition, info.RadarPingColor, info.RadarPingDuration);
+				if (!visible)
+					return;
 
+				var rules = self.World.Map.Rules;
 				if (self.Owner == localPlayer)
 				{
 					if (!string.IsNullOrEmpty(info.Notification))
@@ -107,10 +119,9 @@ namespace OpenRA.Mods.Common.Traits
 					TextNotificationsManager.AddTransientLine(localPlayer, info.AllyTextNotification);
 				}
 
-				if (info.PingRadar)
-					radarPings?.Add(() => self.Owner.IsAlliedWith(self.World.RenderPlayer), self.CenterPosition, info.RadarPingColor, info.RadarPingDuration);
-
-				lastAttackTime = Game.RunTime;
+				nextActiveTick = Game.RunTime + info.NotifyInterval;
+				if (info.NotifyInterval < 0 || nextActiveTick < 0) // Notify once if NotifyInterval is negative or correct overflow
+					nextActiveTick = long.MaxValue;
 			}
 		}
 	}

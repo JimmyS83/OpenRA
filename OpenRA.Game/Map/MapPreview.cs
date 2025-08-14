@@ -26,7 +26,7 @@ using OpenRA.Support;
 
 namespace OpenRA
 {
-	public enum MapStatus { Available, Unavailable, Searching, DownloadAvailable, Downloading, DownloadError }
+	public enum MapStatus { Available, Unavailable, Searching, DownloadAvailable, Downloading, DownloadError, Generating }
 
 	// Used for grouping maps in the UI
 	[Flags]
@@ -35,7 +35,8 @@ namespace OpenRA
 		Unknown = 0,
 		System = 1,
 		User = 2,
-		Remote = 4
+		Remote = 4,
+		Generated = 8
 	}
 
 	[SuppressMessage("StyleCop.CSharp.NamingRules",
@@ -196,6 +197,7 @@ namespace OpenRA
 		}
 
 		static readonly CPos[] NoSpawns = [];
+		readonly object syncRoot = new();
 		readonly MapCache cache;
 		readonly ModData modData;
 		IReadOnlyPackage package;
@@ -215,6 +217,19 @@ namespace OpenRA
 			LoadPackage();
 			using (new PerfTimer("Map"))
 				return new Map(modData, package);
+		}
+
+		public string ToBase64String()
+		{
+			LoadPackage();
+			if (package is not ZipFileLoader.ReadWriteZipFile p)
+			{
+				var map = new Map(modData, package);
+				p = new ZipFileLoader.ReadWriteZipFile();
+				map.Save(p);
+			}
+
+			return p.ToBase64String();
 		}
 
 		IReadOnlyPackage parentPackage;
@@ -449,31 +464,57 @@ namespace OpenRA
 				using (var dataStream = p.GetStream("map.png"))
 					newData.Preview = new Png(dataStream);
 
-			newData.ModifiedDate = File.GetLastWriteTime(p.Name);
+			newData.ModifiedDate = p.Name != null ? File.GetLastWriteTime(p.Name) : DateTime.Now;
 
 			// Assign the new data atomically
-			innerData = newData;
+			// Local maps have higher precedence than remote/generated maps,
+			// so should always replace their metadata
+			lock (syncRoot)
+				innerData = newData;
 		}
 
-		public void UpdateRemoteSearch(MapStatus status, MiniYaml yaml, Action<MapPreview> parseMetadata = null)
+		public void UpdateFromGenerationArgs(MapGenerationArgs args)
 		{
 			var newData = innerData.Clone();
-			newData.Status = status;
-			newData.Class = MapClassification.Remote;
+			newData.Class = MapClassification.Generated;
+			if (args != null)
+			{
+				newData.Status = MapStatus.Generating;
+				newData.Title = args.Title;
+				newData.Author = args.Author;
+			}
+			else
+				newData.Status = MapStatus.Unavailable;
 
-			if (status == MapStatus.DownloadAvailable)
+			lock (syncRoot)
+				innerData = newData;
+		}
+
+		public void BeginRemoteSearch()
+		{
+			var newData = innerData.Clone();
+			newData.Class = MapClassification.Remote;
+			newData.Status = MapStatus.Searching;
+
+			// We may have been resolved to a local/generated map by another
+			// async task. Make sure we don't stomp over their state!
+			lock (syncRoot)
+				if (innerData.Class == MapClassification.Unknown || innerData.Class == MapClassification.Remote)
+					innerData = newData;
+		}
+
+		public void CompleteRemoteSearch(MiniYaml yaml, Action<MapPreview> parseMetadata = null)
+		{
+			var newData = innerData.Clone();
+			newData.Class = MapClassification.Remote;
+			newData.Status = MapStatus.Unavailable;
+
+			if (yaml != null)
 			{
 				try
 				{
 					var r = FieldLoader.Load<RemoteMapData>(yaml);
-
-					// Map download has been disabled server side
-					if (!r.downloading)
-					{
-						newData.Status = MapStatus.Unavailable;
-						return;
-					}
-
+					newData.Status = r.downloading ? MapStatus.DownloadAvailable : MapStatus.Unavailable;
 					newData.Title = r.title;
 					newData.Categories = r.categories;
 					newData.Author = r.author;
@@ -520,22 +561,30 @@ namespace OpenRA
 				{
 					Log.Write("debug", "Failed parsing mapserver response:");
 					Log.Write("debug", e);
+					newData.Status = MapStatus.Unavailable;
 				}
+			}
 
-				// Commit updated data before running the callbacks
-				innerData = newData;
+			// We may have been resolved to a local/generated map by another
+			// async task. Make sure we don't stomp over their state!
+			MapClassification mapClassification;
+			lock (syncRoot)
+			{
+				mapClassification = innerData.Class;
+				if (mapClassification == MapClassification.Remote)
+					innerData = newData;
+			}
 
+			if (mapClassification == MapClassification.Remote)
+			{
 				if (innerData.Preview != null)
 					cache.CacheMinimap(this);
 
 				parseMetadata?.Invoke(this);
 			}
-
-			// Update the status and class unconditionally
-			innerData = newData;
 		}
 
-		public void Install(string mapRepositoryUrl, Action onSuccess)
+		public void Install(string mapRepositoryUrl)
 		{
 			if ((Status != MapStatus.DownloadError && Status != MapStatus.DownloadAvailable) || !Game.Settings.Game.AllowDownloading)
 				return;
@@ -592,10 +641,7 @@ namespace OpenRA
 					if (p == null)
 						innerData.Status = MapStatus.DownloadError;
 					else
-					{
 						UpdateFromMapWithoutOwningPackage(p, mapInstallPackage, MapClassification.User, GridType);
-						Game.RunAfterTick(onSuccess);
-					}
 				}
 				catch (Exception e)
 				{
@@ -608,7 +654,11 @@ namespace OpenRA
 
 		public void Invalidate()
 		{
-			innerData.Status = MapStatus.Unavailable;
+			lock (syncRoot)
+			{
+				innerData.Class = MapClassification.Unknown;
+				innerData.Status = MapStatus.Unavailable;
+			}
 		}
 
 		public void Dispose()

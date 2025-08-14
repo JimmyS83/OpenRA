@@ -27,6 +27,7 @@ using OpenRA.Widgets;
 
 namespace OpenRA
 {
+	[IncludeStaticFluentReferences(typeof(Server.Server), typeof(Player), typeof(UnitOrders), typeof(OrderManager))]
 	public static class Game
 	{
 		[FluentReference("filename")]
@@ -968,7 +969,8 @@ namespace OpenRA
 			{
 				Name = "Skirmish Game",
 				Map = map,
-				AdvertiseOnline = false
+				AdvertiseOnline = false,
+				AdvertiseOnLocalNetwork = !isSkirmish
 			};
 
 			// Always connect to local games using the same loopback connection

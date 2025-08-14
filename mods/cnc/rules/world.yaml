@@ -1,5 +1,4 @@
 ^BaseWorld:
-	AlwaysVisible:
 	Inherits: ^Palettes
 	ScreenMap:
 	ActorMap:
@@ -301,4 +300,8 @@ EditorWorld:
 	BuildableTerrainOverlay:
 		AllowedTerrainTypes: Clear, Road
 	MarkerLayerOverlay:
+	TilingPathTool:
+		DefaultStart: Clear
+		DefaultInner: Beach
+		DefaultEnd: Clear
 	Inherits@MapGenerators: ^MapGenerators

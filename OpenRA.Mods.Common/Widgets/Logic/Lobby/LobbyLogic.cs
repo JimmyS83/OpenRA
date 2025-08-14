@@ -21,6 +21,7 @@ using OpenRA.Widgets;
 
 namespace OpenRA.Mods.Common.Widgets.Logic
 {
+	[IncludeStaticFluentReferences(typeof(LobbyUtils))]
 	public class LobbyLogic : ChromeLogic, INotificationHandler<TextNotification>
 	{
 		[FluentReference]
@@ -97,6 +98,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		MapPreview map;
 		Session.MapStatus mapStatus;
+		MapGenerationArgs lastGeneratedMap;
 
 		bool chatEnabled;
 		bool disableTeamChat;
@@ -104,6 +106,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		bool teamChat;
 		bool updateDiscordStatus = true;
 		bool resetOptionsButtonEnabled;
+		bool mapAvailable;
 		Dictionary<int, SpawnOccupant> spawnOccupants = [];
 
 		readonly string chatLineSound;
@@ -247,16 +250,30 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 						Game.Settings.Save();
 					});
 
+					var onSelectGenerated = new Action<MapGenerationArgs>(args =>
+					{
+						if (args.Uid == map.Uid)
+							return;
+
+						lastGeneratedMap = args;
+						orderManager.IssueOrder(Order.FromTargetString("GenerateMap", args.Serialize(), true));
+						orderManager.IssueOrder(Order.Command("map " + args.Uid));
+						Game.Settings.Server.Map = args.Uid;
+						Game.Settings.Save();
+					});
+
 					// Check for updated maps, if the user has edited a map we'll preselect it for them
 					modData.MapCache.UpdateMaps();
 
 					Ui.OpenWindow("MAPCHOOSER_PANEL", new WidgetArgs()
 					{
 						{ "initialMap", modData.MapCache.PickLastModifiedMap(MapVisibility.Lobby) ?? map.Uid },
+						{ "initialGeneratedMap", lastGeneratedMap },
 						{ "remoteMapPool", orderManager.ServerMapPool },
 						{ "initialTab", MapClassification.System },
 						{ "onExit", modData.MapCache.UpdateMaps },
 						{ "onSelect", Game.IsHost ? onSelect : null },
+						{ "onSelectGenerated", Game.IsHost ? onSelectGenerated : null },
 						{ "filter", MapVisibility.Lobby },
 					});
 				};
@@ -589,6 +606,13 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		public override void Tick()
 		{
+			// Map may have been installed or generated in the background
+			if (!mapAvailable && map.Status == MapStatus.Available)
+			{
+				mapAvailable = true;
+				orderManager.IssueOrder(Order.Command($"state {Session.ClientState.NotReady}"));
+			}
+
 			if (panel == PanelType.Options && OptionsTabDisabled())
 				panel = PanelType.Players;
 
@@ -650,7 +674,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			map = modData.MapCache[uid];
 
 			// Tell the server that we have the map
-			if (map.Status == MapStatus.Available)
+			mapAvailable = map.Status == MapStatus.Available;
+			if (mapAvailable)
 				orderManager.IssueOrder(Order.Command($"state {Session.ClientState.NotReady}"));
 
 			// We don't have the map

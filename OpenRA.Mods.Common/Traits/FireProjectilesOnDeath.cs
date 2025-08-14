@@ -11,6 +11,7 @@
 
 using System.Linq;
 using OpenRA.GameRules;
+using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -24,6 +25,16 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly string[] Weapons = [];
 
 		public readonly string WeaponName = "primary";
+
+		[Desc("What damage type needs to kill the actor to trigger the firing of projectiles? " +
+			"Leave empty to ignore damage types.")]
+		public readonly BitSet<DamageType> DeathTypes = default;
+
+		[Desc("The minimal amount of health loss required to trigger projectiles.")]
+		public readonly int MinimumDamage = 0;
+
+		[Desc("The maximum amount of health loss required to trigger projectiles.")]
+		public readonly int MaximumDamage = int.MaxValue;
 
 		[Desc("The amount of pieces of shrapnel to expel. Two values indicate a range.")]
 		public readonly int[] Pieces = [3, 10];
@@ -51,19 +62,25 @@ namespace OpenRA.Mods.Common.Traits
 		}
 	}
 
-	sealed class FireProjectilesOnDeath : ConditionalTrait<FireProjectilesOnDeathInfo>, INotifyKilled
+	public class FireProjectilesOnDeath : ConditionalTrait<FireProjectilesOnDeathInfo>, INotifyKilled
 	{
 		public FireProjectilesOnDeath(FireProjectilesOnDeathInfo info)
 			: base(info) { }
 
-		public void Killed(Actor self, AttackInfo attack)
+		void INotifyKilled.Killed(Actor self, AttackInfo attack)
 		{
 			if (IsTraitDisabled)
 				return;
 
+			if (!Info.DeathTypes.IsEmpty && !attack.Damage.DamageTypes.Overlaps(Info.DeathTypes))
+				return;
+
+			if (attack.Damage.Value <= Info.MinimumDamage || attack.Damage.Value >= Info.MaximumDamage)
+				return;
+
 			foreach (var wep in Info.WeaponInfos)
 			{
-				var pieces = self.World.SharedRandom.Next(Info.Pieces[0], Info.Pieces[1]);
+				var pieces = Util.RandomInRange(self.World.SharedRandom, Info.Pieces);
 				var range = self.World.SharedRandom.Next(Info.Range[0].Length, Info.Range[1].Length);
 
 				for (var i = 0; pieces > i; i++)

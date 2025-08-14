@@ -2,6 +2,7 @@
 	ExperimentalMapGenerator@experimental:
 		Type: experimental
 		Name: map-generator-experimental
+		Tilesets: DESERT, SNOW, TEMPERAT, WINTER
 		Settings:
 			MultiChoiceOption@hidden_defaults:
 				Choice@hidden_defaults:
@@ -22,7 +23,7 @@
 						MaximumAltitude: 8
 						RoughnessRadius: 5
 						Roughness: 500
-						MinimumTerrainContourSpacing: 6
+						MinimumTerrainContourSpacing: 5
 						MinimumCliffLength: 10
 						ForestClumpiness: 1
 						DenyWalledAreas: True
@@ -59,15 +60,12 @@
 							splitblue: BlueTiberium
 						ClearTerrain: Clear
 						PlayableTerrain: Beach,BlueTiberium,Bridge,Clear,Road,Rough,Tiberium,Wall
-						PartiallyPlayableTerrain: River,Tree,Water
-						UnplayableTerrain: Rock
 						DominantTerrain: River,Rock,Tree,Water
 						ZoneableTerrain: Clear,Road
-						PartiallyPlayableCategories: Beach,Road
 						ClearSegmentTypes: Clear
 						BeachSegmentTypes: Beach
 						CliffSegmentTypes: Cliff
-						RoadSegmentTypes: Road,RoadIn,RoadOut
+						RoadSegmentTypes: Road
 						ForestObstacles: Trees
 						UnplayableObstacles: Obstructions
 						CivilianBuildingsObstacles: CivilianBuildings
@@ -157,16 +155,30 @@
 					Label: label-cnc-map-generator-choice-terrain-type-mountains
 					Settings:
 						Water: 0
-						Mountains: 1000
+						Mountains: 900
 						Roughness: 600
-						MinimumTerrainContourSpacing: 5
 				Choice@MountainLakes:
 					Label: label-cnc-map-generator-choice-terrain-type-mountain-lakes
 					Settings:
 						Water: 200
-						Mountains: 1000
+						Mountains: 900
 						Roughness: 850
-						MinimumTerrainContourSpacing: 5
+			MultiChoiceOption@Shape:
+				Label: label-cnc-map-generator-option-shape
+				Default: Square
+				Priority: 1
+				Choice@Square:
+					Label: label-cnc-map-generator-choice-shape-square
+					Settings:
+						ExternalCircularBias: 0
+				Choice@CircleMountain:
+					Label: label-cnc-map-generator-choice-shape-circle-mountain
+					Settings:
+						ExternalCircularBias: 1
+				Choice@CircleWater:
+					Label: label-cnc-map-generator-choice-shape-circle-water
+					Settings:
+						ExternalCircularBias: -1
 			MultiIntegerChoiceOption@Players:
 				Label: label-cnc-map-generator-option-players
 				Parameter: Players
@@ -175,7 +187,7 @@
 				Priority: 1
 			MultiChoiceOption@Symmetry:
 				Label: label-cnc-map-generator-option-symmetry
-				Default: None
+				Default: 2Rotations
 				Priority: 1
 				Choice@None:
 					Label: label-cnc-map-generator-choice-mirror-none
@@ -236,22 +248,6 @@
 					Players: 8, 16
 					Settings:
 						Rotations: 8
-			MultiChoiceOption@Shape:
-				Label: label-cnc-map-generator-option-shape
-				Default: Square
-				Priority: 1
-				Choice@Square:
-					Label: label-cnc-map-generator-choice-shape-square
-					Settings:
-						ExternalCircularBias: 0
-				Choice@CircleMountain:
-					Label: label-cnc-map-generator-choice-shape-circle-mountain
-					Settings:
-						ExternalCircularBias: 1
-				Choice@CircleWater:
-					Label: label-cnc-map-generator-choice-shape-circle-water
-					Settings:
-						ExternalCircularBias: -1
 			MultiChoiceOption@Resources:
 				Label: label-cnc-map-generator-option-resources
 				Default: Medium
@@ -267,7 +263,7 @@
 					Label: label-cnc-map-generator-choice-resources-low
 					Settings:
 						SpawnResourceSpawns: 1
-						ResourcesPerPlayer: 25000
+						ResourcesPerPlayer: 18750
 						ResourceSpawnWeights:
 							split2: 1
 							split3: 1
@@ -277,7 +273,7 @@
 					Label: label-cnc-map-generator-choice-resources-medium
 					Settings:
 						SpawnResourceSpawns: 2
-						ResourcesPerPlayer: 50000
+						ResourcesPerPlayer: 37500
 						ResourceSpawnWeights:
 							split2: 95
 							split3: 95
@@ -288,7 +284,7 @@
 					Label: label-cnc-map-generator-choice-resources-high
 					Settings:
 						SpawnResourceSpawns: 3
-						ResourcesPerPlayer: 75000
+						ResourcesPerPlayer: 56250
 						ResourceSpawnWeights:
 							split2: 9
 							split3: 9
@@ -299,7 +295,7 @@
 					Label: label-cnc-map-generator-choice-resources-very-high
 					Settings:
 						SpawnResourceSpawns: 4
-						ResourcesPerPlayer: 100000
+						ResourcesPerPlayer: 75000
 						ResourceSpawnWeights:
 							split2: 8
 							split3: 8
@@ -331,17 +327,8 @@
 						BuildingWeights:
 							hosp: 2
 							miss: 1
+							bio: 1
 							v19: 9
-				Choice@Extra:
-					Label: label-cnc-map-generator-choice-buildings-extra
-					Settings:
-						MinimumBuildings: 3
-						MaximumBuildings: 6
-						BuildingWeights:
-							hosp: 2
-							miss: 1
-							v19: 9
-							gtwr: 2
 				Choice@OilOnly:
 					Label: label-cnc-map-generator-choice-buildings-oil-only
 					Settings:
@@ -395,16 +382,6 @@
 					Settings:
 						AreaEntityBonus: 800
 						PlayerCountEntityBonus: 0
-			BooleanOption@DenyWalledArea:
-				Label: label-cnc-map-generator-option-deny-walled-areas
-				Parameter: DenyWalledAreas
-				Default: True
-				Priority: 1
-			BooleanOption@Roads:
-				Label: label-cnc-map-generator-option-roads
-				Parameter: Roads
-				Default: True
-				Priority: 1
 			MultiChoiceOption@CivilianDensity:
 				Label: label-cnc-map-generator-option-civilian-density
 				Default: Default
@@ -436,19 +413,28 @@
 					Label: label-cnc-map-generator-choice-civilian-density-max
 					Settings:
 						CivilianBuildings: 1000
+			BooleanOption@DenyWalledArea:
+				Label: label-cnc-map-generator-option-deny-walled-areas
+				Parameter: DenyWalledAreas
+				Default: True
+				Priority: 1
+			BooleanOption@Roads:
+				Label: label-cnc-map-generator-option-roads
+				Parameter: Roads
+				Default: True
+				Priority: 1
 	ClearMapGenerator@clear:
 		Type: clear
 		Name: map-generator-clear
+		Tilesets: DESERT, SNOW, TEMPERAT, WINTER
 		Settings:
 			MultiChoiceOption@Tile:
 				Label: label-clear-map-generator-option-tile
 				Choice@CommonClear:
 					Label: label-clear-map-generator-choice-tile-clear
-					Tileset: DESERT,SNOW,TEMPERAT,WINTER
 					Settings:
 						Tile: 255
 				Choice@CommonWater:
 					Label: label-clear-map-generator-choice-tile-water
-					Tileset: DESERT,SNOW,TEMPERAT,WINTER
 					Settings:
 						Tile: 1

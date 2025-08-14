@@ -153,7 +153,7 @@ namespace OpenRA.Mods.Common.Traits
 		protected ConditionPrerequisiteInfo[] conditionPrerequisites;
 
 		// Will change if the owner changes
-		PowerManager playerPower;
+		protected PowerManager playerPower;
 		protected PlayerResources playerResources;
 		protected DeveloperMode developerMode;
 
@@ -406,6 +406,7 @@ namespace OpenRA.Mods.Common.Traits
 
 			// EndProduction removes the item from the queue, so we enumerate
 			// by index in reverse to avoid issues with index reassignment
+			var cancelledAnItem = false;
 			for (var i = Queue.Count - 1; i >= 0; i--)
 			{
 				if (buildableNames.Contains(Queue[i].Item))
@@ -421,6 +422,13 @@ namespace OpenRA.Mods.Common.Traits
 				// Refund what's been paid so far
 				playerResources.GiveCash(Queue[i].TotalCost - Queue[i].RemainingCost);
 				EndProduction(Queue[i]);
+				cancelledAnItem = true;
+			}
+
+			if (cancelledAnItem)
+			{
+				Game.Sound.PlayNotification(Actor.World.Map.Rules, Actor.Owner, "Speech", Info.CancelledAudio, Actor.Owner.Faction.InternalName);
+				TextNotificationsManager.AddTransientLine(Actor.Owner, Info.CancelledTextNotification);
 			}
 		}
 
@@ -472,7 +480,7 @@ namespace OpenRA.Mods.Common.Traits
 			return true;
 		}
 
-		public void ResolveOrder(Actor self, Order order)
+		public virtual void ResolveOrder(Actor self, Order order)
 		{
 			if (!Enabled)
 				return;
@@ -522,7 +530,10 @@ namespace OpenRA.Mods.Common.Traits
 						{
 							// Make sure the item hasn't been invalidated between the ProductionItem ticking and this FrameEndTask running
 							if (!Queue.Any(i => i.Done && i.Item == unit.Name))
+							{
+								hasPlayedSound = false;
 								return;
+							}
 
 							var isBuilding = unit.HasTraitInfo<BuildingInfo>();
 							var readyAudio = bi.ReadyAudio ?? Info.ReadyAudio;

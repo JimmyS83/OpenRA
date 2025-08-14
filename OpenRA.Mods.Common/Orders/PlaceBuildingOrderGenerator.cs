@@ -89,7 +89,6 @@ namespace OpenRA.Mods.Common.Orders
 		readonly World world;
 		protected readonly ProductionQueue Queue;
 		readonly PlaceBuildingInfo placeBuildingInfo;
-		readonly IResourceLayer resourceLayer;
 		readonly Viewport viewport;
 		readonly VariantWrapper[] variants;
 		int variant;
@@ -99,7 +98,6 @@ namespace OpenRA.Mods.Common.Orders
 			Queue = queue;
 			world = queue.Actor.World;
 			placeBuildingInfo = queue.Actor.Owner.PlayerActor.Info.TraitInfo<PlaceBuildingInfo>();
-			resourceLayer = world.WorldActor.TraitOrDefault<IResourceLayer>();
 			viewport = worldRenderer.Viewport;
 
 			// Clear selection if using Left-Click Orders
@@ -301,12 +299,7 @@ namespace OpenRA.Mods.Common.Orders
 			{
 				var isCloseEnough = buildingInfo.IsCloseEnoughToBase(world, world.LocalPlayer, actorInfo, Queue.Actor, topLeft);
 				foreach (var t in buildingInfo.Tiles(topLeft))
-					footprint.Add(
-						t,
-						MakeCellType(
-							isCloseEnough &&
-							world.IsCellBuildable(t, topLeft, actorInfo, buildingInfo) &&
-							(resourceLayer == null || resourceLayer.GetResource(t).Type == null)));
+					footprint.Add(t, MakeCellType(isCloseEnough && world.IsCellBuildable(t, topLeft, actorInfo, buildingInfo)));
 			}
 
 			return preview?.Render(wr, topLeft, footprint) ?? [];

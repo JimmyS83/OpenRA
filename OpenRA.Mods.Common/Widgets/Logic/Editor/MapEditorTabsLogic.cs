@@ -9,6 +9,8 @@
  */
 #endregion
 
+using System;
+using System.Linq;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Widgets;
 
@@ -25,6 +27,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		MenuType menuType = MenuType.Tiles;
 		MenuType lastSelectedTab = MenuType.Tiles;
+
+		public static event Action OnTabChanged;
 
 		[ObjectCreator.UseCtor]
 		public MapEditorTabsLogic(Widget widget, World world)
@@ -61,6 +65,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					lastSelectedTab = tabType;
 
 				menuType = tabType;
+				OnTabChanged?.Invoke();
 
 				// Clear keyboard focus when switching tabs.
 				Ui.KeyboardFocusWidget = null;
@@ -72,7 +77,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			if (tabType == MenuType.Tools)
 			{
-				var toolsAvailable = world.Map.Rules.Actors[SystemActors.EditorWorld].HasTraitInfo<IEditorToolInfo>();
+				var toolsAvailable = world.WorldActor.TraitsImplementing<IEditorTool>().Any();
 				tab.IsDisabled = () => !toolsAvailable;
 			}
 
@@ -88,6 +93,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				menuType = MenuType.Select;
 			else if (menuType == MenuType.Select && !hasSelection)
 				menuType = lastSelectedTab;
+
+			OnTabChanged?.Invoke();
 		}
 	}
 }

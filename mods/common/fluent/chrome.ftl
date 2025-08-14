@@ -38,7 +38,7 @@ label-credits-title = Credits
 
 ## editor.yaml
 label-new-map-bg-title = New Map
-label-new-map-bg-tileset = Tileset:
+label-new-map-bg-tileset = Environment:
 label-new-map-bg-width = Width:
 label-new-map-bg-height = Height:
 button-new-map-bg-create = Create
@@ -74,6 +74,15 @@ label-marker-mirror-mode = Mirror Mode
 label-marker-axis-angle = Axis Angle
 button-map-generator-generate = Generate
 button-map-generator-generate-random = Generate Random
+label-tiling-path-type-start = Start type
+label-tiling-path-type-inner = Inner type
+label-tiling-path-type-end = End type
+label-tiling-path-deviation = Deviation limit
+checkbox-tiling-path-closed-loops = Loops use only inner types
+button-tiling-path-reverse = Reverse path
+button-tiling-path-reset = Discard path
+button-tiling-path-randomize = Re-randomize tiling
+button-tiling-path-paint = Paint tiling to map
 
 button-map-editor-tab-container-select-tooltip = Selection
 button-map-editor-tab-container-tiles-tooltip = Tiles
@@ -115,6 +124,7 @@ button-select-categories-buttons-all = All
 button-select-categories-buttons-none = None
 
 label-tool-marker-tiles = Marker Tiles
+label-tool-tiling-path = Path Tiler
 
 ## gamesave-browser.yaml
 label-gamesave-browser-panel-load-title = Load game
@@ -193,6 +203,7 @@ button-force-start-dialog-start = Start
 label-map-incompatible-status-a = This map is not compatible
 label-map-incompatible-status-b = with this version of OpenRA
 label-map-validating-status = Validating...
+label-map-generating-status = Generating...
 button-map-download-available-install = Install Map
 button-map-preview-update = Update Map
 button-map-update-download-available-install = Install Map
@@ -333,9 +344,6 @@ button-settings-title = Settings
 
 ## map-chooser.yaml
 label-mapchooser-panel-title = Choose Map
-button-mapchooser-panel-system-maps-tab = Official Maps
-button-mapchooser-panel-remote-maps-tab = Server Maps
-button-mapchooser-panel-user-maps-tab = Custom Maps
 label-filter-order-controls-desc = Filter:
 label-filter-order-controls-desc-joiner = in
 label-filter-order-controls-orderby = Order by:
@@ -343,6 +351,14 @@ button-mapchooser-panel-randommap = Random Map
 button-mapchooser-panel-delete-map = Delete Map
 button-mapchooser-panel-delete-all-maps = Delete All Maps
 button-mapchooser-panel-ok = Ok
+
+label-mapchooser-random-map-title = Random Map
+label-mapchooser-random-map-generating = Generating...
+label-mapchooser-random-map-error = Map Generation Failed
+button-mapchooser-random-map-generate = Generate
+label-mapchooser-random-map-tileset = Environment:
+label-mapchooser-random-map-size = Map Size:
+label-mapchooser-random-map-error-desc = Adjust the settings or try again.
 
 ## missionbrowser.yaml
 button-missionbrowser-panel-start-briefing-video = Watch Briefing

@@ -1,6 +1,5 @@
 ^BaseWorld:
 	Inherits: ^Palettes
-	AlwaysVisible:
 	ScreenMap:
 	ActorMap:
 	Selection:
@@ -267,3 +266,8 @@ EditorWorld:
 	BuildableTerrainOverlay:
 		AllowedTerrainTypes: Rock, Concrete
 	MarkerLayerOverlay:
+	TilingPathTool:
+		DefaultStart: RockSmooth
+		DefaultInner: RockSmooth
+		DefaultEnd: RockSmooth
+	Inherits@MapGenerators: ^MapGenerators

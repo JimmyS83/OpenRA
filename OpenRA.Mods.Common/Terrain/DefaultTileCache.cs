@@ -23,8 +23,8 @@ namespace OpenRA.Mods.Common.Terrain
 
 	public sealed class DefaultTileCache : IDisposable
 	{
-		readonly Dictionary<ushort, TheaterTemplate> templates = [];
 		readonly Cache<SheetType, SheetBuilder> sheetBuilders;
+		readonly Dictionary<ushort, TheaterTemplate> templates = [];
 		readonly MersenneTwister random;
 
 		public Sprite MissingTile { get; }
@@ -163,6 +163,11 @@ namespace OpenRA.Mods.Common.Terrain
 
 			var start = template.Variants > 1 ? variant ?? random.Next(template.Variants) : 0;
 			return template.Sprites[start * template.Stride + r.Index];
+		}
+
+		public SheetBuilder GetSheetBuilder(SheetType sheetType)
+		{
+			return sheetBuilders[sheetType];
 		}
 
 		public void Dispose()
