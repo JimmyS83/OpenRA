@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenRA.Mods.AS.Effects;
 using OpenRA.Mods.Common;
 using OpenRA.Mods.Common.Activities;
@@ -21,10 +22,11 @@ namespace OpenRA.Mods.AS.Traits
 {
 	public enum AirstrikeMission { Attack, Guard }
 
-	public class AirstrikePowerASInfo : SupportPowerInfo
+	public class AirstrikePowerASInfo : DirectionalSupportPowerInfo
 	{
-		[ActorReference(typeof(AircraftInfo))]
-		public readonly string UnitType = "badr.bomber";
+		[FieldLoader.Require]
+		public readonly Dictionary<int, string> UnitTypes = [];
+
 		public readonly int SquadSize = 1;
 		public readonly WVec SquadOffset = new(-1536, 1536, 0);
 
@@ -43,32 +45,59 @@ namespace OpenRA.Mods.AS.Traits
 
 		public readonly AirstrikeMission Mission = AirstrikeMission.Attack;
 
-		public readonly int GuardDuration = 150;
+		public readonly Dictionary<int, int> GuardDurations = [];
+
+		[Desc("Condition to grant after reaching the target area.")]
+		public readonly Dictionary<int, string> GuardingConditions = [];
 
 		public override object Create(ActorInitializer init) { return new AirstrikePowerAS(init.Self, this); }
 	}
 
-	public class AirstrikePowerAS : SupportPower
+	public class AirstrikePowerAS : DirectionalSupportPower
 	{
+		readonly AirstrikePowerASInfo info;
+
 		public AirstrikePowerAS(Actor self, AirstrikePowerASInfo info)
-			: base(self, info) { }
+			: base(self, info)
+		{
+			this.info = info;
+		}
+
+		public override void SelectTarget(Actor self, string order, SupportPowerManager manager)
+		{
+			if (info.UseDirectionalTarget)
+			{
+				Game.Sound.PlayToPlayer(SoundType.UI, manager.Self.Owner, Info.SelectTargetSound);
+				Game.Sound.PlayNotification(self.World.Map.Rules, self.Owner, "Speech",
+					Info.SelectTargetSpeechNotification, self.Owner.Faction.InternalName);
+
+				self.World.OrderGenerator = new SelectDirectionalTarget(self.World, order, manager, info);
+			}
+			else
+				base.SelectTarget(self, order, manager);
+		}
 
 		public override void Activate(Actor self, Order order, SupportPowerManager manager)
 		{
 			base.Activate(self, order, manager);
 
-			SendAirstrike(self, order.Target.CenterPosition);
+			var facing = info.UseDirectionalTarget && order.ExtraData != uint.MaxValue ? (WAngle?)WAngle.FromFacing((int)order.ExtraData) : null;
+			SendAirstrike(self, order.Target.CenterPosition, facing);
 		}
 
-		public void SendAirstrike(Actor self, WPos target, bool randomize = true, int attackFacing = 0)
+		public void SendAirstrike(Actor self, WPos target, WAngle? facing = null)
 		{
+			var level = GetLevel();
+			if (level == 0)
+				return;
+
 			var info = Info as AirstrikePowerASInfo;
+			if (!facing.HasValue)
+				facing = new WAngle(1024 * self.World.SharedRandom.Next(info.QuantizedFacings) / info.QuantizedFacings);
 
-			if (randomize)
-				attackFacing = 256 * self.World.SharedRandom.Next(info.QuantizedFacings) / info.QuantizedFacings;
-
-			var altitude = self.World.Map.Rules.Actors[info.UnitType].TraitInfo<AircraftInfo>().CruiseAltitude.Length;
-			var attackRotation = WRot.FromFacing(attackFacing);
+			var unitType = info.UnitTypes.First(ut => ut.Key == level).Value;
+			var altitude = self.World.Map.Rules.Actors[unitType].TraitInfo<AircraftInfo>().CruiseAltitude.Length;
+			var attackRotation = WRot.FromYaw(facing.Value);
 			var delta = new WVec(0, -1024, 0).Rotate(attackRotation);
 			target += new WVec(0, 0, altitude);
 
@@ -90,12 +119,12 @@ namespace OpenRA.Mods.AS.Traits
 					var so = info.SquadOffset;
 					var spawnOffset = new WVec(i * so.Y, -Math.Abs(i) * so.X, 0).Rotate(attackRotation);
 
-					var a = w.CreateActor(info.UnitType, new TypeDictionary
-					{
+					var a = w.CreateActor(unitType,
+					[
 						new CenterPositionInit(startPos + spawnOffset),
 						new OwnerInit(self.Owner),
-						new FacingInit(WAngle.FromFacing(attackFacing)),
-					});
+						new FacingInit(facing.Value),
+					]);
 
 					delta = new WVec(WDist.Zero, info.BeaconDistanceOffset, WDist.Zero).Rotate(attackRotation);
 
@@ -108,7 +137,7 @@ namespace OpenRA.Mods.AS.Traits
 					else
 					{
 						a.QueueActivity(new Fly(a, Target.FromPos(target + spawnOffset)));
-						a.QueueActivity(new AttackMoveActivity(a, () => new FlyIdle(a, info.GuardDuration, false)));
+						a.QueueActivity(new AttackMoveActivity(a, () => new FlyIdle(a, info.GuardDurations.First(ut => ut.Key == level).Value, false)));
 					}
 
 					a.QueueActivity(new FlyOffMap(a));

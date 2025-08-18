@@ -91,7 +91,8 @@ namespace OpenRA.Mods.AS.Traits
 			if (!facing.HasValue)
 				facing = new WAngle(1024 * self.World.SharedRandom.Next(info.QuantizedFacings) / info.QuantizedFacings);
 
-			var altitude = self.World.Map.Rules.Actors[info.UnitTypes.First(ut => ut.Key == level).Value].TraitInfo<AircraftInfo>().CruiseAltitude.Length;
+			var unitType = info.UnitTypes.First(ut => ut.Key == level).Value;
+			var altitude = self.World.Map.Rules.Actors[unitType].TraitInfo<AircraftInfo>().CruiseAltitude.Length;
 			var attackRotation = WRot.FromYaw(facing.Value);
 			var delta = new WVec(0, -1024, 0).Rotate(attackRotation);
 			target += new WVec(0, 0, altitude);
@@ -153,12 +154,12 @@ namespace OpenRA.Mods.AS.Traits
 				var so = info.SquadOffset;
 				var spawnOffset = new WVec(i * so.Y, -Math.Abs(i) * so.X, 0).Rotate(attackRotation);
 				var targetOffset = new WVec(i * so.Y, 0, 0).Rotate(attackRotation);
-				var a = self.World.CreateActor(false, info.UnitTypes.First(ut => ut.Key == level).Value, new TypeDictionary
-				{
+				var a = self.World.CreateActor(false, unitType,
+				[
 					new CenterPositionInit(startEdge + spawnOffset),
 					new OwnerInit(self.Owner),
 					new FacingInit(facing.Value),
-				});
+				]);
 
 				aircraft.Add(a);
 				aircraftInRange.Add(a, false);

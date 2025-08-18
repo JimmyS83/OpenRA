@@ -15,16 +15,18 @@ using OpenRA.Graphics;
 using OpenRA.Mods.AS.Traits;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Effects;
-using OpenRA.Primitives;
+using OpenRA.Mods.Common.Traits;
 
 namespace OpenRA.Mods.AS.Effects
 {
 	public class AirstrikePowerASEffect : IEffect
 	{
+		readonly AirstrikePowerAS power;
 		readonly AirstrikePowerASInfo info;
 		readonly Player owner;
 		readonly World world;
 		readonly WPos pos;
+		readonly int level;
 
 		IEnumerable<Actor> planes;
 		Actor camera = null;
@@ -33,10 +35,11 @@ namespace OpenRA.Mods.AS.Effects
 
 		public AirstrikePowerASEffect(World world, Player p, WPos pos, IEnumerable<Actor> planes, AirstrikePowerAS power, AirstrikePowerASInfo info)
 		{
-			var level = power.GetLevel();
+			level = power.GetLevel();
 			if (level == 0)
 				return;
 
+			this.power = power;
 			this.info = info;
 			this.world = world;
 			owner = p;
@@ -90,12 +93,19 @@ namespace OpenRA.Mods.AS.Effects
 			{
 				world.AddFrameEndTask(w =>
 				{
-					camera = w.CreateActor(info.CameraActor, new TypeDictionary
-						{
+					camera = w.CreateActor(info.CameraActor,
+						[
 							new LocationInit(world.Map.CellContaining(pos)),
 							new OwnerInit(owner),
-						});
+						]);
 				});
+			}
+
+			if (info.GuardDurations.Count > 0)
+			{
+				var condition = info.GuardingConditions.First(ut => ut.Key == level).Value;
+				foreach (var plane in planes)
+					plane.TraitsImplementing<ExternalCondition>().FirstOrDefault(ec => ec.Info.Condition == condition).GrantCondition(plane, power);
 			}
 
 			TryRemoveBeacon();
@@ -128,7 +138,7 @@ namespace OpenRA.Mods.AS.Effects
 
 		IEnumerable<IRenderable> IEffect.Render(WorldRenderer r)
 		{
-			return Enumerable.Empty<IRenderable>();
+			return [];
 		}
 	}
 }
