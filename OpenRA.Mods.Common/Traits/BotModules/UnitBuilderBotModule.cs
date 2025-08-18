@@ -46,7 +46,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[ActorReference]
 		[Desc("What units can the AI not build if there are no supplies on the map.")]
-		public readonly HashSet<string> SupplyCollectorTypes = new();
+		public readonly HashSet<string> SupplyCollectorTypes = [];
 
 		public override object Create(ActorInitializer init) { return new UnitBuilderBotModule(init.Self, this); }
 	}

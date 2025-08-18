@@ -16,7 +16,6 @@ using OpenRA.Mods.AS.Effects;
 using OpenRA.Mods.Common;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -24,10 +23,10 @@ namespace OpenRA.Mods.AS.Traits
 	public class AirstrikePowerRVInfo : DirectionalSupportPowerInfo
 	{
 		[FieldLoader.Require]
-		public readonly Dictionary<int, string> UnitTypes = new();
+		public readonly Dictionary<int, string> UnitTypes = [];
 
 		[FieldLoader.Require]
-		public readonly Dictionary<int, int> SquadSizes = new();
+		public readonly Dictionary<int, int> SquadSizes = [];
 
 		public readonly WVec SquadOffset = new(-1536, 1536, 0);
 
@@ -86,7 +85,7 @@ namespace OpenRA.Mods.AS.Traits
 		{
 			var level = GetLevel();
 			if (level == 0)
-				return Array.Empty<Actor>();
+				return [];
 
 			var aircraft = new List<Actor>();
 			if (!facing.HasValue)
@@ -109,11 +108,11 @@ namespace OpenRA.Mods.AS.Traits
 				{
 					self.World.AddFrameEndTask(w =>
 					{
-						camera = w.CreateActor(info.CameraActor, new TypeDictionary
-						{
+						camera = w.CreateActor(info.CameraActor,
+						[
 							new LocationInit(self.World.Map.CellContaining(target)),
 							new OwnerInit(self.Owner),
-						});
+						]);
 					});
 				}
 

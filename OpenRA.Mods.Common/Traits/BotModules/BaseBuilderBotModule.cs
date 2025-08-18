@@ -30,7 +30,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly HashSet<string> RefineryTypes = [];
 
 		[Desc("Tells the AI to build refineries near these actors.")]
-		public readonly HashSet<string> SupplyDockTypes = new();
+		public readonly HashSet<string> SupplyDockTypes = [];
 
 		[Desc("Tells the AI what building types are considered power plants.")]
 		public readonly HashSet<string> PowerTypes = [];

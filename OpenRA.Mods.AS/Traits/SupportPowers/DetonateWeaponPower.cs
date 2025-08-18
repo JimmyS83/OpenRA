@@ -27,7 +27,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class DetonateWeaponPowerInfo : SupportPowerInfo, IRulesetLoaded
 	{
 		[FieldLoader.Require]
-		public readonly Dictionary<int, string> Weapons = new();
+		public readonly Dictionary<int, string> Weapons = [];
 
 		[Desc("Delay between activation and explosion")]
 		public readonly int ActivationDelay = 10;
@@ -67,7 +67,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly Color TargetCircleBorderColor = Color.FromArgb(96, Color.Black);
 		public readonly float TargetCircleBorderWidth = 3;
 
-		public readonly Dictionary<int, WeaponInfo> WeaponInfos = new();
+		public readonly Dictionary<int, WeaponInfo> WeaponInfos = [];
 
 		public override object Create(ActorInitializer init) { return new DetonateWeaponPower(init.Self, this); }
 		public override void RulesetLoaded(Ruleset rules, ActorInfo ai)

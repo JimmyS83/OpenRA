@@ -23,11 +23,11 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		[FieldLoader.Require]
 		[Desc("Aircraft used to deliver the airstrike.")]
-		public readonly Dictionary<int, string> UnitTypes = new();
+		public readonly Dictionary<int, string> UnitTypes = [];
 
 		[FieldLoader.Require]
 		[Desc("Number of aircraft to use in an airstrike formation.")]
-		public readonly Dictionary<int, int> SquadSizes = new();
+		public readonly Dictionary<int, int> SquadSizes = [];
 
 		[Desc("Offset vector between the aircraft in a formation.")]
 		public readonly WVec SquadOffset = new(-1536, 1536, 0);
@@ -73,7 +73,7 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			var level = GetLevel();
 			if (level == 0)
-				return Array.Empty<Actor>();
+				return [];
 
 			var aircraft = new List<Actor>();
 			if (!facing.HasValue)
