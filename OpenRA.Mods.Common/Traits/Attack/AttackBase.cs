@@ -418,7 +418,7 @@ namespace OpenRA.Mods.Common.Traits
 			return stances;
 		}
 
-		sealed class AttackOrderTargeter : IOrderTargeter
+		protected class AttackOrderTargeter : IOrderTargeter
 		{
 			readonly AttackBase ab;
 
@@ -508,7 +508,7 @@ namespace OpenRA.Mods.Common.Traits
 				return true;
 			}
 
-			public bool CanTarget(Actor self, in Target target, ref TargetModifiers modifiers, ref string cursor)
+			public virtual bool CanTarget(Actor self, in Target target, ref TargetModifiers modifiers, ref string cursor)
 			{
 				switch (target.Type)
 				{

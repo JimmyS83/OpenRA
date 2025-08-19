@@ -118,19 +118,20 @@ namespace OpenRA.Mods.AS.Traits
 					// Includes the 90 degree rotation between body and world coordinates
 					var so = info.SquadOffset;
 					var spawnOffset = new WVec(i * so.Y, -Math.Abs(i) * so.X, 0).Rotate(attackRotation);
+					var height = self.World.Map.DistanceAboveTerrain(target + spawnOffset);
 
 					var a = w.CreateActor(unitType,
 					[
 						new CenterPositionInit(startPos + spawnOffset),
 						new OwnerInit(self.Owner),
 						new FacingInit(facing.Value),
+						new SpectreTargetPositionInit(target - new WVec(WDist.Zero, WDist.Zero, height)),
 					]);
 
 					delta = new WVec(WDist.Zero, info.BeaconDistanceOffset, WDist.Zero).Rotate(attackRotation);
 
 					if (info.Mission == AirstrikeMission.Attack)
 					{
-						var height = self.World.Map.DistanceAboveTerrain(target + spawnOffset);
 						a.QueueActivity(
 							new FlyAttack(a, AttackSource.Default, Target.FromPos(target + spawnOffset - new WVec(WDist.Zero, WDist.Zero, height)), true, Color.OrangeRed));
 					}
