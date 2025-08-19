@@ -9,6 +9,8 @@
  */
 #endregion
 
+using System.Collections.Generic;
+using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -27,6 +29,24 @@ namespace OpenRA.Mods.Common.Traits
 		[PaletteReference]
 		[Desc("Palette for direction cursor animation.")]
 		public readonly string DirectionArrowPalette = "chrome";
+
+		[Desc("Range circle color.")]
+		public readonly Color CircleColor = Color.White;
+
+		[Desc("Use player color for circle rather than `CircleColor`.")]
+		public readonly bool CircleUsePlayerColor = false;
+
+		[Desc("Range circle width in pixel.")]
+		public readonly float CircleWidth = 1;
+
+		[Desc("Range circle border color.")]
+		public readonly Color CircleBorderColor = Color.FromArgb(96, Color.Black);
+
+		[Desc("Range circle border width in pixel.")]
+		public readonly float CircleBorderWidth = 3;
+
+		[Desc("Render circles based on these distance ranges while targeting.")]
+		public readonly Dictionary<int, WDist[]> CircleRanges;
 	}
 
 	public class DirectionalSupportPower : SupportPower
