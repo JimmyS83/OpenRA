@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using OpenRA.Graphics;
+using OpenRA.Mods.Common.Graphics;
 using OpenRA.Mods.Common.Widgets;
 using OpenRA.Orders;
 using OpenRA.Traits;
@@ -112,7 +113,30 @@ namespace OpenRA.Mods.Common.Traits
 		IEnumerable<IRenderable> IOrderGenerator.Render(WorldRenderer wr, World world) { yield break; }
 
 		IEnumerable<IRenderable> IOrderGenerator.RenderAboveShroud(WorldRenderer wr, World world) { yield break; }
-		IEnumerable<IRenderable> IOrderGenerator.RenderAnnotations(WorldRenderer wr, World world) { yield break; }
+
+		IEnumerable<IRenderable> IOrderGenerator.RenderAnnotations(WorldRenderer wr, World world)
+		{
+			if (info.CircleRanges == null)
+				yield break;
+
+			if (!manager.Powers.TryGetValue(order, out var p))
+				yield break;
+
+			var level = p.GetLevel();
+			if (level == 0)
+				yield break;
+
+			var centerPosition = wr.World.Map.CenterOfCell(wr.Viewport.ViewToWorld(Viewport.LastMousePos));
+			foreach (var range in info.CircleRanges[level])
+				yield return new RangeCircleAnnotationRenderable(
+					centerPosition,
+					range,
+					0,
+					info.CircleUsePlayerColor ? manager.Self.Owner.Color : info.CircleColor,
+					info.CircleWidth,
+					info.CircleBorderColor,
+					info.CircleBorderWidth);
+		}
 
 		string IOrderGenerator.GetCursor(World world, CPos cell, int2 worldPixel, MouseInput mi)
 		{
@@ -170,18 +194,6 @@ namespace OpenRA.Mods.Common.Traits
 			return points;
 		}
 
-		sealed class Arrow
-		{
-			public Sprite Sprite { get; }
-			public double EndAngle { get; }
-			public WAngle Direction { get; }
-
-			public Arrow(Sprite sprite, double endAngle, WAngle direction)
-			{
-				Sprite = sprite;
-				EndAngle = endAngle;
-				Direction = direction;
-			}
-		}
+		sealed record Arrow(Sprite Sprite, double EndAngle, WAngle Direction);
 	}
 }

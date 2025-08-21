@@ -26,10 +26,10 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly int MaxWeight = 0;
 
 		[Desc("`Passenger.CargoType`s that can be loaded into this actor.")]
-		public readonly HashSet<string> Types = new();
+		public readonly HashSet<string> Types = [];
 
 		[Desc("A list of actor types that are initially spawned into this actor.")]
-		public readonly string[] InitialUnits = Array.Empty<string>();
+		public readonly string[] InitialUnits = [];
 
 		[Desc("When cargo is full, unload the first passenger instead of disabling loading.")]
 		public readonly bool ReplaceFirstWhenFull = false;
@@ -41,7 +41,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly int EjectOnDeathDamage = 100;
 
 		[Desc("Terrain types that this actor is allowed to eject actors onto. Leave empty for all terrain types.")]
-		public readonly HashSet<string> UnloadTerrainTypes = new();
+		public readonly HashSet<string> UnloadTerrainTypes = [];
 
 		[VoiceReference]
 		[Desc("Voice to play when ordered to unload the passengers.")]
@@ -61,6 +61,9 @@ namespace OpenRA.Mods.Common.Traits
 
 		[Desc("Delay (in ticks) before continuing after unloading a passenger.")]
 		public readonly int AfterUnloadDelay = 25;
+
+		[Desc("Delay (in ticks) before each passenger is unloaded.")]
+		public readonly int BetweenUnloadDelay = 0;
 
 		[CursorReference]
 		[Desc("Cursor to display when able to unload the passengers.")]
@@ -82,7 +85,7 @@ namespace OpenRA.Mods.Common.Traits
 		[ActorReference(dictionaryReference: LintDictionaryReference.Keys)]
 		[Desc("Conditions to grant when specified actors are loaded inside the transport.",
 			"A dictionary of [actor name]: [condition].")]
-		public readonly Dictionary<string, string> PassengerConditions = new();
+		public readonly Dictionary<string, string> PassengerConditions = [];
 
 		[Desc("Change the passengers owner if transport owner changed")]
 		public readonly bool OwnerChangedAffectsPassengers = true;
@@ -102,9 +105,9 @@ namespace OpenRA.Mods.Common.Traits
 		INotifyCreated, INotifyKilled, ITransformActorInitModifier, INotifyPassengersDamage
 	{
 		readonly Actor self;
-		readonly List<Actor> cargo = new();
-		readonly HashSet<Actor> reserves = new();
-		readonly Dictionary<string, Stack<int>> passengerTokens = new();
+		readonly List<Actor> cargo = [];
+		readonly HashSet<Actor> reserves = [];
+		readonly Dictionary<string, Stack<int>> passengerTokens = [];
 		readonly Lazy<IFacing> facing;
 		readonly bool checkTerrainType;
 
@@ -112,7 +115,7 @@ namespace OpenRA.Mods.Common.Traits
 		int reservedWeight = 0;
 		Aircraft aircraft;
 		int loadingToken = Actor.InvalidConditionToken;
-		readonly Stack<int> loadedTokens = new();
+		readonly Stack<int> loadedTokens = [];
 		bool takeOffAfterLoad;
 		bool initialised;
 
@@ -133,31 +136,31 @@ namespace OpenRA.Mods.Common.Traits
 			if (runtimeCargoInit != null)
 			{
 				cargo = runtimeCargoInit.Value.ToList();
-				TotalWeight = cargo.Sum(c => GetWeight(c));
+				TotalWeight = cargo.Sum(GetWeight);
 			}
 			else if (cargoInit != null)
 			{
 				foreach (var u in cargoInit.Value)
 				{
 					var unit = self.World.CreateActor(false, u.ToLowerInvariant(),
-						new TypeDictionary { new OwnerInit(self.Owner) });
+						[new OwnerInit(self.Owner)]);
 
 					cargo.Add(unit);
 				}
 
-				TotalWeight = cargo.Sum(c => GetWeight(c));
+				TotalWeight = cargo.Sum(GetWeight);
 			}
 			else
 			{
 				foreach (var u in info.InitialUnits)
 				{
 					var unit = self.World.CreateActor(false, u.ToLowerInvariant(),
-						new TypeDictionary { new OwnerInit(self.Owner) });
+						[new OwnerInit(self.Owner)]);
 
 					cargo.Add(unit);
 				}
 
-				TotalWeight = cargo.Sum(c => GetWeight(c));
+				TotalWeight = cargo.Sum(GetWeight);
 			}
 
 			facing = Exts.Lazy(self.TraitOrDefault<IFacing>);
@@ -360,11 +363,11 @@ namespace OpenRA.Mods.Common.Traits
 		public bool HasSpace(int weight) { return Info.ReplaceFirstWhenFull || TotalWeight + reservedWeight + weight <= Info.MaxWeight; }
 		public bool IsEmpty() { return cargo.Count == 0; }
 
-		public Actor Peek() { return cargo.Last(); }
+		public Actor Peek() { return cargo[^1]; }
 
 		public Actor Unload(Actor self, Actor passenger = null)
 		{
-			passenger ??= cargo.Last();
+			passenger ??= cargo[^1];
 			if (!cargo.Remove(passenger))
 				throw new ArgumentException("Attempted to unload an actor that is not a passenger.");
 

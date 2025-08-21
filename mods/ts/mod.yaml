@@ -103,7 +103,6 @@ TileSets:
 	ts|tilesets/snow.yaml
 
 MapGrid:
-	TileSize: 48,24
 	EnableDepthBuffer: True
 	Type: RectangularIsometric
 	MaximumTerrainHeight: 16
@@ -142,6 +141,7 @@ ChromeLayout:
 	ts|chrome/mainmenu-prerelease-notification.yaml
 	common|chrome/settings.yaml
 	common|chrome/settings-display.yaml
+	common|chrome/settings-gameplay.yaml
 	common|chrome/settings-audio.yaml
 	common|chrome/settings-input.yaml
 	ts|chrome/settings-hotkeys.yaml

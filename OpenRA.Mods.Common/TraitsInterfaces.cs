@@ -15,6 +15,7 @@ using OpenRA.Activities;
 using OpenRA.Graphics;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Graphics;
+using OpenRA.Mods.Common.MapGenerator;
 using OpenRA.Mods.Common.Terrain;
 using OpenRA.Mods.Common.Widgets;
 using OpenRA.Primitives;
@@ -729,6 +730,21 @@ namespace OpenRA.Mods.Common.Traits
 		}
 	}
 
+	public class EditorActorTextField : EditorActorOption
+	{
+		public readonly Func<EditorActorPreview, string> GetValue;
+		public readonly Action<EditorActorPreview, string> OnChange;
+
+		public EditorActorTextField(string name, int displayOrder,
+			Func<EditorActorPreview, string> getValue,
+			Action<EditorActorPreview, string> onChange)
+			: base(name, displayOrder)
+		{
+			GetValue = getValue;
+			OnChange = onChange;
+		}
+	}
+
 	[RequireExplicitImplementation]
 	public interface INotifyEditorPlacementInfo : ITraitInfoInterface
 	{
@@ -798,6 +814,7 @@ namespace OpenRA.Mods.Common.Traits
 		Rectangle TemplateBounds(TerrainTemplateInfo template);
 		IEnumerable<IRenderable> RenderUIPreview(WorldRenderer wr, TerrainTemplateInfo template, int2 origin, float scale);
 		IEnumerable<IRenderable> RenderPreview(WorldRenderer wr, TerrainTemplateInfo template, WPos origin);
+		IEnumerable<IRenderable> RenderPreview(WorldRenderer wr, TerrainTile tile, WPos origin);
 	}
 
 	public interface IResourceLayerInfo : ITraitInfoInterface
@@ -811,10 +828,10 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		event Action<CPos, string> CellChanged;
 		ResourceLayerContents GetResource(CPos cell);
-		int GetMaxDensity(string resourceType);
-		bool CanAddResource(string resourceType, CPos cell, int amount = 1);
-		int AddResource(string resourceType, CPos cell, int amount = 1);
-		int RemoveResource(string resourceType, CPos cell, int amount = 1);
+		byte GetMaxDensity(string resourceType);
+		bool CanAddResource(string resourceType, CPos cell, byte amount = 1);
+		int AddResource(string resourceType, CPos cell, byte amount = 1);
+		int RemoveResource(string resourceType, CPos cell, byte amount = 1);
 		void ClearResources(CPos cell);
 
 		bool IsVisible(CPos cell);
@@ -984,5 +1001,40 @@ namespace OpenRA.Mods.Common.Traits
 	public interface INotifyPlayerExperience
 	{
 		void OnGainsExperience(Actor player, int exp);
+	}
+
+	public interface IEditorTool
+	{
+		string Label { get; }
+		string PanelWidget { get; }
+		bool IsEnabled { get; }
+		TraitInfo TraitInfo { get; }
+	}
+
+	public class MapGenerationException : Exception
+	{
+		public MapGenerationException(string message)
+			: base(message) { }
+		public MapGenerationException(string message, Exception inner)
+			: base(message, inner) { }
+	}
+
+	public interface IMapGeneratorSettings
+	{
+		List<MapGeneratorOption> Options { get; }
+
+		int PlayerCount { get; }
+
+		void Randomize(MersenneTwister random);
+
+		void Initialize(MapGenerationArgs args);
+
+		MapGenerationArgs Compile(ITerrainInfo terrainInfo, Size size);
+	}
+
+	public interface IEditorMapGeneratorInfo : IMapGeneratorInfo
+	{
+		string[] Tilesets { get; }
+		IMapGeneratorSettings GetSettings();
 	}
 }

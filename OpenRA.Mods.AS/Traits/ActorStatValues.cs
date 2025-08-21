@@ -38,7 +38,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly bool? IconPaletteIsPlayerPalette;
 
 		[Desc("Types of stats to show.")]
-		public readonly ActorStatContent[] Stats = { ActorStatContent.Armor, ActorStatContent.Sight };
+		public readonly ActorStatContent[] Stats = [ActorStatContent.Armor, ActorStatContent.Sight];
 
 		[Desc("Armament names to use for weapon stats.")]
 		public readonly string[] Armaments;
@@ -56,7 +56,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly WDist? Sight;
 
 		[Desc("Overrides the range value from the weapons for the stats, enter 2 values for short and long range.")]
-		public readonly WDist[] Range = Array.Empty<WDist>();
+		public readonly WDist[] Range = [];
 
 		[Desc("Overrides the minimum range value from the weapons for the stats.")]
 		public readonly WDist? MinimumRange;
@@ -65,7 +65,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int? Speed;
 
 		[Desc("Don't show these armor classes for the Armor stat.")]
-		public readonly string[] ArmorsToIgnore = Array.Empty<string>();
+		public readonly string[] ArmorsToIgnore = [];
 
 		[Desc("Show shield level in place of Armor when actor has active Shielded trait.")]
 		public readonly bool ShowShield = true;
@@ -76,17 +76,17 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Prerequisites to enable upgrades, without them upgrades won't be shown.",
 			"Only checked at the actor creation.")]
-		public readonly string[] UpgradePrerequisites = Array.Empty<string>();
+		public readonly string[] UpgradePrerequisites = [];
 
 		[ActorReference]
 		[Desc("Upgrades this actor is affected by",
 			"Upgrade actor must have prerequisite of actor's name !!")]
-		public readonly string[] Upgrades = Array.Empty<string>();
+		public readonly string[] Upgrades = [];
 
 		[ActorReference]
 		[Desc("Which of the actors defined under Upgrades are produced by the actor itself, and only effects it. ",
 			"Upgrade is the name of produced actor")]
-		public readonly string[] LocalUpgrades = Array.Empty<string>();
+		public readonly string[] LocalUpgrades = [];
 
 		[Desc("Relationships that cargo will display for.")]
 		public readonly PlayerRelationship DisplayCargoRelationships = PlayerRelationship.Ally | PlayerRelationship.Neutral;
@@ -142,8 +142,8 @@ namespace OpenRA.Mods.AS.Traits
 
 		public IStoresResources ResourceHold;
 		public ISupplyCollector Collector;
-		public CashTrickler[] CashTricklers = Array.Empty<CashTrickler>();
-		public PeriodicProducer[] PeriodicProducers = Array.Empty<PeriodicProducer>();
+		public CashTrickler[] CashTricklers = [];
+		public PeriodicProducer[] PeriodicProducers = [];
 		public Cargo Cargo;
 		public SharedCargo SharedCargo;
 		public Garrisonable Garrisonable;
@@ -166,8 +166,8 @@ namespace OpenRA.Mods.AS.Traits
 		TechTree techTree;
 
 		public bool UpgradesEnabled;
-		public string[] CurrentUpgrades = Array.Empty<string>();
-		public Dictionary<string, bool> Upgrades = new();
+		public string[] CurrentUpgrades = [];
+		public Dictionary<string, bool> Upgrades = [];
 
 		public bool Disguised;
 		public Player DisguisePlayer;
@@ -175,9 +175,10 @@ namespace OpenRA.Mods.AS.Traits
 		public int DisguiseMaxHealth = 0;
 		public string[] DisguiseStatIcons = new string[9];
 		public string[] DisguiseStats = new string[9];
-		public Dictionary<string, bool> DisguiseUpgrades = new();
-		public string[] DisguiseCurrentUpgrades = Array.Empty<string>();
-		public List<Actor> Passengers = new();
+		public Dictionary<string, bool> DisguiseUpgrades = [];
+		public string[] DisguiseCurrentUpgrades = [];
+		public List<Actor> Passengers = [];
+
 		public ActorStatValues(ActorInitializer init, ActorStatValuesInfo info)
 		{
 			Info = info;
@@ -344,7 +345,7 @@ namespace OpenRA.Mods.AS.Traits
 
 			Upgrades.Clear();
 			foreach (var upgrade in CurrentUpgrades)
-				Upgrades.Add(upgrade, techTree.HasPrerequisites(new string[] { upgrade }));
+				Upgrades.Add(upgrade, techTree.HasPrerequisites([upgrade]));
 		}
 
 		// Handle the upgrade that provide effect by using prerequisite
@@ -355,10 +356,10 @@ namespace OpenRA.Mods.AS.Traits
 				return;
 
 			if (a.Owner == self.Owner && Upgrades.ContainsKey(upgrade))
-				Upgrades[upgrade] = techTree.HasPrerequisites(new string[] { upgrade });
+				Upgrades[upgrade] = techTree.HasPrerequisites([upgrade]);
 
 			if (a.Owner == DisguisePlayer && DisguiseUpgrades.ContainsKey(a.Info.Name))
-				DisguiseUpgrades[a.Info.Name] = DisguisePlayer.PlayerActor.Trait<TechTree>().HasPrerequisites(new string[] { upgrade });
+				DisguiseUpgrades[a.Info.Name] = DisguisePlayer.PlayerActor.Trait<TechTree>().HasPrerequisites([upgrade]);
 		}
 
 		// Handle the upgrade on this actor produces upgrade for it own.
@@ -827,7 +828,7 @@ namespace OpenRA.Mods.AS.Traits
 				if (Info.LocalUpgrades.Contains(upgrade))
 					continue;
 
-				Upgrades[upgrade] = techTree.HasPrerequisites(new string[] { upgrade });
+				Upgrades[upgrade] = techTree.HasPrerequisites([upgrade]);
 			}
 		}
 

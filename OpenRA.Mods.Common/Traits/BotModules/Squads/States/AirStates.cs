@@ -97,8 +97,8 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 		{
 			dangerRadius = owner.SquadManager.Info.DangerScanRadius;
 			map = owner.World.Map;
-			columnCount = (map.MapSize.X + dangerRadius - 1) / dangerRadius;
-			rowCount = (map.MapSize.Y + dangerRadius - 1) / dangerRadius;
+			columnCount = (map.MapSize.Width + dangerRadius - 1) / dangerRadius;
+			rowCount = (map.MapSize.Height + dangerRadius - 1) / dangerRadius;
 			airStrikeCheckIndices ??= Exts.MakeArray(columnCount * rowCount, i => i).Shuffle(owner.World.LocalRandom).ToArray();
 		}
 

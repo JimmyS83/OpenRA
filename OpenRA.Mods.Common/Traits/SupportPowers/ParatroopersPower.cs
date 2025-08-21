@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Effects;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -49,7 +48,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[FieldLoader.Require]
 		[Desc("Troops to be delivered.  They will be distributed between the planes if SquadSize > 1.")]
-		public readonly Dictionary<int, string[]> DropItems = new();
+		public readonly Dictionary<int, string[]> DropItems = [];
 
 		[Desc("Risks stuck units when they don't have the Paratrooper trait.")]
 		public readonly bool AllowImpassableCells = false;
@@ -131,11 +130,11 @@ namespace OpenRA.Mods.Common.Traits
 				{
 					self.World.AddFrameEndTask(w =>
 					{
-						camera = w.CreateActor(info.CameraActor, new TypeDictionary
-						{
+						camera = w.CreateActor(info.CameraActor,
+						[
 							new LocationInit(self.World.Map.CellContaining(target)),
 							new OwnerInit(self.Owner),
-						});
+						]);
 					});
 				}
 
@@ -187,21 +186,21 @@ namespace OpenRA.Mods.Common.Traits
 				var so = info.SquadOffset;
 				var spawnOffset = new WVec(i * so.Y, -Math.Abs(i) * so.X, 0).Rotate(dropRotation);
 
-				aircraft.Add(self.World.CreateActor(false, utLower, new TypeDictionary
-				{
+				aircraft.Add(self.World.CreateActor(false, utLower,
+				[
 					new CenterPositionInit(startEdge + spawnOffset),
 					new OwnerInit(self.Owner),
 					new FacingInit(facing.Value),
-				}));
+				]));
 			}
 
 			var dropItems = info.DropItems.First(di => di.Key == level).Value;
 			foreach (var p in dropItems)
 			{
-				units.Add(self.World.CreateActor(false, p.ToLowerInvariant(), new TypeDictionary
-				{
+				units.Add(self.World.CreateActor(false, p.ToLowerInvariant(),
+				[
 					new OwnerInit(self.Owner)
-				}));
+				]));
 			}
 
 			self.World.AddFrameEndTask(w =>

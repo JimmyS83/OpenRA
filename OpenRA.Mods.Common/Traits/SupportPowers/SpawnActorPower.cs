@@ -96,11 +96,11 @@ namespace OpenRA.Mods.Common.Traits
 					w.Add(new SpriteEffect(position, w, Info.EffectImage, Info.EffectSequence, palette));
 				}
 
-				var actor = w.CreateActor(Info.Actors.First(a => a.Key == level).Value, new TypeDictionary
-				{
+				var actor = w.CreateActor(Info.Actors.First(a => a.Key == level).Value,
+				[
 					new LocationInit(cell),
 					new OwnerInit(self.Owner),
-				});
+				]);
 
 				if (Info.LifeTime > -1)
 				{

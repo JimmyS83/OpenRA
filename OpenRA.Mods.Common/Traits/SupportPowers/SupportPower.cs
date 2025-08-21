@@ -69,7 +69,7 @@ namespace OpenRA.Mods.Common.Traits
 			"Normal rules apply for subsequent charges.")]
 		public readonly bool StartFullyChargedForTheFirstTime = false;
 
-		public readonly Dictionary<int, string[]> Prerequisites = new();
+		public readonly Dictionary<int, string[]> Prerequisites = [];
 
 		public readonly string DetectedSound = null;
 
@@ -183,7 +183,7 @@ namespace OpenRA.Mods.Common.Traits
 		protected SupportPowerInfo() { OrderName = GetType().Name + "Order"; }
 	}
 
-	public class SupportPower : PausableConditionalTrait<SupportPowerInfo>, INotifyOwnerChanged
+	public abstract class SupportPower : PausableConditionalTrait<SupportPowerInfo>, INotifyOwnerChanged
 	{
 		public readonly Actor Self;
 		readonly SupportPowerInfo info;
@@ -192,7 +192,7 @@ namespace OpenRA.Mods.Common.Traits
 		DeveloperMode developerMode;
 		TechTree techTree;
 
-		public SupportPower(Actor self, SupportPowerInfo info)
+		protected SupportPower(Actor self, SupportPowerInfo info)
 			: base(info)
 		{
 			Self = self;

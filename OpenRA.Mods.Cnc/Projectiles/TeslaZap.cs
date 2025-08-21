@@ -49,7 +49,7 @@ namespace OpenRA.Mods.Cnc.Projectiles
 		[Desc("Follow the targeted actor when it moves.")]
 		public readonly bool TrackTarget = true;
 
-		[Desc("Equivalent to sequence ZOffset. Controls Z sorting.")]
+		[Desc("Controls Z sorting.")]
 		public readonly int ZOffset = 0;
 
 		public IProjectile Create(ProjectileArgs args) { return new TeslaZap(this, args); }

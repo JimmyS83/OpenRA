@@ -27,7 +27,7 @@ namespace OpenRA.Mods.Common.Warheads
 		public readonly BitSet<DamageType> DamageTypes = default;
 
 		[Desc("Damage percentage versus each armor type.")]
-		public readonly Dictionary<string, int> Versus = new();
+		public readonly Dictionary<string, int> Versus = [];
 
 		[Desc("Use this warhead to calculate unit damage stats.")]
 		public readonly bool UpdatesUnitStatistics = true;

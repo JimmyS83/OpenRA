@@ -51,6 +51,8 @@ namespace OpenRA.Mods.Common.Widgets
 		public readonly int2 IconSpriteOffset = int2.Zero;
 
 		public readonly float2 QueuedOffset = new(4, 2);
+
+		public readonly float2 BulkOffset = new(4, 2);
 		public readonly TextAlign QueuedTextAlign = TextAlign.Left;
 
 		public readonly string ClickSound = ChromeMetrics.Get<string>("ClickSound");
@@ -118,7 +120,7 @@ namespace OpenRA.Mods.Common.Widgets
 		}
 
 		public override Rectangle EventBounds => eventBounds;
-		Dictionary<Rectangle, ProductionIcon> icons = new();
+		Dictionary<Rectangle, ProductionIcon> icons = [];
 		Animation cantBuild;
 		Animation clock;
 		Rectangle eventBounds = Rectangle.Empty;
@@ -145,7 +147,7 @@ namespace OpenRA.Mods.Common.Widgets
 				count = FieldLoader.GetValue<int>("HotkeyCount", countNode.Value.Value);
 
 			if (count == 0)
-				return Array.Empty<string>();
+				return [];
 
 			if (string.IsNullOrEmpty(prefix))
 				emitError($"{widgetNode.Location} must define HotkeyPrefix if HotkeyCount > 0.");
@@ -224,7 +226,7 @@ namespace OpenRA.Mods.Common.Widgets
 			get
 			{
 				if (CurrentQueue == null)
-					return Enumerable.Empty<ActorInfo>();
+					return [];
 
 				return CurrentQueue.AllItems().OrderBy(a => BuildableInfo.GetTraitForQueue(a, CurrentQueue.Info.Type).GetBuildPaletteOrder(a, CurrentQueue));
 			}
@@ -381,6 +383,24 @@ namespace OpenRA.Mods.Common.Widgets
 
 		bool HandleRightClick(ProductionItem item, ProductionIcon icon, int handleCount)
 		{
+			if (CurrentQueue is BulkProductionQueue bulkProductionQueue && !bulkProductionQueue.HasDeliveryStarted())
+			{
+				var readyActors = bulkProductionQueue.GetActorsReadyForDelivery();
+				if (readyActors.Any(a => a.Actor.Name == icon.Name))
+				{
+					World.IssueOrder(
+						new Order("ReturnOrder", CurrentQueue.Actor, false)
+						{
+							ExtraData = (uint)handleCount,
+							TargetString = icon.Name
+						});
+					Game.Sound.PlayNotification(World.Map.Rules, World.LocalPlayer, "Sounds", ClickSound, null);
+					return true;
+				}
+				else
+					return false;
+			}
+
 			if (item == null)
 				return false;
 
@@ -412,19 +432,20 @@ namespace OpenRA.Mods.Common.Widgets
 
 		bool HandleMiddleClick(ProductionItem item, ProductionIcon icon, int handleCount)
 		{
-			if (item == null)
-				return false;
+			if (item != null)
+			{
+				// Directly cancel, skipping "on-hold"
+				var notification = item.BuildableInfo.CancelledAudio ?? CurrentQueue.Info.CancelledAudio;
+				var textNotification = item.BuildableInfo.CancelledTextNotification ?? CurrentQueue.Info.CancelledTextNotification;
+				Game.Sound.PlayNotification(World.Map.Rules, World.LocalPlayer, "Sounds", ClickSound, null);
+				Game.Sound.PlayNotification(World.Map.Rules, World.LocalPlayer, "Speech", notification, World.LocalPlayer.Faction.InternalName);
+				TextNotificationsManager.AddTransientLine(World.LocalPlayer, textNotification);
 
-			// Directly cancel, skipping "on-hold"
-			var notification = item.BuildableInfo.CancelledAudio ?? CurrentQueue.Info.CancelledAudio;
-			var textNotification = item.BuildableInfo.CancelledTextNotification ?? CurrentQueue.Info.CancelledTextNotification;
-			Game.Sound.PlayNotification(World.Map.Rules, World.LocalPlayer, "Sounds", ClickSound, null);
-			Game.Sound.PlayNotification(World.Map.Rules, World.LocalPlayer, "Speech", notification, World.LocalPlayer.Faction.InternalName);
-			TextNotificationsManager.AddTransientLine(World.LocalPlayer, textNotification);
+				World.IssueOrder(Order.CancelProduction(CurrentQueue.Actor, icon.Name, handleCount));
+				return true;
+			}
 
-			World.IssueOrder(Order.CancelProduction(CurrentQueue.Actor, icon.Name, handleCount));
-
-			return true;
+			return false;
 		}
 
 		bool HandleEvent(ProductionIcon icon, MouseButton btn, Modifiers modifiers)
@@ -476,7 +497,7 @@ namespace OpenRA.Mods.Common.Widgets
 			if (selection.Actors.Count == 1 && selection.Contains(facility))
 				viewport.Center(selection.Actors);
 			else
-				selection.Combine(World, new[] { facility }, false, true);
+				selection.Combine(World, [facility], false, true);
 
 			Game.Sound.PlayNotification(World.Map.Rules, null, "Sounds", ClickSound, null);
 			return true;
@@ -490,7 +511,7 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public void RefreshIcons()
 		{
-			icons = new Dictionary<Rectangle, ProductionIcon>();
+			icons = [];
 			var producer = CurrentQueue != null ? CurrentQueue.MostLikelyProducer() : default;
 			if (CurrentQueue == null || producer.Trait == null)
 			{
@@ -599,10 +620,13 @@ namespace OpenRA.Mods.Common.Widgets
 					var waiting = !CurrentQueue.IsProducing(first) && !first.Done;
 					if (first.Done)
 					{
-						if (ReadyTextStyle == ReadyTextStyleOptions.Solid || orderManager.LocalFrameNumber * worldRenderer.World.Timestep / 360 % 2 == 0)
-							overlayFont.DrawTextWithContrast(ReadyText, icon.Pos + readyOffset, TextColor, Color.Black, 1);
-						else if (ReadyTextStyle == ReadyTextStyleOptions.AlternatingColor)
-							overlayFont.DrawTextWithContrast(ReadyText, icon.Pos + readyOffset, ReadyTextAltColor, Color.Black, 1);
+						if (CurrentQueue is not BulkProductionQueue)
+						{
+							if (ReadyTextStyle == ReadyTextStyleOptions.Solid || orderManager.LocalFrameNumber * worldRenderer.World.Timestep / 360 % 2 == 0)
+								overlayFont.DrawTextWithContrast(ReadyText, icon.Pos + readyOffset, TextColor, Color.Black, 1);
+							else if (ReadyTextStyle == ReadyTextStyleOptions.AlternatingColor)
+								overlayFont.DrawTextWithContrast(ReadyText, icon.Pos + readyOffset, ReadyTextAltColor, Color.Black, 1);
+						}
 					}
 					else if (first.Paused)
 						overlayFont.DrawTextWithContrast(HoldText,
@@ -633,6 +657,14 @@ namespace OpenRA.Mods.Common.Widgets
 							icon.Pos + pos,
 							TextColor, Color.Black, 1);
 					}
+				}
+
+				if (CurrentQueue is BulkProductionQueue bulkProductionQueue)
+				{
+					var readyActors = bulkProductionQueue.GetActorsReadyForDelivery().
+						Count(a => a.Actor.Name == icon.Name);
+					overlayFont.DrawTextWithContrast(readyActors.ToString(NumberFormatInfo.CurrentInfo),
+						icon.Pos + BulkOffset, TextColor, Color.Black, 1);
 				}
 			}
 		}

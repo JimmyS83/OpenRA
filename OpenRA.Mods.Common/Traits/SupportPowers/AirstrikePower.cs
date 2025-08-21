@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Effects;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -24,11 +23,11 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		[FieldLoader.Require]
 		[Desc("Aircraft used to deliver the airstrike.")]
-		public readonly Dictionary<int, string> UnitTypes = new();
+		public readonly Dictionary<int, string> UnitTypes = [];
 
 		[FieldLoader.Require]
 		[Desc("Number of aircraft to use in an airstrike formation.")]
-		public readonly Dictionary<int, int> SquadSizes = new();
+		public readonly Dictionary<int, int> SquadSizes = [];
 
 		[Desc("Offset vector between the aircraft in a formation.")]
 		public readonly WVec SquadOffset = new(-1536, 1536, 0);
@@ -74,7 +73,7 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			var level = GetLevel();
 			if (level == 0)
-				return Array.Empty<Actor>();
+				return [];
 
 			var startPos = target;
 			var aircraft = new List<Actor>();
@@ -92,7 +91,8 @@ namespace OpenRA.Mods.Common.Traits
 				}
 			}
 
-			var altitude = self.World.Map.Rules.Actors[info.UnitTypes.First(ut => ut.Key == level).Value].TraitInfo<AircraftInfo>().CruiseAltitude.Length;
+			var unitType = info.UnitTypes.First(ut => ut.Key == level).Value;
+			var altitude = self.World.Map.Rules.Actors[unitType].TraitInfo<AircraftInfo>().CruiseAltitude.Length;
 			var attackRotation = WRot.FromYaw(facing.Value);
 			var delta = new WVec(0, -1024, 0).Rotate(attackRotation);
 			startPos += new WVec(0, 0, altitude);
@@ -111,11 +111,11 @@ namespace OpenRA.Mods.Common.Traits
 				{
 					self.World.AddFrameEndTask(w =>
 					{
-						camera = w.CreateActor(info.CameraActor, new TypeDictionary
-						{
+						camera = w.CreateActor(info.CameraActor,
+						[
 							new LocationInit(self.World.Map.CellContaining(target)),
 							new OwnerInit(self.Owner),
-						});
+						]);
 					});
 				}
 
@@ -159,12 +159,12 @@ namespace OpenRA.Mods.Common.Traits
 				var so = info.SquadOffset;
 				var spawnOffset = new WVec(i * so.Y, -Math.Abs(i) * so.X, 0).Rotate(attackRotation);
 				var targetOffset = new WVec(i * so.Y, 0, 0).Rotate(attackRotation);
-				var a = self.World.CreateActor(false, info.UnitTypes.First(ut => ut.Key == level).Value, new TypeDictionary
-				{
+				var a = self.World.CreateActor(false, unitType,
+				[
 					new CenterPositionInit(startEdge + spawnOffset),
 					new OwnerInit(self.Owner),
 					new FacingInit(facing.Value),
-				});
+				]);
 
 				aircraft.Add(a);
 				aircraftInRange.Add(a, false);

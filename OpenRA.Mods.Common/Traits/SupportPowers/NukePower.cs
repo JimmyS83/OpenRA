@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.GameRules;
@@ -26,7 +25,7 @@ namespace OpenRA.Mods.Common.Traits
 		// [WeaponReference]
 		[FieldLoader.Require]
 		[Desc("Weapon to use for the impact.")]
-		public readonly Dictionary<int, string> MissileWeapons = new();
+		public readonly Dictionary<int, string> MissileWeapons = [];
 
 		[Desc("Delay (in ticks) after launch until the missile is spawned.")]
 		public readonly int MissileDelay = 0;
@@ -64,7 +63,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[SequenceReference(nameof(TrailImage), allowNullImage: true)]
 		[Desc("Loop a randomly chosen sequence of TrailImage from this list while this projectile is moving.")]
-		public readonly string[] TrailSequences = Array.Empty<string>();
+		public readonly string[] TrailSequences = [];
 
 		[Desc("Interval in ticks between each spawned Trail animation.")]
 		public readonly int TrailInterval = 1;
@@ -124,7 +123,7 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Render circles based on these distance ranges while targeting.")]
 		public readonly Dictionary<int, WDist[]> CircleRanges;
 
-		public readonly Dictionary<int, WeaponInfo> WeaponInfos = new();
+		public readonly Dictionary<int, WeaponInfo> WeaponInfos = [];
 
 		public override object Create(ActorInitializer init) { return new NukePower(init.Self, this); }
 		public override void RulesetLoaded(Ruleset rules, ActorInfo ai)

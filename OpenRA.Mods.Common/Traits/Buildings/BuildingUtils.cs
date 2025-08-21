@@ -45,7 +45,7 @@ namespace OpenRA.Mods.Common.Traits
 						if (r.IsTraitDisabled)
 							continue;
 
-						acceptedReplacements ??= new HashSet<string>();
+						acceptedReplacements ??= [];
 
 						acceptedReplacements.UnionWith(r.Info.Types);
 					}
@@ -90,10 +90,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (bi.AllowInvalidPlacement)
 				return true;
 
-			var resourceLayer = world.WorldActor.TraitOrDefault<IResourceLayer>();
-			return bi.Tiles(cell).All(t => world.Map.Contains(t) &&
-				(bi.AllowPlacementOnResources || resourceLayer == null || resourceLayer.GetResource(t).Type == null) &&
-					world.IsCellBuildable(t, cell, ai, bi, toIgnore));
+			return bi.Tiles(cell).All(t => world.Map.Contains(t) && world.IsCellBuildable(t, cell, ai, bi, toIgnore));
 		}
 
 		public static IEnumerable<(CPos Cell, Actor Actor)> GetLineBuildCells(World world, CPos cell, ActorInfo ai, BuildingInfo bi, Player owner)
@@ -107,8 +104,8 @@ namespace OpenRA.Mods.Common.Traits
 			// Start at place location, search outwards
 			// TODO: First make it work, then make it nice
 			var vecs = new[] { new CVec(1, 0), new CVec(0, 1), new CVec(-1, 0), new CVec(0, -1) };
-			int[] dirs = { 0, 0, 0, 0 };
-			Actor[] connectors = { null, null, null, null };
+			int[] dirs = [0, 0, 0, 0];
+			Actor[] connectors = [null, null, null, null];
 
 			for (var d = 0; d < 4; d++)
 			{

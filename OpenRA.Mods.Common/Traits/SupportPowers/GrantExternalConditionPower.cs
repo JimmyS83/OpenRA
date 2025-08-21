@@ -24,19 +24,19 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		[FieldLoader.Require]
 		[Desc("The condition to apply. Must be included in the target actor's ExternalConditions list.")]
-		public readonly Dictionary<int, string> Conditions = new();
+		public readonly Dictionary<int, string> Conditions = [];
 
 		[FieldLoader.Require]
 		[Desc("Duration of the condition (in ticks). Set to 0 for a permanent condition.")]
-		public readonly Dictionary<int, int> Durations = new();
+		public readonly Dictionary<int, int> Durations = [];
 
 		[FieldLoader.Require]
 		[Desc("Size of the footprint of the affected area.")]
-		public readonly Dictionary<int, CVec> Dimensions = new();
+		public readonly Dictionary<int, CVec> Dimensions = [];
 
 		[FieldLoader.Require]
 		[Desc("Actual footprint. Cells marked as x will be affected.")]
-		public readonly Dictionary<int, string> Footprints = new();
+		public readonly Dictionary<int, string> Footprints = [];
 
 		[Desc("Sound to instantly play at the targeted area.")]
 		public readonly string OnFireSound = null;
@@ -68,7 +68,7 @@ namespace OpenRA.Mods.Common.Traits
 	public class GrantExternalConditionPower : SupportPower
 	{
 		readonly GrantExternalConditionPowerInfo info;
-		readonly Dictionary<int, char[]> footprints = new();
+		readonly Dictionary<int, char[]> footprints = [];
 
 		public GrantExternalConditionPower(Actor self, GrantExternalConditionPowerInfo info)
 			: base(self, info)
@@ -134,7 +134,7 @@ namespace OpenRA.Mods.Common.Traits
 		sealed class SelectConditionTarget : OrderGenerator
 		{
 			readonly GrantExternalConditionPower power;
-			readonly Dictionary<int, char[]> footprints = new();
+			readonly Dictionary<int, char[]> footprints = [];
 			readonly Dictionary<int, CVec> dimensions;
 			readonly Sprite tile;
 			readonly float alpha;

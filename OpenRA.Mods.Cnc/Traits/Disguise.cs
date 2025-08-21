@@ -88,7 +88,7 @@ namespace OpenRA.Mods.Cnc.Traits
 		[ActorReference(dictionaryReference: LintDictionaryReference.Keys)]
 		[Desc("Conditions to grant when disguised as specified actor.",
 			"A dictionary of [actor id]: [condition].")]
-		public readonly Dictionary<string, string> DisguisedAsConditions = new();
+		public readonly Dictionary<string, string> DisguisedAsConditions = [];
 
 		[CursorReference]
 		[Desc("Cursor to display when hovering over a valid actor to disguise as.")]
@@ -177,37 +177,59 @@ namespace OpenRA.Mods.Cnc.Traits
 				var targetDisguise = target.TraitOrDefault<Disguise>();
 				if (targetDisguise != null && targetDisguise.Disguised)
 				{
-					AsSprite = targetDisguise.AsSprite;
-					AsPlayer = targetDisguise.AsPlayer;
-					AsActor = targetDisguise.AsActor;
-					AsTooltipInfo = targetDisguise.AsTooltipInfo;
-				}
-				else
-				{
-					var tooltip = target.TraitsImplementing<ITooltip>().FirstEnabledTraitOrDefault();
-					if (tooltip == null)
-						throw new ArgumentException("Missing tooltip or invalid target.", nameof(target));
-
-					AsSprite = target.Trait<RenderSprites>().GetImage(target);
-					AsPlayer = tooltip.Owner;
-					AsActor = target.Info;
-					AsTooltipInfo = tooltip.TooltipInfo;
-
-					var targetTurreted = target.TraitsImplementing<Turreted>();
-					if (targetTurreted != null)
+					// Don't disguise as yourself
+					if (targetDisguise.AsActor.Name == self.Info.Name && targetDisguise.AsPlayer == self.Owner)
 					{
-						TurretOffsets.Clear();
-						foreach (var t in targetTurreted)
-							TurretOffsets.Add(t.Offset);
+						AsSprite = null;
+						AsPlayer = null;
+						AsActor = self.Info;
+						AsTooltipInfo = null;
 					}
 					else
 					{
-						TurretOffsets.Clear();
-						TurretOffsets.Add(WVec.Zero);
+						AsSprite = targetDisguise.AsSprite;
+						AsPlayer = targetDisguise.AsPlayer;
+						AsActor = targetDisguise.AsActor;
+						AsTooltipInfo = targetDisguise.AsTooltipInfo;
 					}
+				}
+				else
+				{
+					// Don't disguise as yourself
+					if (target.Info.Name == self.Info.Name && target.Owner == self.Owner)
+					{
+						AsSprite = null;
+						AsPlayer = null;
+						AsActor = self.Info;
+						AsTooltipInfo = null;
+					}
+					else
+					{
+						var tooltip = target.TraitsImplementing<ITooltip>().FirstEnabledTraitOrDefault();
+						if (tooltip == null)
+							throw new ArgumentException("Missing tooltip or invalid target.", nameof(target));
 
-					foreach (var nd in notifiers)
-						nd.DisguiseChanged(self, target);
+						AsSprite = target.Trait<RenderSprites>().GetImage(target);
+						AsPlayer = tooltip.Owner;
+						AsActor = target.Info;
+						AsTooltipInfo = tooltip.TooltipInfo;
+
+						var targetTurreted = target.TraitsImplementing<Turreted>();
+						if (targetTurreted != null)
+						{
+							TurretOffsets.Clear();
+							foreach (var t in targetTurreted)
+								TurretOffsets.Add(t.Offset);
+						}
+						else
+						{
+							TurretOffsets.Clear();
+							TurretOffsets.Add(WVec.Zero);
+						}
+
+						foreach (var nd in notifiers)
+							nd.DisguiseChanged(self, target);
+					}
 				}
 			}
 			else
