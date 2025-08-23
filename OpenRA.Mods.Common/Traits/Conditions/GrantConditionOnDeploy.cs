@@ -204,7 +204,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (IsTraitPaused || IsTraitDisabled || self.IsDead || self.Disposed)
 				return false;
 
-			if (queued || !Info.SmartDeploy && !Info.ExclusiveDeploy || DeployState == DeployState.Undeployed || DeployState == DeployState.Undeploying)
+			if (!Info.ExclusiveDeploy && (queued || !Info.SmartDeploy || DeployState == DeployState.Undeployed || DeployState == DeployState.Undeploying))
 				return true;
 
 			foreach (var actor in self.World.Selection.Actors)
@@ -212,8 +212,13 @@ namespace OpenRA.Mods.Common.Traits
 				if (actor == self || actor.IsDead || !actor.IsInWorld)
 					continue;
 
-				if (actor.TraitsImplementing<GrantConditionOnDeploy>()
-					.Any(d => !d.IsTraitPaused && !d.IsTraitDisabled && (d.DeployState == DeployState.Undeployed || d.DeployState == DeployState.Undeploying || (Info.ExclusiveDeploy && d.Info.DeployType != Info.DeployType))))
+				var deploys = actor.TraitsImplementing<GrantConditionOnDeploy>().ToList();
+
+				if ((Info.ExclusiveDeploy && deploys.Count == 0) || deploys.Any(d => !d.IsTraitPaused &&
+									!d.IsTraitDisabled &&
+									((Info.SmartDeploy && (d.DeployState == DeployState.Undeployed ||
+									 d.DeployState == DeployState.Undeploying)) ||
+									 (Info.ExclusiveDeploy && d.Info.DeployType != Info.DeployType))))
 					return false;
 			}
 

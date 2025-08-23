@@ -241,7 +241,7 @@ namespace OpenRA.Mods.Common.Traits
 				if (!a.IsDead && a.IsInWorld)
 					cargo = a.TraitOrDefault<Cargo>();
 
-				if (cargo != null && cargo.Info.DeployType != Info.DeployType) return false;
+				if (cargo == null || cargo.Info.DeployType != Info.DeployType) return false;
 			}
 
 			return true;

@@ -421,7 +421,7 @@ namespace OpenRA.Mods.Common.Traits
 
 				// Refund what's been paid so far
 				playerResources.GiveCash(Queue[i].TotalCost - Queue[i].RemainingCost);
-				EndProduction(Queue[i]);
+				EndProduction(Queue[i], true);
 				cancelledAnItem = true;
 			}
 
@@ -642,11 +642,11 @@ namespace OpenRA.Mods.Common.Traits
 			return false;
 		}
 
-		public void EndProduction(ProductionItem item)
+		public void EndProduction(ProductionItem item, bool cancelling = false)
 		{
 			Queue.Remove(item);
 
-			if (item.Infinite)
+			if (item.Infinite && !cancelling)
 				Queue.Add(new ProductionItem(this, item.Item, item.TotalCost, playerPower, item.OnComplete) { Infinite = true });
 		}
 
