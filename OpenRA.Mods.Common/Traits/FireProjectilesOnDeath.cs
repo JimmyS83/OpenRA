@@ -87,6 +87,8 @@ namespace OpenRA.Mods.Common.Traits
 				{
 					var myFacing = self.TraitOrDefault<IFacing>();
 					var rotation = WRot.FromYaw(myFacing != null && Info.ConsiderFacing ? myFacing.Facing + new WAngle(256) : new WAngle(self.World.SharedRandom.Next(1024)));
+					var dat = self.World.Map.DistanceAboveTerrain(self.CenterPosition);
+					var source = dat.Length < 0 ? self.CenterPosition - new WVec(0, 0, dat.Length) : self.CenterPosition;
 					var args = new ProjectileArgs
 					{
 						Weapon = wep,
@@ -102,10 +104,10 @@ namespace OpenRA.Mods.Common.Traits
 						RangeModifiers = self.TraitsImplementing<IRangeModifier>()
 							.Select(a => a.GetRangeModifier()).ToArray(),
 
-						Source = self.CenterPosition,
-						CurrentSource = () => self.CenterPosition,
+						Source = source,
+						CurrentSource = () => source,
 						SourceActor = self,
-						PassiveTarget = self.CenterPosition + new WVec(range, 0, 0).Rotate(rotation)
+						PassiveTarget = source + new WVec(range, 0, 0).Rotate(rotation)
 					};
 
 					self.World.AddFrameEndTask(x =>
