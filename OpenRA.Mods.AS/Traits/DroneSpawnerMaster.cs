@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using OpenRA.Activities;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Traits;
@@ -22,7 +21,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly bool SlavesHaveFreeWill = false;
 
 		[Desc("Place slave will gather to. Only recommended to used on building master")] // TODO: Test it on ground unit on map edges
-		public readonly CVec[] GatherCell = Array.Empty<CVec>();
+		public readonly CVec[] GatherCell = [];
 
 		[Desc("When idle and not moving, master check slaves and gathers them in this many tick. Set it properly can save performance")]
 		public readonly int IdleCheckTick = 103;

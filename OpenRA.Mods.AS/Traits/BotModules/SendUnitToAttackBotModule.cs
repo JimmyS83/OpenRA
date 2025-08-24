@@ -49,7 +49,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Should attack the furthest or closest target. Possible values are Closest, Furthest, Random",
 			"Multiple values mean the distance randomizes between them")]
-		public readonly TargetDistance[] TargetDistances = { TargetDistance.Closest };
+		public readonly TargetDistance[] TargetDistances = [TargetDistance.Closest];
 
 		[Desc("Prepare unit, disguise unit and try attack target in this interval.")]
 		public readonly int ScanTick = 463;
@@ -86,12 +86,12 @@ namespace OpenRA.Mods.AS.Traits
 		readonly Predicate<Actor> unitCannotBeOrderedOrIsIdle;
 		readonly Predicate<Actor> isInvalidActor;
 
-		readonly List<UnitWposWrapper> activeActors = new();
-		readonly List<Actor> stuckActors = new();
+		readonly List<UnitWposWrapper> activeActors = [];
+		readonly List<Actor> stuckActors = [];
 
-		readonly List<TraitPair<Disguise>> disguisePairs = new();
+		readonly List<TraitPair<Disguise>> disguisePairs = [];
 		BitSet<TargetableType> disguiseTypes;
-		List<Actor> attackActors = new();
+		List<Actor> attackActors = [];
 
 		int prepareAttackTicks;
 		int disguiseDelayTicks;

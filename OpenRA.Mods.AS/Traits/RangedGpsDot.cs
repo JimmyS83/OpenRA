@@ -36,7 +36,7 @@ namespace OpenRA.Mods.AS.Traits
 	class RangedGpsDot : ConditionalTrait<RangedGpsDotInfo>, INotifyAddedToWorld, INotifyRemovedFromWorld
 	{
 		RangedGpsDotEffect effect;
-		public readonly List<Actor> Providers = new();
+		public readonly List<Actor> Providers = [];
 
 		public RangedGpsDot(RangedGpsDotInfo info)
 			: base(info) { }

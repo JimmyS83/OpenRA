@@ -17,7 +17,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 {
 	abstract class GuerrillaStatesBase : GroundStateBase { }
 
-	class GuerrillaUnitsIdleState : GuerrillaStatesBase, IState
+	sealed class GuerrillaUnitsIdleState : GuerrillaStatesBase, IState
 	{
 		Actor leader;
 		int squadsize;
@@ -68,7 +68,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 
 	// See detailed comments at GroundStates.cs
 	// There is many in common
-	class GuerrillaUnitsAttackMoveState : GuerrillaStatesBase, IState
+	sealed class GuerrillaUnitsAttackMoveState : GuerrillaStatesBase, IState
 	{
 		const int MaxMakeWayPossibility = 4;
 		const int MaxSquadStuckPossibility = 6;
@@ -277,7 +277,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 
 	// See detailed comments at GroundStates.cs
 	// There are many in common
-	class GuerrillaUnitsHitState : GuerrillaStatesBase, IState
+	sealed class GuerrillaUnitsHitState : GuerrillaStatesBase, IState
 	{
 		// Use it to find if entire squad cannot reach the attack position
 		int tryAttackTick;
@@ -413,7 +413,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 		public void Deactivate(Squad owner) { }
 	}
 
-	class GuerrillaUnitsRunState : GuerrillaStatesBase, IState
+	sealed class GuerrillaUnitsRunState : GuerrillaStatesBase, IState
 	{
 		public const int HitTicks = 2;
 		internal int Hit = HitTicks;
@@ -444,7 +444,7 @@ namespace OpenRA.Mods.Common.Traits.BotModules.Squads
 		public void Deactivate(Squad owner) { }
 	}
 
-	class GuerrillaUnitsFleeState : GuerrillaStatesBase, IState
+	sealed class GuerrillaUnitsFleeState : GuerrillaStatesBase, IState
 	{
 		public void Activate(Squad owner) { }
 

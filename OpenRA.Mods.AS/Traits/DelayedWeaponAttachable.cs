@@ -43,7 +43,7 @@ namespace OpenRA.Mods.AS.Traits
 		public HashSet<DelayedWeaponTrigger> Container { get; }
 
 		readonly Actor self;
-		readonly HashSet<Actor> detectors = new();
+		readonly HashSet<Actor> detectors = [];
 		readonly bool isValidCondition;
 
 		int token = Actor.InvalidConditionToken;
@@ -53,7 +53,7 @@ namespace OpenRA.Mods.AS.Traits
 			: base(info)
 		{
 			this.self = self;
-			Container = new HashSet<DelayedWeaponTrigger>();
+			Container = [];
 			isValidCondition = !string.IsNullOrEmpty(info.Condition);
 		}
 
@@ -107,8 +107,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		public void RemoveDetector(Actor detector)
 		{
-			if (detectors.Contains(detector))
-				detectors.Remove(detector);
+			detectors.Remove(detector);
 		}
 
 		bool ISelectionBar.DisplayWhenEmpty { get { return false; } }

@@ -74,11 +74,11 @@ namespace OpenRA.Mods.Common.Traits
 
 		[ActorReference]
 		[Desc("If this list is not empty, these actors can't block me.")]
-		public readonly string[] NonBlockerActors = Array.Empty<string>();
+		public readonly string[] NonBlockerActors = [];
 
 		[ActorReference]
 		[Desc("If this list is not empty, only these actors can block me.")]
-		public readonly string[] BlockerActors = Array.Empty<string>();
+		public readonly string[] BlockerActors = [];
 
 		[Desc("e.g. crate, wall, infantry")]
 		public readonly BitSet<CrushClass> Crushes = default;

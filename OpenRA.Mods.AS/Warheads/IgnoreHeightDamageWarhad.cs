@@ -25,7 +25,7 @@ namespace OpenRA.Mods.AS.Warheads
 
 			var debugVis = firedBy.World.WorldActor.TraitOrDefault<DebugVisualizations>();
 			if (debugVis != null && debugVis.CombatGeometry)
-				firedBy.World.WorldActor.Trait<WarheadDebugOverlay>().AddImpact(pos, new[] { WDist.Zero, Spread }, DebugOverlayColor);
+				firedBy.World.WorldActor.Trait<WarheadDebugOverlay>().AddImpact(pos, [WDist.Zero, Spread], DebugOverlayColor);
 
 			foreach (var victim in firedBy.World.FindActorsInCircle(pos, Spread))
 			{

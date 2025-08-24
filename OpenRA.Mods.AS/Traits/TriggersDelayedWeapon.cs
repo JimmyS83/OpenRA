@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using System.Linq;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Traits;
@@ -27,7 +26,7 @@ namespace OpenRA.Mods.AS.Traits
 
 	public class TriggersDelayedWeapon : ConditionalTrait<TriggersDelayedWeaponInfo>
 	{
-		readonly DelayedWeaponAttachable[] attachables = Array.Empty<DelayedWeaponAttachable>();
+		readonly DelayedWeaponAttachable[] attachables = [];
 
 		public TriggersDelayedWeapon(Actor self, TriggersDelayedWeaponInfo info)
 			: base(info)

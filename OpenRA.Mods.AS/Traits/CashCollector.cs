@@ -71,7 +71,7 @@ namespace OpenRA.Mods.AS.Traits
 			cachedRange = info.Range;
 			cachedVRange = info.MaximumVerticalOffset;
 			ticks = Info.Delay;
-			collectables = new HashSet<CashCollectable>();
+			collectables = [];
 		}
 
 		void INotifyAddedToWorld.AddedToWorld(Actor self)

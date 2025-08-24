@@ -24,7 +24,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly string TeleportType = "RA2ChronoPower";
 
 		[Desc("Types of damage that this trait causes when teleported to following terrain while unit cannot stand on it.")]
-		public readonly Dictionary<HashSet<string>, BitSet<DamageType>> TerrainsAndDeathTypes = new();
+		public readonly Dictionary<HashSet<string>, BitSet<DamageType>> TerrainsAndDeathTypes = [];
 
 		[Desc("Max distance when destination is unavaliable for allies")]
 		public readonly int MaxSearchCellDistance = 5;

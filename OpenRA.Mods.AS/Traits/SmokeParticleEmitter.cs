@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using OpenRA.GameRules;
 using OpenRA.Mods.AS.Effects;
 using OpenRA.Mods.Common.Traits;
@@ -24,13 +23,13 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int[] Duration;
 
 		[Desc("Offset for the particle emitter.")]
-		public readonly WVec[] Offset = { WVec.Zero };
+		public readonly WVec[] Offset = [WVec.Zero];
 
 		[Desc("Randomize particle forward movement.")]
-		public readonly WDist[] Speed = { WDist.Zero };
+		public readonly WDist[] Speed = [WDist.Zero];
 
 		[Desc("Randomize particle gravity.")]
-		public readonly WDist[] Gravity = { WDist.Zero };
+		public readonly WDist[] Gravity = [WDist.Zero];
 
 		[Desc("Randomize particle facing.")]
 		public readonly bool RandomFacing = true;
@@ -42,23 +41,23 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int RandomRate = 4;
 
 		[Desc("How many particles should spawn.")]
-		public readonly int[] SpawnFrequency = { 100, 150 };
+		public readonly int[] SpawnFrequency = [100, 150];
 
 		[Desc("Which image to use.")]
 		public readonly string Image = "particles";
 
 		[SequenceReference(nameof(Image))]
 		[Desc("Which sequence to use when the smoke starts.")]
-		public readonly string[] StartSequences = Array.Empty<string>();
+		public readonly string[] StartSequences = [];
 
 		[FieldLoader.Require]
 		[SequenceReference(nameof(Image))]
 		[Desc("Which sequence to use while smoke is active.")]
-		public readonly string[] Sequences = Array.Empty<string>();
+		public readonly string[] Sequences = [];
 
 		[SequenceReference(nameof(Image))]
 		[Desc("Which sequence to use when the smoke ends.")]
-		public readonly string[] EndSequences = Array.Empty<string>();
+		public readonly string[] EndSequences = [];
 
 		[PaletteReference(nameof(IsPlayerPalette))]
 		[Desc("Which palette to use.")]

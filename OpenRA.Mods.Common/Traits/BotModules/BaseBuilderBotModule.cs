@@ -284,8 +284,8 @@ namespace OpenRA.Mods.Common.Traits
 							if (producing == null)
 								continue;
 
-							if (BuildingsBeingProduced.ContainsKey(producing.Item))
-								BuildingsBeingProduced[producing.Item]++;
+							if (BuildingsBeingProduced.TryGetValue(producing.Item, out var value))
+								BuildingsBeingProduced[producing.Item] = ++value;
 							else
 								BuildingsBeingProduced.Add(producing.Item, 1);
 

@@ -30,7 +30,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class SpawnerHarvestResourceInfo : BaseSpawnerMasterInfo
 	{
 		[Desc("Which resources it can harvest. Make sure slaves can mine these too!")]
-		public readonly HashSet<string> Resources = new();
+		public readonly HashSet<string> Resources = [];
 	}
 
 	[Desc("This actor is a harvester that uses its spawns to indirectly harvest resources. i.e., Slave Miner.")]

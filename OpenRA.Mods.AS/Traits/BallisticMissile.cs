@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Activities;
@@ -71,7 +70,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly string AirborneCondition = null;
 
 		[Desc("Sounds to play when the actor is taking off.")]
-		public readonly string[] LaunchSounds = Array.Empty<string>();
+		public readonly string[] LaunchSounds = [];
 
 		[Desc("Do the launching sounds play under shroud or fog.")]
 		public readonly bool AudibleThroughFog = false;
@@ -103,7 +102,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class BallisticMissile : ISync, IFacing, IMove, IPositionable,
 		INotifyCreated, INotifyAddedToWorld, INotifyRemovedFromWorld, IOccupySpace
 	{
-		static readonly (CPos Cell, SubCell SubCell)[] NoCells = Array.Empty<(CPos Cell, SubCell SubCell)>();
+		static readonly (CPos Cell, SubCell SubCell)[] NoCells = [];
 
 		public readonly BallisticMissileInfo Info;
 		readonly Actor self;

@@ -259,7 +259,7 @@ namespace OpenRA.Mods.Cnc.UtilityCommands
 			// { "ddefd", "defender" },
 		};
 
-		protected override Dictionary<string, string> ReplaceActors { get; } = new() { };
+		protected override Dictionary<string, string> ReplaceActors { get; } = [];
 
 		protected override string[] LampActors { get; } =
 		[

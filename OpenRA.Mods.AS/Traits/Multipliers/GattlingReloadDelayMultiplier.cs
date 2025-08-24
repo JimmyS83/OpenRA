@@ -37,7 +37,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly bool RevokeOnNewTarget = false;
 
 		[Desc("Weapon types to applies to. Leave empty to apply to all weapons.")]
-		public readonly HashSet<string> Types = new();
+		public readonly HashSet<string> Types = [];
 
 		public override object Create(ActorInitializer init) { return new GatlingReloadDelayMultiplier(this); }
 	}

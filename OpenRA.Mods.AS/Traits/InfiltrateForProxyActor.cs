@@ -21,7 +21,7 @@ namespace OpenRA.Mods.AS.Traits
 		[FieldLoader.Require]
 		public readonly string ProxyActor = null;
 
-		public readonly HashSet<string> Types = new();
+		public readonly HashSet<string> Types = [];
 
 		public override object Create(ActorInitializer init) { return new InfiltrateForProxyActor(this); }
 	}
@@ -41,10 +41,10 @@ namespace OpenRA.Mods.AS.Traits
 			if (IsTraitDisabled || !info.Types.Overlaps(types))
 				return;
 
-			infiltrator.World.AddFrameEndTask(w => w.CreateActor(info.ProxyActor, new TypeDictionary
-			{
+			infiltrator.World.AddFrameEndTask(w => w.CreateActor(info.ProxyActor,
+			[
 				new OwnerInit(infiltrator.Owner)
-			}));
+			]));
 		}
 	}
 }

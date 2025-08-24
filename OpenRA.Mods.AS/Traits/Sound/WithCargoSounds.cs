@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using OpenRA.Mods.Common.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -23,10 +22,10 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly string ExitNotification = null;
 
 		[Desc("List of sounds to be randomly played when an actor enters this cargo.")]
-		public readonly string[] EnterSounds = Array.Empty<string>();
+		public readonly string[] EnterSounds = [];
 
 		[Desc("List of sounds to be randomly played when an actor exits this cargo.")]
-		public readonly string[] ExitSounds = Array.Empty<string>();
+		public readonly string[] ExitSounds = [];
 
 		[Desc("Does the sound play under shroud or fog.")]
 		public readonly bool AudibleThroughFog = false;

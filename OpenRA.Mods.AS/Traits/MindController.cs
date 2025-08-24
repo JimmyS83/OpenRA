@@ -19,7 +19,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class MindControllerInfo : PausableConditionalTraitInfo, Requires<ArmamentInfo>, Requires<HealthInfo>
 	{
 		[Desc("Name of the armaments that grant this condition.")]
-		public readonly HashSet<string> ArmamentNames = new() { "primary" };
+		public readonly HashSet<string> ArmamentNames = ["primary"];
 
 		[Desc("Up to how many units can this unit control?",
 			"Use 0 or negative numbers for infinite.")]
@@ -36,7 +36,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly string ControllingCondition;
 
 		[Desc("The sound played when the unit is mindcontrolled.")]
-		public readonly string[] Sounds = Array.Empty<string>();
+		public readonly string[] Sounds = [];
 
 		[Desc("Do the sounds play under shroud or fog.")]
 		public readonly bool AudibleThroughFog = false;
@@ -51,7 +51,7 @@ namespace OpenRA.Mods.AS.Traits
 		INotifyActorDisposing, INotifyCreated, INotifyOwnerChanged
 	{
 		readonly MindControllerInfo info;
-		readonly List<Actor> slaves = new();
+		readonly List<Actor> slaves = [];
 		readonly Stack<int> controllingTokens = new();
 
 		public IEnumerable<Actor> Slaves { get { return slaves; } }
@@ -81,10 +81,9 @@ namespace OpenRA.Mods.AS.Traits
 		public void UnlinkSlave(Actor self, Actor slave)
 		{
 			if (slaves.Contains(slave))
-			{
-				slaves.Remove(slave);
 				UnstackControllingCondition(self, info.ControllingCondition);
-			}
+
+			slaves.Remove(slave);
 		}
 
 		void INotifyAttack.PreparingAttack(Actor self, in Target target, Armament a, Barrel barrel) { }

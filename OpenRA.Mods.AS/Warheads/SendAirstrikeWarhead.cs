@@ -74,12 +74,12 @@ namespace OpenRA.Mods.AS.Warheads
 					var so = SquadOffset;
 					var spawnOffset = new WVec(i * so.Y, -Math.Abs(i) * so.X, 0).Rotate(attackRotation);
 
-					var a = w.CreateActor(UnitType, new TypeDictionary
-					{
+					var a = w.CreateActor(UnitType,
+					[
 						new CenterPositionInit(startPos + spawnOffset),
 						new OwnerInit(firedBy.Owner),
 						new FacingInit(attackFacing),
-					});
+					]);
 
 					if (Mode == AirstrikeTarget.Target)
 						a.QueueActivity(new FlyAttack(a, AttackSource.Default, delayedTarget, true, Color.OrangeRed));

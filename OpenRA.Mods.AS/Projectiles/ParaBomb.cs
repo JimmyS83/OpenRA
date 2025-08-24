@@ -25,7 +25,7 @@ namespace OpenRA.Mods.AS.Projectiles
 
 		[Desc("Loop a randomly chosen sequence of Image from this list while falling.")]
 		[SequenceReference(nameof(Image))]
-		public readonly string[] Sequences = { "idle" };
+		public readonly string[] Sequences = ["idle"];
 
 		[Desc("Sequence to play when launched. Skipped if null or empty.")]
 		[SequenceReference(nameof(Image))]

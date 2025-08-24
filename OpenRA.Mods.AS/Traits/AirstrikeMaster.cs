@@ -45,7 +45,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Conditions to grant when specified actors are contained inside the transport.",
 			"A dictionary of [actor id]: [condition].")]
-		public readonly Dictionary<string, string> SpawnContainConditions = new();
+		public readonly Dictionary<string, string> SpawnContainConditions = [];
 
 		[Desc("The sound will be played when mark a target")]
 		public readonly string MarkSound = "";
@@ -70,7 +70,7 @@ namespace OpenRA.Mods.AS.Traits
 			public new AirstrikeSlave SpawnerSlave;
 		}
 
-		readonly Dictionary<string, Stack<int>> spawnContainTokens = new();
+		readonly Dictionary<string, Stack<int>> spawnContainTokens = [];
 		public readonly AirstrikeMasterInfo AirstrikeMasterInfo;
 
 		readonly Stack<int> loadedTokens = new();

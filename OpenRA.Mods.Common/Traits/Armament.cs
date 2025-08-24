@@ -72,10 +72,10 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly string CasingWeapon = null;
 
 		[Desc("Casing spawn position relative to turret or body, (forward, right, up) triples.")]
-		public readonly WVec[] CasingSpawnLocalOffset = Array.Empty<WVec>();
+		public readonly WVec[] CasingSpawnLocalOffset = [];
 
 		[Desc("Casing target position relative to turret or body, (forward, right, up) triples.")]
-		public readonly WVec[] CasingTargetOffset = Array.Empty<WVec>();
+		public readonly WVec[] CasingTargetOffset = [];
 
 		[Desc("Casing target position will be modified to ground level.")]
 		public readonly bool CasingHitGroundLevel = true;

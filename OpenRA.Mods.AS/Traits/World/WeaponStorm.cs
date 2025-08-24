@@ -27,10 +27,10 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly string Weapon = null;
 
 		[Desc("Do not modify graphics that use any palette in this list.")]
-		public readonly HashSet<string> ExcludePalettes = new() { "cursor", "chrome", "colorpicker", "fog", "shroud", "alpha" };
+		public readonly HashSet<string> ExcludePalettes = ["cursor", "chrome", "colorpicker", "fog", "shroud", "alpha"];
 
 		[Desc("Do not modify graphics that start with these letters.")]
-		public readonly HashSet<string> ExcludePalettePrefixes = new();
+		public readonly HashSet<string> ExcludePalettePrefixes = [];
 
 		public readonly float Red = 1f;
 		public readonly float Green = 1f;
@@ -38,7 +38,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly float Ambient = 1f;
 
 		[Desc("How many weapons should be fired per 1000 map cells (on average).")]
-		public readonly int[] Density = { 1 };
+		public readonly int[] Density = [1];
 
 		public readonly WDist Altitude = WDist.Zero;
 

@@ -122,7 +122,7 @@ namespace OpenRA.Mods.AS.Projectiles
 			}
 
 			if (this.info.SegmentLength == WDist.Zero)
-				offsets = new[] { source, target };
+				offsets = [source, target];
 			else
 			{
 				var numSegments = (direction.Length - 1) / info.SegmentLength.Length + 1;

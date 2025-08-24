@@ -36,7 +36,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[ActorReference]
 		[Desc("Actor types that are randomly sent around the base after their production.")]
-		public readonly HashSet<string> DozerTypes = new();
+		public readonly HashSet<string> DozerTypes = [];
 
 		[ActorReference]
 		[Desc("Actor types that are considered construction yards (base builders).")]
@@ -52,7 +52,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[ActorReference]
 		[Desc("Units that form a guerrilla squad.")]
-		public readonly HashSet<string> GuerrillaTypes = new();
+		public readonly HashSet<string> GuerrillaTypes = [];
 
 		[Desc("Target types are used for identifying aircraft.")]
 		public readonly BitSet<TargetableType> AircraftTargetType = new("Air", "AirborneActor");
@@ -104,10 +104,10 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly BitSet<TargetableType> IgnoredEnemyTargetTypes = default;
 
 		[Desc("Locomotor used by pathfinding leader for squads")]
-		public readonly HashSet<string> SuggestedGroundLeaderLocomotor = new();
+		public readonly HashSet<string> SuggestedGroundLeaderLocomotor = [];
 
 		[Desc("Locomotor used by pathfinding leader for squads")]
-		public readonly HashSet<string> SuggestedNavyLeaderLocomotor = new();
+		public readonly HashSet<string> SuggestedNavyLeaderLocomotor = [];
 
 		public override void RulesetLoaded(Ruleset rules, ActorInfo ai)
 		{
@@ -246,7 +246,7 @@ namespace OpenRA.Mods.Common.Traits
 			var findVisible = false;
 			var bestDist = long.MaxValue;
 			Actor bestTarget = null;
-			foreach (var a in World.Actors.Where(a => IsPreferredEnemyUnit(a)))
+			foreach (var a in World.Actors.Where(IsPreferredEnemyUnit))
 			{
 				var dist = (a.CenterPosition - sourceActor.CenterPosition).LengthSquared;
 

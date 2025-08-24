@@ -29,7 +29,7 @@ namespace OpenRA.Mods.AS.Warheads
 		public readonly int Range = 10;
 
 		[Desc("Actors to spawn.")]
-		public readonly string[] Actors = Array.Empty<string>();
+		public readonly string[] Actors = [];
 
 		[Desc("Should this actor link to the actor who create them? This will pass firer as the Parent Actor to spawned.")]
 		public readonly bool LinkToParent = false;
@@ -62,7 +62,7 @@ namespace OpenRA.Mods.AS.Warheads
 		public readonly string Palette = "effect";
 
 		[Desc("List of sounds that can be played at the spawning location.")]
-		public readonly string[] Sounds = Array.Empty<string>();
+		public readonly string[] Sounds = [];
 
 		public readonly bool UsePlayerPalette = false;
 

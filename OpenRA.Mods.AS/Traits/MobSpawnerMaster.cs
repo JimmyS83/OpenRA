@@ -251,11 +251,11 @@ namespace OpenRA.Mods.AS.Traits
 
 		void MoveSlaves(Actor self)
 		{
-			var targets = self.CurrentActivity.GetTargets(self);
-			if (!targets.Any())
+			var targets = self.CurrentActivity.GetTargets(self).ToArray();
+			if (targets.Length == 0)
 				return;
 
-			var location = self.World.Map.CellContaining(targets.First().CenterPosition);
+			var location = self.World.Map.CellContaining(targets[0].CenterPosition);
 
 			foreach (var se in slaveEntries)
 			{
@@ -276,11 +276,11 @@ namespace OpenRA.Mods.AS.Traits
 		CPos lastAttackMoveLocation;
 		void AttackMoveSlaves(Actor self)
 		{
-			var targets = self.CurrentActivity.GetTargets(self);
-			if (!targets.Any())
+			var targets = self.CurrentActivity.GetTargets(self).ToArray();
+			if (targets.Length == 0)
 				return;
 
-			var location = self.World.Map.CellContaining(targets.First().CenterPosition);
+			var location = self.World.Map.CellContaining(targets[0].CenterPosition);
 
 			if (lastAttackMoveLocation == location)
 				return;

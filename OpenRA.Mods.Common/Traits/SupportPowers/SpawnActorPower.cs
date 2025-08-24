@@ -26,7 +26,7 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		[FieldLoader.Require]
 		[Desc("Actors to spawn for each level.")]
-		public readonly Dictionary<int, string> Actors = new();
+		public readonly Dictionary<int, string> Actors = [];
 
 		[Desc("Amount of time to keep the actor alive in ticks. Value < 0 means this actor will not remove itself.")]
 		public readonly int LifeTime = 250;

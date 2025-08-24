@@ -28,10 +28,10 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int MaxWeight = 0;
 
 		[Desc("`Garrisoner.GarrisonType`s that can be loaded into this actor.")]
-		public readonly HashSet<string> Types = new();
+		public readonly HashSet<string> Types = [];
 
 		[Desc("A list of actor types that are initially spawned into this actor.")]
-		public readonly string[] InitialUnits = Array.Empty<string>();
+		public readonly string[] InitialUnits = [];
 
 		[Desc("When this actor is sold should all of its garrisoners be unloaded?")]
 		public readonly bool EjectOnSell = true;
@@ -40,7 +40,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly bool EjectOnDeath = false;
 
 		[Desc("Terrain types that this actor is allowed to eject actors onto. Leave empty for all terrain types.")]
-		public readonly HashSet<string> UnloadTerrainTypes = new();
+		public readonly HashSet<string> UnloadTerrainTypes = [];
 
 		[VoiceReference]
 		[Desc("Voice to play when ordered to unload the garrisoners.")]
@@ -78,7 +78,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Conditions to grant when specified actors are loaded inside the transport.",
 			"A dictionary of [actor id]: [condition].")]
-		public readonly Dictionary<string, string> GarrisonerConditions = new();
+		public readonly Dictionary<string, string> GarrisonerConditions = [];
 
 		[GrantedConditionReference]
 		public IEnumerable<string> LinterGarrisonerConditions { get { return GarrisonerConditions.Values; } }
@@ -94,9 +94,9 @@ namespace OpenRA.Mods.AS.Traits
 		ITransformActorInitModifier, INotifyPassengersDamage
 	{
 		readonly Actor self;
-		readonly List<Actor> garrisonable = new();
-		readonly HashSet<Actor> reserves = new();
-		readonly Dictionary<string, Stack<int>> garrisonerTokens = new();
+		readonly List<Actor> garrisonable = [];
+		readonly HashSet<Actor> reserves = [];
+		readonly Dictionary<string, Stack<int>> garrisonerTokens = [];
 		readonly Lazy<IFacing> facing;
 		readonly bool checkTerrainType;
 		readonly Stack<int> loadedTokens = new();
@@ -125,31 +125,31 @@ namespace OpenRA.Mods.AS.Traits
 			if (runtimeGarrisonInit != null)
 			{
 				garrisonable = runtimeGarrisonInit.Value.ToList();
-				TotalWeight = garrisonable.Sum(c => GetWeight(c));
+				TotalWeight = garrisonable.Sum(GetWeight);
 			}
 			else if (garrisonInit != null)
 			{
 				foreach (var u in garrisonInit.Value)
 				{
 					var unit = self.World.CreateActor(false, u.ToLowerInvariant(),
-						new TypeDictionary { new OwnerInit(self.Owner) });
+						[new OwnerInit(self.Owner)]);
 
 					garrisonable.Add(unit);
 				}
 
-				TotalWeight = garrisonable.Sum(c => GetWeight(c));
+				TotalWeight = garrisonable.Sum(GetWeight);
 			}
 			else
 			{
 				foreach (var u in info.InitialUnits)
 				{
 					var unit = self.World.CreateActor(false, u.ToLowerInvariant(),
-						new TypeDictionary { new OwnerInit(self.Owner) });
+						[new OwnerInit(self.Owner)]);
 
 					garrisonable.Add(unit);
 				}
 
-				TotalWeight = garrisonable.Sum(c => GetWeight(c));
+				TotalWeight = garrisonable.Sum(GetWeight);
 			}
 
 			facing = Exts.Lazy(self.TraitOrDefault<IFacing>);
@@ -330,11 +330,11 @@ namespace OpenRA.Mods.AS.Traits
 		public bool HasSpace(int weight) { return TotalWeight + reservedWeight + weight <= Info.MaxWeight; }
 		public bool IsEmpty() { return garrisonable.Count == 0; }
 
-		public Actor Peek() { return garrisonable.Last(); }
+		public Actor Peek() { return garrisonable[^1]; }
 
 		public Actor Unload(Actor self, Actor passenger = null)
 		{
-			passenger ??= garrisonable.Last();
+			passenger ??= garrisonable[^1];
 			if (!garrisonable.Remove(passenger))
 				throw new ArgumentException("Attempted to ungarrison an actor that is not a garrisoner.");
 

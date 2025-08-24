@@ -22,7 +22,7 @@ namespace OpenRA.Mods.AS.Traits
 	{
 		[Desc("Tells the AI how to use its support powers.")]
 		[FieldLoader.LoadUsing(nameof(LoadDecisions))]
-		public readonly List<SupportPowerDecisionAS> Decisions = new();
+		public readonly List<SupportPowerDecisionAS> Decisions = [];
 
 		static object LoadDecisions(MiniYaml yaml)
 		{
@@ -42,9 +42,9 @@ namespace OpenRA.Mods.AS.Traits
 	{
 		readonly World world;
 		readonly Player player;
-		readonly Dictionary<SupportPowerInstance, int> waitingPowers = new();
-		readonly Dictionary<string, SupportPowerDecisionAS> powerDecisions = new();
-		readonly List<SupportPowerInstance> stalePowers = new();
+		readonly Dictionary<SupportPowerInstance, int> waitingPowers = [];
+		readonly Dictionary<string, SupportPowerDecisionAS> powerDecisions = [];
+		readonly List<SupportPowerInstance> stalePowers = [];
 		PlayerResources playerResource;
 		SupportPowerManager supportPowerManager;
 
@@ -71,8 +71,7 @@ namespace OpenRA.Mods.AS.Traits
 					continue;
 
 				// Add power to dictionary if not in delay dictionary yet
-				if (!waitingPowers.ContainsKey(sp))
-					waitingPowers.Add(sp, 0);
+				waitingPowers.TryAdd(sp, 0);
 
 				if (waitingPowers[sp] > 0)
 					waitingPowers[sp]--;
@@ -165,10 +164,10 @@ namespace OpenRA.Mods.AS.Traits
 				.Select(kv => new MiniYamlNode(kv.Key.Key, FieldSaver.FormatValue(kv.Value)))
 				.ToList();
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("WaitingPowers", "", waitingPowersNodes)
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)

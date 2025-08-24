@@ -69,7 +69,7 @@ namespace OpenRA.Mods.AS.Activities
 				trait.NotifyAttacking(self, target, armament);
 
 				var actors = self.World.ActorMap.GetActorsAt(mobile.ToCell, mobile.ToSubCell)
-					.Except(new[] { self }).Where(t => armament.Weapon.IsValidAgainst(t, self));
+					.Except([self]).Where(t => armament.Weapon.IsValidAgainst(t, self));
 				foreach (var a in actors)
 					a.Kill(self, trait.LeapInfo.DamageTypes);
 

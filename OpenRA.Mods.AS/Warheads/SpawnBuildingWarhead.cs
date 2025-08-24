@@ -26,7 +26,7 @@ namespace OpenRA.Mods.AS.Warheads
 		public readonly int Range = 10;
 
 		[Desc("Actors to spawn.")]
-		public readonly string[] Buildings = Array.Empty<string>();
+		public readonly string[] Buildings = [];
 
 		[Desc("Should this building link to the actor who create them?")]
 		public readonly bool LinkToParent = false;
@@ -52,7 +52,7 @@ namespace OpenRA.Mods.AS.Warheads
 		public readonly string Palette = "effect";
 
 		[Desc("List of sounds that can be played at the spawning location.")]
-		public readonly string[] Sounds = Array.Empty<string>();
+		public readonly string[] Sounds = [];
 
 		public readonly bool UsePlayerPalette = false;
 
@@ -100,7 +100,7 @@ namespace OpenRA.Mods.AS.Warheads
 
 				while (cell.MoveNext())
 				{
-					if (!buildingInfo.Tiles(cell.Current).Any(c => alreadyusedcells.Contains(c)) &&
+					if (!buildingInfo.Tiles(cell.Current).Any(alreadyusedcells.Contains) &&
 						firedBy.World.CanPlaceBuilding(cell.Current, actorInfo, buildingInfo, null))
 					{
 						td.Add(new LocationInit(cell.Current));

@@ -61,7 +61,7 @@ namespace OpenRA.Mods.AS.Traits
 		int fireDelay;
 		int burst;
 		AmmoPool ammoPool;
-		readonly List<(int Delay, Action Action)> delayedActions = new();
+		readonly List<(int Delay, Action Action)> delayedActions = [];
 
 		public PeriodicExplosion(Actor self, PeriodicExplosionInfo info)
 			: base(info)

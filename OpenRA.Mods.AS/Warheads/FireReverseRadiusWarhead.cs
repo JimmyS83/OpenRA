@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using System.Linq;
 using OpenRA.GameRules;
 using OpenRA.Mods.Common.Traits;
@@ -25,7 +24,7 @@ namespace OpenRA.Mods.AS.Warheads
 		public readonly string Weapon = null;
 
 		[Desc("Amount of weapons fired.")]
-		public readonly int[] Amount = { 1 };
+		public readonly int[] Amount = [1];
 
 		[Desc("Should the weapons be fired around the intended target or at the explosion's epicenter.")]
 		public readonly bool AroundTarget = false;
@@ -83,10 +82,10 @@ namespace OpenRA.Mods.AS.Warheads
 					DamageModifiers = args.DamageModifiers,
 
 					InaccuracyModifiers = !firedBy.IsDead ? firedBy.TraitsImplementing<IInaccuracyModifier>()
-						.Select(a => a.GetInaccuracyModifier()).ToArray() : Array.Empty<int>(),
+						.Select(a => a.GetInaccuracyModifier()).ToArray() : [],
 
 					RangeModifiers = !firedBy.IsDead ? firedBy.TraitsImplementing<IRangeModifier>()
-						.Select(a => a.GetRangeModifier()).ToArray() : Array.Empty<int>(),
+						.Select(a => a.GetRangeModifier()).ToArray() : [],
 
 					Source = radiusSource.CenterPosition,
 					CurrentSource = () => radiusSource.CenterPosition,

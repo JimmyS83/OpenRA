@@ -54,8 +54,8 @@ namespace OpenRA.Mods.RA2.Traits
 		readonly Predicate<Actor> unitCannotBeOrderedOrIsIdle;
 		readonly Predicate<Actor> invalidTransport;
 
-		readonly List<UnitWposWrapper> activeGarrisoner = new();
-		readonly List<Actor> stuckGarrisoner = new();
+		readonly List<UnitWposWrapper> activeGarrisoner = [];
+		readonly List<Actor> stuckGarrisoner = [];
 		int minAssignRoleDelayTicks;
 
 		public LoadGarrisonerBotModule(Actor self, LoadGarrisonerBotModuleInfo info)

@@ -24,7 +24,7 @@ namespace OpenRA.Mods.AS.Activities
 		readonly Actor chronoProvider;
 		readonly int? maximumTileSearchRange;
 		readonly int chronoProviderRangeLimit;
-		readonly Dictionary<HashSet<string>, BitSet<DamageType>> terrainsAndDeathTypes = new();
+		readonly Dictionary<HashSet<string>, BitSet<DamageType>> terrainsAndDeathTypes = [];
 		readonly List<CPos> chronoCellsOfProvider;
 		readonly ActorMap actorMap;
 		readonly string teleportType;
@@ -112,7 +112,7 @@ namespace OpenRA.Mods.AS.Activities
 			if (WithinRange(destination) && pos.CanEnterCell(destination) && chronoProvider.Owner.Shroud.IsExplored(destination))
 				return (destination, null);
 
-			foreach (var tile in self.World.Map.FindTilesInCircle(destination, max).Where(c => WithinRange(c)))
+			foreach (var tile in self.World.Map.FindTilesInCircle(destination, max).Where(WithinRange))
 			{
 				if (chronoProvider.Owner.Shroud.IsExplored(tile)
 					&& pos.CanEnterCell(tile))

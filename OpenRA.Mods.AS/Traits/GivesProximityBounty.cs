@@ -46,7 +46,7 @@ namespace OpenRA.Mods.AS.Traits
 		public GivesProximityBounty(GivesProximityBountyInfo info)
 			: base(info)
 		{
-			Collectors = new HashSet<ProximityBounty>();
+			Collectors = [];
 		}
 
 		protected override void Created(Actor self)

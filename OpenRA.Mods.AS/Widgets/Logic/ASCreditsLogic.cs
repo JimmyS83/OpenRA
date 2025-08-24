@@ -96,7 +96,7 @@ namespace OpenRA.Mods.AS.Widgets.Logic
 			else
 				lines = modLines;
 
-			var label = (LabelWidget)template.Clone();
+			var label = template.Clone();
 			label.GetText = () => lines;
 			label.IncreaseHeightToFitCurrentText();
 			scrollPanel.AddChild(label);

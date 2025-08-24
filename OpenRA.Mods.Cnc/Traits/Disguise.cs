@@ -107,7 +107,7 @@ namespace OpenRA.Mods.Cnc.Traits
 		public Player AsPlayer { get; private set; }
 		public string AsSprite { get; private set; }
 		public ITooltipInfo AsTooltipInfo { get; private set; }
-		public List<WVec> TurretOffsets = new() { WVec.Zero };
+		public List<WVec> TurretOffsets = [WVec.Zero];
 
 		public bool Disguised => AsPlayer != null;
 		public Player Owner => AsPlayer;

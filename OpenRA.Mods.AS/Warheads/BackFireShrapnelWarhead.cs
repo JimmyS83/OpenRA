@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using OpenRA.GameRules;
 using OpenRA.Traits;
 
@@ -49,9 +48,9 @@ namespace OpenRA.Mods.AS.Warheads
 
 					DamageModifiers = args.DamageModifiers,
 
-					InaccuracyModifiers = Array.Empty<int>(),
+					InaccuracyModifiers = [],
 
-					RangeModifiers = Array.Empty<int>(),
+					RangeModifiers = [],
 
 					Source = sourcepos,
 					CurrentSource = () => sourcepos,

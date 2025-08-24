@@ -29,10 +29,10 @@ namespace OpenRA.Mods.AS.Projectiles
 	public class WarheadTrailProjectileInfo : IProjectileInfo, IRulesetLoaded<WeaponInfo>
 	{
 		[Desc("Warhead explosion offsets")]
-		public readonly WVec[] Offsets = { new(0, 1, 0) };
+		public readonly WVec[] Offsets = [new(0, 1, 0)];
 
 		[Desc("Projectile speed in WDist / tick, two values indicate variable velocity.")]
-		public readonly WDist[] Speed = { new(17) };
+		public readonly WDist[] Speed = [new(17)];
 
 		[Desc("Maximum inaccuracy offset.")]
 		public readonly WDist Inaccuracy = WDist.Zero;
@@ -64,7 +64,7 @@ namespace OpenRA.Mods.AS.Projectiles
 
 		[Desc("Loop a randomly chosen sequence of Image from this list while this projectile is moving.")]
 		[SequenceReference(nameof(Image), allowNullImage: true)]
-		public readonly string[] Sequences = { "idle" };
+		public readonly string[] Sequences = ["idle"];
 
 		[Desc("The palette used to draw this projectile.")]
 		[PaletteReference]
@@ -82,7 +82,7 @@ namespace OpenRA.Mods.AS.Projectiles
 
 		[Desc("Loop a randomly chosen sequence of TrailImage from this list while this projectile is moving.")]
 		[SequenceReference(nameof(TrailImage), allowNullImage: true)]
-		public readonly string[] TrailSequences = { "idle" };
+		public readonly string[] TrailSequences = ["idle"];
 
 		[Desc("Delay in ticks until trail animation is spawned.")]
 		public readonly int TrailDelay = 1;

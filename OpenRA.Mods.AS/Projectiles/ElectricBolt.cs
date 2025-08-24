@@ -33,11 +33,11 @@ namespace OpenRA.Mods.AS.Projectiles
 
 		[Desc("Colors of the zaps. The amount of zaps are the amount of colors listed here and PlayerColorZaps.")]
 		public readonly Color[] Colors =
-		{
+		[
 			Color.FromArgb(80, 80, 255),
 			Color.FromArgb(80, 80, 255),
 			Color.FromArgb(255, 255, 255)
-		};
+		];
 
 		[Desc("Additional zaps colored with the player's color.")]
 		public readonly int PlayerColorZaps = 0;
@@ -116,7 +116,7 @@ namespace OpenRA.Mods.AS.Projectiles
 					upVector = 1024 * upVector / upVector.Length;
 			}
 
-			zaps = new HashSet<(Color Color, WPos[] Positions, WPos[] PosCache)>();
+			zaps = [];
 			foreach (var c in colors)
 			{
 				var numSegments = (direction.Length - 1) / info.SegmentLength.Length + 1;

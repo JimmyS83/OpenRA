@@ -23,10 +23,10 @@ namespace OpenRA.Mods.AS.Traits
 	public class BevManagerBotModuleInfo : ConditionalTraitInfo
 	{
 		[Desc("Actor types that are considered construction yards (base centers).")]
-		public readonly HashSet<string> ConstructionYardTypes = new();
+		public readonly HashSet<string> ConstructionYardTypes = [];
 
 		[Desc("Actor types that are considered BEVs (deploy into base expansions).")]
-		public readonly HashSet<string> BevTypes = new();
+		public readonly HashSet<string> BevTypes = [];
 
 		[Desc("Delay (in ticks) between looking for and giving out orders to new BEVs.")]
 		public readonly int ScanForNewBevInterval = 20;
@@ -158,10 +158,10 @@ namespace OpenRA.Mods.AS.Traits
 			if (IsTraitDisabled)
 				return null;
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("InitialBaseCenter", FieldSaver.FormatValue(initialBaseCenter))
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)

@@ -45,7 +45,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Conditions to grant when specified actors are contained inside the transport.",
 			"A dictionary of [actor id]: [condition].")]
-		public readonly Dictionary<string, string> SpawnContainConditions = new();
+		public readonly Dictionary<string, string> SpawnContainConditions = [];
 
 		[GrantedConditionReference]
 		public IEnumerable<string> LinterSpawnContainConditions { get { return SpawnContainConditions.Values; } }
@@ -61,7 +61,7 @@ namespace OpenRA.Mods.AS.Traits
 			public new CarrierSlave SpawnerSlave;
 		}
 
-		readonly Dictionary<string, Stack<int>> spawnContainTokens = new();
+		readonly Dictionary<string, Stack<int>> spawnContainTokens = [];
 		public readonly CarrierMasterInfo CarrierMasterInfo;
 
 		readonly Stack<int> loadedTokens = new();

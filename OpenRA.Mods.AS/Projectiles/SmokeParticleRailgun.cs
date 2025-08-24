@@ -91,10 +91,10 @@ namespace OpenRA.Mods.AS.Projectiles
 		public readonly int[] HelixDuration;
 
 		[Desc("Randomize particle forward movement.")]
-		public readonly WDist[] HelixSpeed = { WDist.Zero };
+		public readonly WDist[] HelixSpeed = [WDist.Zero];
 
 		[Desc("Randomize particle gravity.")]
-		public readonly WDist[] HelixGravity = { WDist.Zero };
+		public readonly WDist[] HelixGravity = [WDist.Zero];
 
 		[Desc("Randomize particle turnrate.")]
 		public readonly int HelixTurnRate = 0;

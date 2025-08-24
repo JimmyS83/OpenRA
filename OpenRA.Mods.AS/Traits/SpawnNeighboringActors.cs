@@ -9,10 +9,8 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -23,18 +21,18 @@ namespace OpenRA.Mods.AS.Traits
 		[FieldLoader.Require]
 		[ActorReference]
 		[Desc("Types of actors to place. If multiple are defined, a random one will be selected for each actor spawned.")]
-		public readonly HashSet<string> ActorTypes = new();
+		public readonly HashSet<string> ActorTypes = [];
 
 		[FieldLoader.Require]
 		[Desc("Locations to spawn the actors relative to the origin (top-left for buildings) of this actor.")]
-		public readonly CVec[] Locations = Array.Empty<CVec>();
+		public readonly CVec[] Locations = [];
 
 		public override object Create(ActorInitializer init) { return new SpawnNeighboringActors(this, init.Self); }
 	}
 
 	public class SpawnNeighboringActors : ConditionalTrait<SpawnNeighboringActorsInfo>, INotifyKilled, INotifyOwnerChanged, INotifyActorDisposing, INotifySold
 	{
-		readonly List<Actor> actors = new();
+		readonly List<Actor> actors = [];
 
 		public SpawnNeighboringActors(SpawnNeighboringActorsInfo info, Actor self)
 			: base(info) { }
@@ -51,11 +49,11 @@ namespace OpenRA.Mods.AS.Traits
 					var actorType = Info.ActorTypes.Random(self.World.SharedRandom).ToLowerInvariant();
 					var cell = self.Location + offset;
 
-					var actor = w.CreateActor(true, actorType, new TypeDictionary
-					{
+					var actor = w.CreateActor(true, actorType,
+					[
 						new OwnerInit(self.Owner),
 						new LocationInit(cell)
-					});
+					]);
 
 					actors.Add(actor);
 				});

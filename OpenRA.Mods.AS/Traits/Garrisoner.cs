@@ -37,7 +37,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Conditions to grant when this actor is loaded inside specified transport.",
 			"A dictionary of [actor id]: [condition].")]
-		public readonly Dictionary<string, string> GarrisonConditions = new();
+		public readonly Dictionary<string, string> GarrisonConditions = [];
 
 		[GrantedConditionReference]
 		public IEnumerable<string> LinterGarrisonConditions { get { return GarrisonConditions.Values; } }

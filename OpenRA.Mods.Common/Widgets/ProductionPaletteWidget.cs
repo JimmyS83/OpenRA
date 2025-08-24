@@ -233,10 +233,10 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public override void Tick()
 		{
-			var forcedIcons = AllBuildables.Where(a => BuildableInfo.GetTraitForQueue(a, CurrentQueue.Info.Type).ForceIconLocation);
+			var forcedIcons = AllBuildables.Where(a => BuildableInfo.GetTraitForQueue(a, CurrentQueue.Info.Type).ForceIconLocation).ToList();
 
 			var largestForcedIconOrder = 0;
-			if (forcedIcons.Any())
+			if (forcedIcons.Count > 0)
 				largestForcedIconOrder = forcedIcons.Max(a => BuildableInfo.GetTraitForQueue(a, CurrentQueue.Info.Type).GetBuildPaletteOrder(a, CurrentQueue));
 
 			var totalIconCount = AllBuildables.Count();
@@ -554,9 +554,7 @@ namespace OpenRA.Mods.Common.Widgets
 					ProductionQueue = currentQueue
 				};
 
-				if (!icons.ContainsKey(rect))
-					icons.Add(rect, pi);
-
+				icons.TryAdd(rect, pi);
 				if (iconLocation > DisplayedIconCount)
 					DisplayedIconCount = iconLocation + 1;
 				else

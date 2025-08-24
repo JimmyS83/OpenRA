@@ -24,7 +24,7 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int Capacity = 28;
 
 		[Desc("Which resources can be stored.")]
-		public readonly string[] Resources = Array.Empty<string>();
+		public readonly string[] Resources = [];
 
 		string[] IStoresResourcesInfo.ResourceTypes => Resources;
 
@@ -35,7 +35,7 @@ namespace OpenRA.Mods.AS.Traits
 	{
 		readonly PlayerSiloInfo info;
 
-		readonly Dictionary<string, int> contents = new();
+		readonly Dictionary<string, int> contents = [];
 
 		[Sync]
 		public int ContentHash
