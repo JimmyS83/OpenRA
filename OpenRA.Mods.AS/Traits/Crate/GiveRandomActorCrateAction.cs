@@ -17,7 +17,7 @@ using OpenRA.Primitives;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Spawns a random actor with the `EligibleForRandomActorCrate` trait when collected.")]
-	class GiveRandomActorCrateActionInfo : CrateActionInfo
+	sealed class GiveRandomActorCrateActionInfo : CrateActionInfo
 	{
 		[Desc("Factions that are allowed to trigger this action.")]
 		public readonly HashSet<string> ValidFactions = [];
