@@ -26,7 +26,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new Berserkable(this); }
 	}
 
-	class Berserkable : ConditionalTrait<BerserkableInfo>, INotifyIdle, INotifyCreated
+	sealed class Berserkable : ConditionalTrait<BerserkableInfo>, INotifyIdle, INotifyCreated
 	{
 		AttackBase[] attackBases;
 		AutoTarget[] autoTargets;

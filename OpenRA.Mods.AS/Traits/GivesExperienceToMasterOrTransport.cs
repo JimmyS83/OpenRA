@@ -18,7 +18,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("This actor gives experience to a GainsExperience actor when they are killed.")]
-	class GivesExperienceToMasterOrTransportInfo : TraitInfo
+	sealed class GivesExperienceToMasterOrTransportInfo : TraitInfo
 	{
 		[Desc("If -1, use the value of the unit cost.")]
 		public readonly int Experience = -1;
@@ -38,7 +38,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new GivesExperienceToMasterOrTransport(this); }
 	}
 
-	class GivesExperienceToMasterOrTransport : INotifyKilled, INotifyCreated
+	sealed class GivesExperienceToMasterOrTransport : INotifyKilled, INotifyCreated
 	{
 		readonly GivesExperienceToMasterOrTransportInfo info;
 

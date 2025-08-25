@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using OpenRA.Mods.Cnc.UtilityCommands;
 using OpenRA.Primitives;
@@ -17,7 +16,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.UtilityCommands
 {
-	class ImportASMapCommand : ImportGen2MapCommand, IUtilityCommand
+	sealed class ImportASMapCommand : ImportGen2MapCommand, IUtilityCommand
 	{
 		string IUtilityCommand.Name { get { return "--import-as-map"; } }
 		bool IUtilityCommand.ValidateArguments(string[] args) { return args.Length >= 2; }
@@ -263,21 +262,21 @@ namespace OpenRA.Mods.AS.UtilityCommands
 			// { 0x03, new byte[] { 0x7E } }
 		};
 
-		protected override Dictionary<string, string> DeployableActors { get; } = new()
-		{
-			// { "gadpsa", "lpst" },
-			// { "gatick", "ttnk" },
-			// { "gaarty", "art2" },
-			// { "djugg", "jugg" },
+		protected override Dictionary<string, string> DeployableActors { get; } = [];
+		/* {
+			{ "gadpsa", "lpst" },
+			{ "gatick", "ttnk" },
+			{ "gaarty", "art2" },
+			{ "djugg", "jugg" },
 
 			// Not yet implemented actors:
-			// { "gaicbm", "icbm" },
-			// { "dlimpet", "limpet" },
-			// { "dgweap", "mobwarg" },
-			// { "dnweap", "mobwarn" },
-			// { "mstl", "sgen" },
-			// { "ddefd", "defender" },
-		};
+			{ "gaicbm", "icbm" },
+			{ "dlimpet", "limpet" },
+			{ "dgweap", "mobwarg" },
+			{ "dnweap", "mobwarn" },
+			{ "mstl", "sgen" },
+			{ "ddefd", "defender" },
+		}; */
 
 		protected override Dictionary<string, string> ReplaceActors { get; } = new()
 		{
@@ -290,12 +289,12 @@ namespace OpenRA.Mods.AS.UtilityCommands
 		};
 
 		protected override string[] LampActors { get; } =
-		{
+		[
 			"GALITE", "INGALITE", "NEGLAMP", "REDLAMP", "NEGRED", "GRENLAMP", "BLUELAMP", "YELWLAMP",
 			"INYELWLAMP", "PURPLAMP", "INPURPLAMP", "INORANLAMP", "INGRNLMP", "INREDLMP", "INBLULMP"
-		};
+		];
 
-		protected override string[] CreepActors { get; } = Array.Empty<string>();
+		protected override string[] CreepActors { get; } = [];
 
 		#endregion
 	}

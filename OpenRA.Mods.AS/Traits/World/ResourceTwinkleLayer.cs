@@ -45,7 +45,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new ResourceTwinkleLayer(init.Self, this); }
 	}
 
-	class ResourceTwinkleLayer : ITick, IResourceLogicLayer
+	sealed class ResourceTwinkleLayer : ITick, IResourceLogicLayer
 	{
 		readonly ResourceTwinkleLayerInfo info;
 

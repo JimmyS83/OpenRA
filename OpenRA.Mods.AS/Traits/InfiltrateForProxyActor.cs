@@ -15,7 +15,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
 {
-	class InfiltrateForProxyActorInfo : ConditionalTraitInfo
+	sealed class InfiltrateForProxyActorInfo : ConditionalTraitInfo
 	{
 		[ActorReference]
 		[FieldLoader.Require]
@@ -26,7 +26,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new InfiltrateForProxyActor(this); }
 	}
 
-	class InfiltrateForProxyActor : ConditionalTrait<InfiltrateForProxyActorInfo>, INotifyInfiltrated
+	sealed class InfiltrateForProxyActor : ConditionalTrait<InfiltrateForProxyActorInfo>, INotifyInfiltrated
 	{
 		readonly InfiltrateForProxyActorInfo info;
 

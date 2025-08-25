@@ -36,7 +36,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly HashSet<string> Factions = [];
 
 		[Desc("Show the queue for these factions, even if it doesn't have any buildable unit in it.")]
-		public readonly HashSet<string> AlwaysShowForFactions = new();
+		public readonly HashSet<string> AlwaysShowForFactions = [];
 
 		[Desc("Should the prerequisite remain enabled if the owner changes?")]
 		public readonly bool Sticky = true;

@@ -17,7 +17,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Activities
 {
-	class LeapAS : Activity
+	sealed class LeapAS : Activity
 	{
 		readonly Mobile mobile;
 		readonly Armament armament;

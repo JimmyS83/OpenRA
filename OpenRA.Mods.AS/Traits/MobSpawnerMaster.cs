@@ -77,7 +77,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class MobSpawnerMaster : BaseSpawnerMaster, INotifyOwnerChanged, ITick,
 		IResolveOrder, INotifyAttack
 	{
-		class MobSpawnerSlaveEntry : BaseSpawnerSlaveEntry
+		sealed class MobSpawnerSlaveEntry : BaseSpawnerSlaveEntry
 		{
 			public new MobSpawnerSlave SpawnerSlave;
 			public Health Health;

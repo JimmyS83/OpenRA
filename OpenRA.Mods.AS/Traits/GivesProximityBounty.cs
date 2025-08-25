@@ -19,7 +19,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class ProximityBountyType { }
 
 	[Desc("When killed, this actor causes nearby actors with the ProximityBounty trait to receive money.")]
-	class GivesProximityBountyInfo : ConditionalTraitInfo
+	sealed class GivesProximityBountyInfo : ConditionalTraitInfo
 	{
 		[Desc("Percentage of the killed actor's Cost or CustomSellValue to be given.")]
 		public readonly int Percentage = 10;
@@ -38,7 +38,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new GivesProximityBounty(this); }
 	}
 
-	class GivesProximityBounty : ConditionalTrait<GivesProximityBountyInfo>, INotifyKilled
+	sealed class GivesProximityBounty : ConditionalTrait<GivesProximityBountyInfo>, INotifyKilled
 	{
 		public HashSet<ProximityBounty> Collectors;
 		Cargo cargo;

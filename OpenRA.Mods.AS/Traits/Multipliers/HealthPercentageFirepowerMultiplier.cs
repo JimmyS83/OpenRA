@@ -16,7 +16,7 @@ namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Allow the actor to use it's health percentage",
 		"as a firepower multiplier.")]
-	class HealthPercentageFirepowerMultiplierInfo : ConditionalTraitInfo, Requires<HealthInfo>
+	sealed class HealthPercentageFirepowerMultiplierInfo : ConditionalTraitInfo, Requires<HealthInfo>
 	{
 		[Desc("Weapon types to applies to. Leave empty to apply to all weapons.")]
 		public readonly HashSet<string> Types = [];
@@ -27,7 +27,7 @@ namespace OpenRA.Mods.AS.Traits
 		}
 	}
 
-	class HealthPercentageFirepowerMultiplier : ConditionalTrait<HealthPercentageFirepowerMultiplierInfo>, IFirepowerModifier
+	sealed class HealthPercentageFirepowerMultiplier : ConditionalTrait<HealthPercentageFirepowerMultiplierInfo>, IFirepowerModifier
 	{
 		readonly Health health;
 

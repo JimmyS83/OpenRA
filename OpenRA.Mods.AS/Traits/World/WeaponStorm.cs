@@ -19,7 +19,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Create a map-wide weapon storm.")]
-	class WeaponStormInfo : ConditionalTraitInfo, IRulesetLoaded
+	sealed class WeaponStormInfo : ConditionalTraitInfo, IRulesetLoaded
 	{
 		[WeaponReference]
 		[FieldLoader.Require]
@@ -61,7 +61,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new WeaponStorm(this); }
 	}
 
-	class WeaponStorm : ConditionalTrait<WeaponStormInfo>, IPaletteModifier, ISync, ITick, IWorldLoaded
+	sealed class WeaponStorm : ConditionalTrait<WeaponStormInfo>, IPaletteModifier, ISync, ITick, IWorldLoaded
 	{
 		readonly WeaponStormInfo info;
 

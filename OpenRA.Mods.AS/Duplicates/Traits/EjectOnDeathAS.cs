@@ -24,7 +24,7 @@ namespace OpenRA.Mods.AS.Traits
 		public new object Create(ActorInitializer init) { return new EjectOnDeathAS(this); }
 	}
 
-	class EjectOnDeathAS : ConditionalTrait<EjectOnDeathInfo>, INotifyKilled
+	sealed class EjectOnDeathAS : ConditionalTrait<EjectOnDeathInfo>, INotifyKilled
 	{
 		readonly EjectOnDeathASInfo info;
 

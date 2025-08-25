@@ -31,7 +31,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new GiveRandomActorCrateAction(init.Self, this); }
 	}
 
-	class GiveRandomActorCrateAction : CrateAction
+	sealed class GiveRandomActorCrateAction : CrateAction
 	{
 		readonly Actor self;
 		readonly GiveRandomActorCrateActionInfo info;

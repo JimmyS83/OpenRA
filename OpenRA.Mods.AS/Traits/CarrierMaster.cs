@@ -55,7 +55,7 @@ namespace OpenRA.Mods.AS.Traits
 
 	public class CarrierMaster : BaseSpawnerMaster, ITick, IResolveOrder, INotifyAttack
 	{
-		class CarrierSlaveEntry : BaseSpawnerSlaveEntry
+		sealed class CarrierSlaveEntry : BaseSpawnerSlaveEntry
 		{
 			public int RearmTicks = 0;
 			public new CarrierSlave SpawnerSlave;

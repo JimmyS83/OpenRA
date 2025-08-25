@@ -328,7 +328,7 @@ namespace OpenRA.Mods.AS.Traits
 		}
 	}
 
-	class SlaveMinerHarvestOrderTargeter<T> : IOrderTargeter where T : SpawnerHarvestResourceInfo
+	sealed class SlaveMinerHarvestOrderTargeter<T> : IOrderTargeter where T : SpawnerHarvestResourceInfo
 	{
 		public SlaveMinerHarvestOrderTargeter(string orderID)
 		{
@@ -337,7 +337,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		public string OrderID { get; }
 		public int OrderPriority { get { return 10; } }
-		public bool IsQueued { get; protected set; }
+		public bool IsQueued { get; private set; }
 		/*
 		public static bool TargetOverridesSelection(TargetModifiers modifiers) { return true; }
 		*/

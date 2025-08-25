@@ -14,7 +14,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
 {
-	class ExplodeWeaponTeleportEffectInfo : ConditionalTraitInfo, IRulesetLoaded
+	sealed class ExplodeWeaponTeleportEffectInfo : ConditionalTraitInfo, IRulesetLoaded
 	{
 		[Desc("Effect only works when teleport with this teleport type.")]
 		public readonly string TeleportType = "RA2ChronoPower";

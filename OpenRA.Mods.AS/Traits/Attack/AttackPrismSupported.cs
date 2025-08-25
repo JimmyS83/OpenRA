@@ -158,7 +158,7 @@ namespace OpenRA.Mods.AS.Traits
 			ClearBuffStack(self);
 		}
 
-		class ChargeSupportedAttack : Activity
+		sealed class ChargeSupportedAttack : Activity
 		{
 			readonly AttackPrismSupported attack;
 			readonly Target target;
@@ -290,7 +290,7 @@ namespace OpenRA.Mods.AS.Traits
 			}
 		}
 
-		class ChargeAndFireSupportWeapon : Activity
+		sealed class ChargeAndFireSupportWeapon : Activity
 		{
 			readonly AttackPrismSupported attack;
 			readonly Target target;
@@ -322,7 +322,7 @@ namespace OpenRA.Mods.AS.Traits
 			}
 		}
 
-		class FireSupportingWeapon : Activity
+		sealed class FireSupportingWeapon : Activity
 		{
 			readonly AttackPrismSupported attack;
 			readonly Target target;

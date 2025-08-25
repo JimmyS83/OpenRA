@@ -17,7 +17,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Used for silos defined on the player actor.")]
-	class PlayerSiloInfo : TraitInfo, IStoresResourcesInfo
+	sealed class PlayerSiloInfo : TraitInfo, IStoresResourcesInfo
 	{
 		[FieldLoader.Require]
 		[Desc("The amounts of resources that can be stored.")]
@@ -31,7 +31,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new PlayerSilo(this); }
 	}
 
-	class PlayerSilo : IStoresResources, ISync
+	sealed class PlayerSilo : IStoresResources, ISync
 	{
 		readonly PlayerSiloInfo info;
 

@@ -16,7 +16,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Grants a condition when this building is infiltrated.")]
-	class GrantConditionOnInfiltrationInfo : ConditionalTraitInfo
+	sealed class GrantConditionOnInfiltrationInfo : ConditionalTraitInfo
 	{
 		[Desc("The `TargetTypes` from `Targetable` that are allowed to enter.")]
 		public readonly BitSet<TargetableType> Types = default;
@@ -31,7 +31,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new GrantConditionOnInfiltration(this); }
 	}
 
-	class GrantConditionOnInfiltration : ConditionalTrait<GrantConditionOnInfiltrationInfo>, INotifyInfiltrated, INotifyCreated, ITick
+	sealed class GrantConditionOnInfiltration : ConditionalTrait<GrantConditionOnInfiltrationInfo>, INotifyInfiltrated, INotifyCreated, ITick
 	{
 		int conditionToken = Actor.InvalidConditionToken;
 		int duration;

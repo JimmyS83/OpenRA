@@ -193,7 +193,7 @@ namespace OpenRA.Mods.Common.Widgets
 			TooltipUnit = null;
 		}
 
-		class ArmyIcon
+		sealed class ArmyIcon
 		{
 			public Rectangle Bounds { get; set; }
 			public ArmyUnit Unit { get; set; }

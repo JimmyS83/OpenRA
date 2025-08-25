@@ -18,7 +18,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Activities
 {
-	class EnterTeleportNetwork : Enter
+	sealed class EnterTeleportNetwork : Enter
 	{
 		readonly string type;
 

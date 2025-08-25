@@ -19,7 +19,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Effects
 {
-	class SmokeParticle : IEffect
+	sealed class SmokeParticle : IEffect
 	{
 		readonly Actor invoker;
 		readonly World world;

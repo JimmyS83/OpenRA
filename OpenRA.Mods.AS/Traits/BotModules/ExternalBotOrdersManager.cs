@@ -22,7 +22,7 @@ namespace OpenRA.Mods.AS.Traits
 
 	public class ExternalBotOrdersManager : ConditionalTrait<ExternalBotOrdersManagerInfo>, IBotTick
 	{
-		readonly List<(Actor Actor, string Order, int Chance)> entries = new();
+		readonly List<(Actor Actor, string Order, int Chance)> entries = [];
 		readonly World world;
 
 		public bool ManagerRunning { get; private set; }

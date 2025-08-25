@@ -64,7 +64,7 @@ namespace OpenRA.Mods.AS.Traits
 
 	public class AirstrikeMaster : BaseSpawnerMaster, ITick, INotifyAttack
 	{
-		class AirstrikeSlaveEntry : BaseSpawnerSlaveEntry
+		sealed class AirstrikeSlaveEntry : BaseSpawnerSlaveEntry
 		{
 			public int RearmTicks = 0;
 			public new AirstrikeSlave SpawnerSlave;

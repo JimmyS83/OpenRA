@@ -52,7 +52,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class DroneSpawnerMaster : BaseSpawnerMaster, INotifyOwnerChanged, ITick,
 		IResolveOrder, INotifyAttack
 	{
-		class DroneSpawnerSlaveEntry : BaseSpawnerSlaveEntry
+		sealed class DroneSpawnerSlaveEntry : BaseSpawnerSlaveEntry
 		{
 			public new DroneSpawnerSlave SpawnerSlave;
 			public CVec GatherOffsetCell = CVec.Zero;
