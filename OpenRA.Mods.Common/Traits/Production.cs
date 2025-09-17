@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using OpenRA.Primitives;
 using OpenRA.Traits;
 
@@ -125,17 +126,31 @@ namespace OpenRA.Mods.Common.Traits
 			var exit = SelectExit(self, producee, productionType);
 			if (exit != null || self.OccupiesSpace == null || !producee.HasTraitInfo<IOccupySpaceInfo>())
 			{
-				var buildable = BuildableInfo.GetTraitForQueue(producee, productionType);
-				if (buildable != null)
-					for (var n = 0; n < buildable.BuildAmount; n++)
-						DoProduction(self, producee, exit?.Info, productionType, inits);
-				else
-					DoProduction(self, producee, exit?.Info, productionType, inits);
-
+				ProduceActors(self, producee, productionType, inits, exit?.Info);
 				return true;
 			}
 
 			return false;
+		}
+
+		public virtual void ProduceActors(Actor self, ActorInfo producee, string productionType, TypeDictionary inits, ExitInfo exit)
+		{
+			var buildable = BuildableInfo.GetTraitForQueue(producee, productionType);
+			if (buildable != null)
+			{
+				var additionalActors = buildable.AdditionalActors;
+				for (var n = 0; n < buildable.BuildAmount; n++)
+				{
+					DoProduction(self, producee, exit, productionType, inits);
+					if (additionalActors.Length != 0)
+					{
+						foreach (var additionalActor in additionalActors)
+							DoProduction(self, self.World.Map.Rules.Actors[additionalActor.ToLowerInvariant()], exit, productionType, inits);
+					}
+				}
+			}
+			else
+				DoProduction(self, producee, exit, productionType, inits);
 		}
 
 		static bool CanUseExit(Actor self, ActorInfo producee, ExitInfo s)
