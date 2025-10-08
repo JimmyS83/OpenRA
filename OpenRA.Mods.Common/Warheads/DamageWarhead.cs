@@ -9,6 +9,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.GameRules;
@@ -89,9 +90,21 @@ namespace OpenRA.Mods.Common.Warheads
 		protected virtual void InflictDamage(Actor victim, Actor firedBy, HitShape shape, WarheadArgs args)
 		{
 			var damage = Util.ApplyPercentageModifiers(Damage, args.DamageModifiers.Append(DamageVersus(victim, shape, args)));
-			victim.InflictDamage(firedBy, new Damage(damage, DamageTypes));
+			victim.InflictDamage(firedBy, new Damage(damage, DamageTypes, GetProjectileType(args)));
+		}
+
+		protected static string GetProjectileType(WarheadArgs args)
+		{
+			var projectileInfo = args?.Weapon?.Projectile;
+			if (projectileInfo == null)
+				return null;
+
+			var typeName = projectileInfo.GetType().Name;
+			return typeName.EndsWith("Info", StringComparison.Ordinal) ? typeName.Substring(0, typeName.Length - 4) : typeName;
 		}
 
 		protected abstract void DoImpact(WPos pos, Actor firedBy, WarheadArgs args);
 	}
 }
+
+

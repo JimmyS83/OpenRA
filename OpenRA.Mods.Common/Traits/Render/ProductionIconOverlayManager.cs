@@ -97,6 +97,14 @@ namespace OpenRA.Mods.Common.Traits.Render
 			return isActive;
 		}
 
+		bool IProductionIconOverlay.IsOverlayActive(ActorInfo ai)
+		{
+			if (!overlayActive.TryGetValue(ai, out var isActive))
+				return false;
+
+			return isActive;
+		}
+
 		string MakeKey(string name)
 		{
 			return prefix + name;

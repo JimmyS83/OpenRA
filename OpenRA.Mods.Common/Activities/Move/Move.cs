@@ -480,7 +480,7 @@ namespace OpenRA.Mods.Common.Activities
 					mobile.SetCenterPosition(self, toPos);
 
 					mobile.Facing = TurnsWhileMoving
-						? Util.TickFacing(mobile.Facing, ToFacing, mobile.TurnSpeed)
+						? Util.TickFacing(mobile.Facing, ToFacing, mobile.TurnSpeedWithModifiers)
 						: ToFacing;
 
 					Move.lastMovePartCompletedTick = self.World.WorldTick;
@@ -521,7 +521,7 @@ namespace OpenRA.Mods.Common.Activities
 				}
 
 				mobile.Facing = TurnsWhileMoving
-					? Util.TickFacing(mobile.Facing, ToFacing, mobile.TurnSpeed)
+					? Util.TickFacing(mobile.Facing, ToFacing, mobile.TurnSpeedWithModifiers)
 					: WAngle.Lerp(FromFacing, ToFacing, progress, Distance);
 
 				return false;

@@ -235,7 +235,9 @@ namespace OpenRA.Mods.Common.Traits
 
 		public WRot Orientation => orientation.Rotate(terrainRampOrientation);
 
-		public WAngle TurnSpeed => Info.TurnSpeed;
+		public WAngle TurnSpeed => TurnSpeedWithModifiers;
+
+		public WAngle TurnSpeedWithModifiers => new WAngle(Util.ApplyPercentageModifiers(Info.TurnSpeed.Angle, TurnSpeedModifiers ?? Enumerable.Empty<int>()));
 
 		#endregion
 

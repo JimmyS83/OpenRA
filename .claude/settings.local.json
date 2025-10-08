@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Traits\\Render/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Bash(dotnet build:*)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\OpenRA\\OpenRA.Mods.Common\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.AS\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.AS\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.AS\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.AS\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.AS\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.AS\\Projectiles/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.Common\\Traits\\Air/**)",
+      "Read(/E:\\src\\YMCA - cameo engine integration - Kopie\\engine\\OpenRA.Mods.Common\\Traits/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -216,6 +216,22 @@ namespace OpenRA.Graphics
 			parent.DrawRGBAQuad(vertices, blendMode);
 		}
 
+
+		public void FillTriangle(in float3 a, in float3 b, in float3 c, Color color, BlendMode blendMode = BlendMode.Alpha)
+		{
+			color = Util.PremultiplyAlpha(color);
+			var cr = color.R / 255.0f;
+			var cg = color.G / 255.0f;
+			var cb = color.B / 255.0f;
+			var ca = color.A / 255.0f;
+
+			vertices[0] = new Vertex(a + Offset, cr, cg, cb, ca, 0);
+			vertices[1] = new Vertex(b + Offset, cr, cg, cb, ca, 0);
+			vertices[2] = new Vertex(c + Offset, cr, cg, cb, ca, 0);
+			vertices[3] = vertices[2];
+			parent.DrawRGBAQuad(vertices, blendMode);
+		}
+
 		public void FillRect(in float3 a, in float3 b, in float3 c, in float3 d,
 			Color topLeftColor, Color topRightColor, Color bottomRightColor, Color bottomLeftColor, BlendMode blendMode = BlendMode.Alpha)
 		{

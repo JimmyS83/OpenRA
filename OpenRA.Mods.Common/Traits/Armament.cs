@@ -266,7 +266,13 @@ namespace OpenRA.Mods.Common.Traits
 				++ticksSinceLastShot;
 
 			if (FireDelay > 0)
+			{
+				var desiredDelay = CalculateReloadDelay();
+				if (FireDelay > desiredDelay)
+					FireDelay = desiredDelay;
+
 				--FireDelay;
+			}
 
 			Recoil = new WDist(Math.Max(0, Recoil.Length - Info.RecoilRecovery.Length));
 
@@ -454,6 +460,13 @@ namespace OpenRA.Mods.Common.Traits
 			});
 		}
 
+		int CalculateReloadDelay()
+		{
+			var modifiers = reloadModifiers.ToArray();
+			var delay = Util.ApplyPercentageModifiers(Weapon.ReloadDelay, modifiers);
+			return delay <= 0 ? 1 : delay;
+		}
+
 		protected virtual void UpdateBurst(Actor self, in Target target)
 		{
 			if (--Burst > 0)
@@ -465,10 +478,7 @@ namespace OpenRA.Mods.Common.Traits
 			}
 			else
 			{
-				var modifiers = reloadModifiers.ToArray();
-				FireDelay = Util.ApplyPercentageModifiers(Weapon.ReloadDelay, modifiers);
-				if (FireDelay <= 0)
-					FireDelay = 1;
+				FireDelay = CalculateReloadDelay();
 
 				Burst = Weapon.Burst;
 

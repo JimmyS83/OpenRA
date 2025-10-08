@@ -56,7 +56,7 @@ namespace OpenRA.Mods.Common.Traits
 				currentDelay = self.World.SharedRandom.Next(Info.MinDelay, Info.MaxDelay);
 			}
 
-			mobile.Facing = Util.TickFacing(mobile.Facing, targetFacing, mobile.TurnSpeed);
+			mobile.Facing = Util.TickFacing(mobile.Facing, targetFacing, mobile.TurnSpeedWithModifiers);
 		}
 	}
 }

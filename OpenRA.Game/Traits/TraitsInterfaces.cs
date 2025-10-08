@@ -84,23 +84,27 @@ namespace OpenRA.Traits
 		public Actor Attacker;
 		public DamageState DamageState;
 		public DamageState PreviousDamageState;
+		public string ProjectileType;
 	}
 
 	public class Damage
 	{
 		public readonly int Value;
 		public readonly BitSet<DamageType> DamageTypes;
+		public readonly string ProjectileType;
 
-		public Damage(int damage, BitSet<DamageType> damageTypes)
+		public Damage(int damage, BitSet<DamageType> damageTypes, string projectileType = null)
 		{
 			Value = damage;
 			DamageTypes = damageTypes;
+			ProjectileType = projectileType;
 		}
 
-		public Damage(int damage)
+		public Damage(int damage, string projectileType = null)
 		{
 			Value = damage;
 			DamageTypes = default;
+			ProjectileType = projectileType;
 		}
 	}
 
@@ -660,3 +664,4 @@ namespace OpenRA.Traits
 		Map Generate(ModData modData, MapGenerationArgs args);
 	}
 }
+

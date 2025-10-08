@@ -391,5 +391,13 @@ namespace OpenRA.Mods.AS.Traits
 				passenger.InflictDamage(attacker, new Damage(d, damageTypes));
 			}
 		}
+
+		void INotifyPassengersDamage.KillPassengers(Actor attacker)
+		{
+			for(int i = Manager.Cargo.Count - 1; i >= 0; --i) {
+				Manager.Cargo[i].Kill(attacker);
+			}
+			Manager.Cargo.Clear();
+		}
 	}
 }

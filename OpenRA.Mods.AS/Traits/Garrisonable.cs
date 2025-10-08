@@ -507,6 +507,15 @@ namespace OpenRA.Mods.AS.Traits
 				passenger.InflictDamage(attacker, new Damage(d, damageTypes));
 			}
 		}
+
+		void INotifyPassengersDamage.KillPassengers(Actor attacker)
+		{
+			for(int i = garrisonable.Count - 1; i >= 0; --i) {
+				garrisonable[i].Kill(attacker);
+			}
+			garrisonable.Clear();
+		}
+
 	}
 
 	public class RuntimeGarrisonInit : ValueActorInit<Actor[]>, ISuppressInitExport

@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2015- OpenRA.Mods.AS Developers (see AUTHORS)
  * This file is a part of a third-party plugin for OpenRA, which is
@@ -57,13 +57,14 @@ namespace OpenRA.Mods.AS.Graphics
 
 		bool firstTime = true;
 		float3[] screen;
+		float3 center;
 		int alpha;
 		public void Render(WorldRenderer wr)
 		{
 			if (firstTime)
 			{
 				var map = wr.World.Map;
-				var terrainInfo = wr.World.Map.Rules.TerrainInfo;
+				var terrainInfo = map.Rules.TerrainInfo;
 				var uv = cpos.ToMPos(map);
 
 				if (!map.Height.Contains(uv))
@@ -75,14 +76,76 @@ namespace OpenRA.Mods.AS.Graphics
 
 				var corners = map.Grid.Ramps[ramp].Corners;
 				screen = corners.Select(c => wr.Screen3DPxPosition(wpos + c - new WVec(0, 0, map.Grid.Ramps[ramp].CenterHeightOffset) + layer.Info.Offset)).ToArray();
-				SetLevel(Level);
+				center = new float3((screen[0].X + screen[1].X) / 2f, (screen[1].Y + screen[2].Y) / 2f, screen[1].Z);
 				firstTime = false;
 			}
+
+			if (layer == null || screen == null)
+				return;
+
+			var selfLevel = layer.GetTileLevel(cpos);
+			SetLevel(selfLevel);
 
 			if (Level == 0)
 				return;
 
-			Game.Renderer.WorldRgbaColorRenderer.FillRect(screen[0], screen[1], screen[2], screen[3], Color.FromArgb(alpha, layer.Info.Color));
+			var topLevel = layer.GetTileLevel(new CPos(cpos.X, cpos.Y - 1));
+			var rightLevel = layer.GetTileLevel(new CPos(cpos.X + 1, cpos.Y));
+			var leftLevel = layer.GetTileLevel(new CPos(cpos.X - 1, cpos.Y));
+			var bottomLevel = layer.GetTileLevel(new CPos(cpos.X, cpos.Y + 1));
+
+			var tintedNeighbors = 0;
+			if (topLevel > 0)
+				tintedNeighbors++;
+			if (rightLevel > 0)
+				tintedNeighbors++;
+			if (leftLevel > 0)
+				tintedNeighbors++;
+			if (bottomLevel > 0)
+				tintedNeighbors++;
+
+			var anyTriangle = false;
+
+			if (tintedNeighbors >= 3)
+			{
+				anyTriangle |= RenderTriangleSegment(screen[0], screen[1], (selfLevel + topLevel) / 2);
+				anyTriangle |= RenderTriangleSegment(screen[1], screen[2], (selfLevel + rightLevel) / 2);
+				anyTriangle |= RenderTriangleSegment(screen[0], screen[3], (selfLevel + leftLevel) / 2);
+				anyTriangle |= RenderTriangleSegment(screen[2], screen[3], (selfLevel + bottomLevel) / 2);
+			}
+			else
+			{
+				if (topLevel > 0)
+					anyTriangle |= RenderTriangleSegment(screen[0], screen[1], (selfLevel + topLevel) / 2);
+				if (rightLevel > 0)
+					anyTriangle |= RenderTriangleSegment(screen[1], screen[2], (selfLevel + rightLevel) / 2);
+				if (leftLevel > 0)
+					anyTriangle |= RenderTriangleSegment(screen[0], screen[3], (selfLevel + leftLevel) / 2);
+				if (bottomLevel > 0)
+					anyTriangle |= RenderTriangleSegment(screen[2], screen[3], (selfLevel + bottomLevel) / 2);
+			}
+
+			if (!anyTriangle)
+				Game.Renderer.WorldRgbaColorRenderer.FillRect(screen[0], screen[1], screen[2], screen[3], Color.FromArgb(alpha, layer.Info.Color));
+		}
+
+		bool RenderTriangleSegment(in float3 edgeA, in float3 edgeB, int blendLevel)
+		{
+			var triangleAlpha = AlphaForLevel(blendLevel);
+			if (triangleAlpha <= 0 || layer == null)
+				return false;
+
+			Game.Renderer.WorldRgbaColorRenderer.FillTriangle(center, edgeA, edgeB, Color.FromArgb(triangleAlpha, layer.Info.Color));
+			return true;
+		}
+
+		int AlphaForLevel(int value)
+		{
+			if (layer == null)
+				return 0;
+
+			var clamped = value.Clamp(0, layer.Info.MaxLevel);
+			return layer.Info.Darkest + layer.TintLevel * clamped / 255;
 		}
 
 		public void SetLevel(int value)

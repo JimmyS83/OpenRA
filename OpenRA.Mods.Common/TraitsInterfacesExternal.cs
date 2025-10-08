@@ -41,6 +41,7 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		void DamagePassengers(
 			int damage, Actor attacker, int amount, Dictionary<string, int> versus, BitSet<DamageType> damageTypes, IEnumerable<int> damageModifiers);
+		void KillPassengers(Actor attacker);
 	}
 
 	[RequireExplicitImplementation]

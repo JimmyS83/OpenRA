@@ -156,7 +156,7 @@ namespace OpenRA.Mods.AS.Traits
 
 			if (health != null)
 			{
-				var absorbedDamage = new Damage(-e.Damage.Value, damageTypes);
+				var absorbedDamage = new Damage(-e.Damage.Value, damageTypes, e.Damage.ProjectileType);
 				health.InflictDamage(self, self, absorbedDamage, true);
 			}
 
@@ -165,7 +165,7 @@ namespace OpenRA.Mods.AS.Traits
 
 			if (excessDamage > 0 && !Info.BlockExcessDamage)
 			{
-				var hullDamage = new Damage(excessDamage, damageTypes);
+				var hullDamage = new Damage(excessDamage, damageTypes, e.Damage.ProjectileType);
 
 				health?.InflictDamage(self, e.Attacker, hullDamage, true);
 			}

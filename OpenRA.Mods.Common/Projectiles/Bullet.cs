@@ -76,11 +76,14 @@ namespace OpenRA.Mods.Common.Projectiles
 		[Desc("Use the Player Palette to render the trail sequence.")]
 		public readonly bool TrailUsePlayerPalette = false;
 
+		[Desc("Fixed distance between Trail animations. Overrides the distance calculated using projectile speed.")]
+		public readonly WDist TrailSpacing = WDist.Zero;
+
 		[Desc("Is this blocked by actors with BlocksProjectiles trait.")]
 		public readonly bool Blockable = true;
 
 		[Desc("Width of projectile (used for finding blocking actors).")]
-		public readonly WDist Width = new(1);
+		public readonly WDist Width = new WDist(1);
 
 		[Desc("Arc in WAngles, two values indicate variable arc.")]
 		public readonly WAngle[] LaunchAngle = [WAngle.Zero];
@@ -161,6 +164,7 @@ namespace OpenRA.Mods.Common.Projectiles
 		int length;
 		int ticks, smokeTicks;
 		int remainingBounces;
+		List<Animation> trailItems = new List<Animation>();
 
 		protected bool FlightLengthReached => ticks >= length;
 

@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2015- OpenRA.Mods.AS Developers (see AUTHORS)
  * This file is a part of a third-party plugin for OpenRA, which is
@@ -97,6 +97,14 @@ namespace OpenRA.Mods.AS.Traits
 			}
 
 			TintLevel = 255 * (info.Brightest - info.Darkest) / (info.MaxLevel - 1);
+		}
+
+		internal int GetTileLevel(CPos cell)
+		{
+			if (tiles.TryGetValue(cell, out var tile))
+				return tile.Level;
+
+			return 0;
 		}
 
 		void ITick.Tick(Actor self)

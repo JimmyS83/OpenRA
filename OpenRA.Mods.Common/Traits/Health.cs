@@ -59,6 +59,7 @@ namespace OpenRA.Mods.Common.Traits
 		IDamageModifier[] damageModifiersPlayer;
 		INotifyKilled[] notifyKilled;
 		INotifyKilled[] notifyKilledPlayer;
+		IPhysicalStateShield[] physicalStateShields;
 
 		public int DisplayHP { get; private set; }
 
@@ -112,6 +113,7 @@ namespace OpenRA.Mods.Common.Traits
 			notifyDamagePlayer = self.Owner.PlayerActor.TraitsImplementing<INotifyDamage>().ToArray();
 			damageModifiers = self.TraitsImplementing<IDamageModifier>().ToArray();
 			damageModifiersPlayer = self.Owner.PlayerActor.TraitsImplementing<IDamageModifier>().ToArray();
+			physicalStateShields = self.TraitsImplementing<IPhysicalStateShield>().ToArray();
 			notifyKilled = self.TraitsImplementing<INotifyKilled>().ToArray();
 			notifyKilledPlayer = self.Owner.PlayerActor.TraitsImplementing<INotifyKilled>().ToArray();
 		}
@@ -163,6 +165,8 @@ namespace OpenRA.Mods.Common.Traits
 
 			var oldState = DamageState;
 
+			var projectileType = damage.ProjectileType;
+
 			// Apply any damage modifiers
 			if (!ignoreModifiers && damage.Value > 0)
 			{
@@ -183,7 +187,20 @@ namespace OpenRA.Mods.Common.Traits
 						appliedDamage *= modifier / 100m;
 				}
 
-				damage = new Damage((int)appliedDamage, damage.DamageTypes);
+				damage = new Damage((int)appliedDamage, damage.DamageTypes, projectileType);
+			}
+
+			if (damage.Value > 0 && physicalStateShields != null && physicalStateShields.Length > 0)
+			{
+				foreach (var shield in physicalStateShields)
+				{
+					damage = shield.AbsorbDamage(self, attacker, damage);
+					if (damage.Value <= 0)
+					{
+						damage = new Damage(0, damage.DamageTypes, damage.ProjectileType);
+						break;
+					}
+				}
 			}
 
 			HP = (HP - damage.Value).Clamp(0, MaxHP);
@@ -192,6 +209,7 @@ namespace OpenRA.Mods.Common.Traits
 			{
 				Attacker = attacker,
 				Damage = damage,
+				ProjectileType = damage.ProjectileType,
 				DamageState = DamageState,
 				PreviousDamageState = oldState,
 			};
@@ -259,3 +277,4 @@ namespace OpenRA.Mods.Common.Traits
 		}
 	}
 }
+

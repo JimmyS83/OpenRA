@@ -326,6 +326,7 @@ namespace OpenRA.Mods.Common.Traits
 		Sprite Sprite { get; }
 		string Palette { get; }
 		float2 Offset(float2 iconSize);
+		bool IsOverlayActive(ActorInfo ai);
 		bool IsOverlayActive(ActorInfo ai, Actor producer);
 	}
 
@@ -441,6 +442,12 @@ namespace OpenRA.Mods.Common.Traits
 
 	[RequireExplicitImplementation]
 	public interface ICashTricklerModifier { int GetCashTricklerModifier(); }
+
+	[RequireExplicitImplementation]
+	public interface IPhysicalStateShield
+	{
+		Damage AbsorbDamage(Actor self, Actor attacker, Damage damage);
+	}
 
 	[RequireExplicitImplementation]
 	public interface IDamageModifier { int GetDamageModifier(Actor attacker, Damage damage); }

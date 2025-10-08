@@ -166,3 +166,4 @@ namespace OpenRA.Mods.Common.Traits
 		}
 	}
 }
+

@@ -170,3 +170,5 @@ namespace OpenRA.Mods.Common.Traits
 
 	public class Buildable { }
 }
+
+
