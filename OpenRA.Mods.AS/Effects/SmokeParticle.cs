@@ -19,7 +19,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Effects
 {
-	class SmokeParticle : IEffect
+	sealed class SmokeParticle : IEffect
 	{
 		readonly Actor invoker;
 		readonly World world;
@@ -30,8 +30,8 @@ namespace OpenRA.Mods.AS.Effects
 		readonly bool visibleThroughFog;
 		readonly bool canDamage;
 		readonly int turnRate;
-		readonly HashSet<IReloadModifier> reloadModifiers = new();
-		readonly HashSet<IFirepowerModifier> damageModifiers = new();
+		readonly HashSet<IReloadModifier> reloadModifiers = [];
+		readonly HashSet<IFirepowerModifier> damageModifiers = [];
 		readonly string palette;
 
 		WPos pos, lastPos;

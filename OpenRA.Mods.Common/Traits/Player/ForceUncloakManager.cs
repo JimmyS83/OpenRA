@@ -16,7 +16,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly bool Irreversible = true;
 
 		[Desc("Ignore those actors when checking, like some of the proxy and dummy actors")]
-		public readonly HashSet<string> IgnoreActors = new();
+		public readonly HashSet<string> IgnoreActors = [];
 
 		[Desc("The duration before force uncloak when there are only units can be forced uncloak. Set to < 0 can skip warning.")]
 		public readonly int DurationBeforeForceUncloak = 2000;

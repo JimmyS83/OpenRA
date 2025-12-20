@@ -22,7 +22,7 @@ namespace OpenRA.Mods.AS.Warheads
 	public class DetachDelayedWeaponWarhead : WarheadAS
 	{
 		[Desc("Types of DelayedWeapons that it can detach.")]
-		public readonly HashSet<string> Types = new() { "bomb" };
+		public readonly HashSet<string> Types = ["bomb"];
 
 		[Desc("Range of targets to be attached.")]
 		public readonly WDist Range = new(1024);
@@ -50,8 +50,8 @@ namespace OpenRA.Mods.AS.Warheads
 				if (actor.IsDead)
 					continue;
 
-				var activeShapes = actor.TraitsImplementing<HitShape>().Where(Exts.IsTraitEnabled);
-				if (!activeShapes.Any())
+				var activeShapes = actor.TraitsImplementing<HitShape>().Where(Exts.IsTraitEnabled).ToList();
+				if (activeShapes.Count == 0)
 					continue;
 
 				var distance = activeShapes.Min(t => t.DistanceFromEdge(actor, pos));

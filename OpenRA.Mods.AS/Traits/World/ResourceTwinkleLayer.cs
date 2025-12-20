@@ -25,10 +25,10 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly HashSet<string> Types = null;
 
 		[Desc("The percentage of resource cells to play the twinkle animation on.", "Use two values to randomize between them.")]
-		public readonly int[] Ratio = { 5 };
+		public readonly int[] Ratio = [5];
 
 		[Desc("Tick interval between two twinkle animation spawning.", "Use two values to randomize between them.")]
-		public readonly int[] Interval = { 50 };
+		public readonly int[] Interval = [50];
 
 		[FieldLoader.Require]
 		[Desc("Twinkle animation image.")]
@@ -36,7 +36,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[SequenceReference(nameof(Image))]
 		[Desc("Twinkle animation sequences.")]
-		public readonly string[] Sequences = new string[] { "idle" };
+		public readonly string[] Sequences = ["idle"];
 
 		[PaletteReference]
 		[Desc("Twinkle animation palette.")]
@@ -45,7 +45,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new ResourceTwinkleLayer(init.Self, this); }
 	}
 
-	class ResourceTwinkleLayer : ITick, IResourceLogicLayer
+	sealed class ResourceTwinkleLayer : ITick, IResourceLogicLayer
 	{
 		readonly ResourceTwinkleLayerInfo info;
 
@@ -58,7 +58,7 @@ namespace OpenRA.Mods.AS.Traits
 		{
 			world = self.World;
 			this.info = info;
-			cells = new HashSet<CPos>();
+			cells = [];
 
 			ticks = info.Interval.Length == 2
 				? world.SharedRandom.Next(info.Interval[0], info.Interval[1])
@@ -70,13 +70,13 @@ namespace OpenRA.Mods.AS.Traits
 			if (--ticks > 0)
 				return;
 
-			var twinkleable = cells.Shuffle(world.SharedRandom);
+			var twinkleable = cells.Shuffle(world.SharedRandom).ToArray();
 			var ratio = info.Ratio.Length == 2
 					? world.SharedRandom.Next(info.Ratio[0], info.Ratio[1])
 					: info.Ratio[0];
 
-			var twinkamount = twinkleable.Count() * ratio / 100;
-			var twinkpositions = twinkleable.Take(twinkamount).Select(x => world.Map.CenterOfCell(x));
+			var twinkamount = twinkleable.Length * ratio / 100;
+			var twinkpositions = twinkleable.Take(twinkamount).Select(world.Map.CenterOfCell);
 
 			foreach (var pos in twinkpositions)
 				world.AddFrameEndTask(w => w.Add(new SpriteEffect(pos, w, info.Image, info.Sequences.Random(w.SharedRandom), info.Palette)));

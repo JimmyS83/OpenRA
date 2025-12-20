@@ -30,25 +30,25 @@ namespace OpenRA.Mods.AS.Traits
 	{
 		[Desc("Actor types that used for engineer.",
 			"Leave this empty to disable this bot module.")]
-		public readonly HashSet<string> EngineerActorTypes = new();
+		public readonly HashSet<string> EngineerActorTypes = [];
 
 		[Desc("Actor types that can be targeted for capturing (via `Captures`).",
 			"Leave this empty to disable capture check.")]
-		public readonly HashSet<string> CapturableActorTypes = new();
+		public readonly HashSet<string> CapturableActorTypes = [];
 
 		[Desc("Player relationships that capturers should attempt to target.")]
 		public readonly PlayerRelationship CapturableRelationships = PlayerRelationship.Enemy | PlayerRelationship.Neutral;
 
 		[Desc("Actor types that can be targeted for engineer repairing (via `InstantlyRepairs`).",
 			"Leave this empty to disable repair building check.")]
-		public readonly HashSet<string> RepairableActorTypes = new();
+		public readonly HashSet<string> RepairableActorTypes = [];
 
 		[Desc("Engineer repair actor when at this damage state.")]
 		public readonly DamageState RepairableDamageState = DamageState.Heavy;
 
 		[Desc("Actor types that can be targeted for bridge repairing (via `RepairsBridges`).",
 			"Leave this empty to disable repair bridge check.")]
-		public readonly HashSet<string> RepairableHutActorTypes = new();
+		public readonly HashSet<string> RepairableHutActorTypes = [];
 
 		[Desc("Minimum delay (in ticks) between trying to giving out order for engineer.")]
 		public readonly int AssignRoleDelay = 120;
@@ -65,9 +65,9 @@ namespace OpenRA.Mods.AS.Traits
 		readonly Predicate<Actor> unitCannotBeOrdered;
 
 		// Units that the bot already knows about and has given a capture order. Any unit not on this list needs to be given a new order.
-		readonly List<UnitWposWrapper> activeEngineers = new();
-		readonly List<Actor> stuckEngineers = new();
-		readonly EngineerAction[] enabledEngineerActions = Array.Empty<EngineerAction>();
+		readonly List<UnitWposWrapper> activeEngineers = [];
+		readonly List<Actor> stuckEngineers = [];
+		readonly EngineerAction[] enabledEngineerActions = [];
 		int minAssignRoleDelayTicks;
 		int currentAction;
 

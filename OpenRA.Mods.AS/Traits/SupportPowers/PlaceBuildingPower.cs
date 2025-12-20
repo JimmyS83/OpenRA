@@ -25,7 +25,7 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		[FieldLoader.Require]
 		[Desc("The building to be placed.")]
-		public readonly Dictionary<int, string> Buildings = new();
+		public readonly Dictionary<int, string> Buildings = [];
 
 		[Desc("Force a specific faction variant, overriding the faction of the producing actor.")]
 		public readonly string ForceFaction = null;
@@ -107,13 +107,13 @@ namespace OpenRA.Mods.Common.Traits
 				|| !buildingInfo.IsCloseEnoughToBase(self.World, order.Player, actorInfo, Self, targetLocation))
 				return;
 
-			var building = w.CreateActor(actorInfo.Name, new TypeDictionary
-			{
+			var building = w.CreateActor(actorInfo.Name,
+			[
 				new LocationInit(targetLocation),
 				new OwnerInit(order.Player),
 				new FactionInit(faction),
 				new PlaceBuildingInit()
-			});
+			]);
 
 			var pos = building.CenterPosition;
 			if (buildingInfo.AudibleThroughFog || (!w.ShroudObscures(pos) && !w.FogObscures(pos)))
@@ -130,8 +130,8 @@ namespace OpenRA.Mods.Common.Traits
 
 			readonly PlaceBuildingPower power;
 			readonly SupportPowerManager manager;
-			readonly Dictionary<int, ActorInfo> actorInfos = new();
-			readonly Dictionary<int, IPlaceBuildingPreview> previews = new();
+			readonly Dictionary<int, ActorInfo> actorInfos = [];
+			readonly Dictionary<int, IPlaceBuildingPreview> previews = [];
 			readonly string order;
 			readonly IResourceLayer resourceLayer;
 			readonly Viewport viewport;

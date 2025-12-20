@@ -11,7 +11,6 @@
 using OpenRA.Mods.Common;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -25,7 +24,7 @@ namespace OpenRA.Mods.AS.Traits
 		public new object Create(ActorInitializer init) { return new EjectOnDeathAS(this); }
 	}
 
-	class EjectOnDeathAS : ConditionalTrait<EjectOnDeathInfo>, INotifyKilled
+	sealed class EjectOnDeathAS : ConditionalTrait<EjectOnDeathInfo>, INotifyKilled
 	{
 		readonly EjectOnDeathASInfo info;
 
@@ -55,7 +54,7 @@ namespace OpenRA.Mods.AS.Traits
 				return;
 
 			var pilot = self.World.CreateActor(false, Info.PilotActor.ToLowerInvariant(),
-				new TypeDictionary { new OwnerInit(self.Owner), new LocationInit(self.Location) });
+				[new OwnerInit(self.Owner), new LocationInit(self.Location)]);
 
 			var pilotPositionable = pilot.TraitOrDefault<IPositionable>();
 			var pilotCell = self.Location;

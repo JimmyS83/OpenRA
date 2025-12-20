@@ -206,8 +206,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				CreateStatsOption(SupportPowers, ObserverStatsSPPanel.SupportPowers, supportPowersPlayerTemplate, () => DisplayStats(SupportPowerStats)),
 				CreateStatsOption(Combat, ObserverStatsSPPanel.Combat, combatPlayerTemplate, () => DisplayStats(CombatStats)),
 				CreateStatsOption(Army, ObserverStatsSPPanel.Army, armyPlayerTemplate, () => DisplayStats(ArmyStats)),
-				CreateStatsOption(EarningsGraph, ObserverStatsSPPanel.Graph, null, () => IncomeGraph()),
-				CreateStatsOption(ArmyGraph, ObserverStatsSPPanel.ArmyGraph, null, () => ArmyValueGraph()),
+				CreateStatsOption(EarningsGraph, ObserverStatsSPPanel.Graph, null, IncomeGraph),
+				CreateStatsOption(ArmyGraph, ObserverStatsSPPanel.ArmyGraph, null, ArmyValueGraph),
 			};
 
 			ScrollItemWidget SetupItem(StatsDropDownOption option, ScrollItemWidget template)
@@ -363,7 +363,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var armyText = new CachedTransform<int, string>(i => "$" + i.ToString(NumberFormatInfo.CurrentInfo));
 			template.Get<LabelWidget>("ARMY_VALUE").GetText = () => armyText.Update(stats.ArmyValue);
 
-			var visionText = new CachedTransform<int, string>(i => Vision(i));
+			var visionText = new CachedTransform<int, string>(Vision);
 			template.Get<LabelWidget>("VISION").GetText = () => player.Shroud.Disabled ? "100%" : visionText.Update(player.Shroud.RevealedCells);
 
 			return template;
@@ -560,7 +560,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var experienceText = new CachedTransform<int, string>(i => i.ToString(NumberFormatInfo.CurrentInfo));
 			template.Get<LabelWidget>("EXPERIENCE").GetText = () => experienceText.Update(stats.Experience);
 
-			var actionsText = new CachedTransform<double, string>(d => AverageOrdersPerMinute(d));
+			var actionsText = new CachedTransform<double, string>(AverageOrdersPerMinute);
 			template.Get<LabelWidget>("ACTIONS_MIN").GetText = () => actionsText.Update(stats.OrderCount);
 
 			return template;
@@ -649,7 +649,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		// HACK The height of the templates and the scrollpanel needs to be kept in synch
 		bool ShowScrollBar => players.Length + (hasTeams ? teams.Length : 0) > 10;
 
-		class StatsDropDownOption
+		sealed class StatsDropDownOption
 		{
 			public string Title;
 			public Func<bool> IsSelected;

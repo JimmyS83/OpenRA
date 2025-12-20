@@ -39,7 +39,7 @@ namespace OpenRA.Mods.AS.Traits
 		readonly Func<Actor, bool> isToggledBuildingsValid;
 
 		// We keep a list to track toggled buildings for performance.
-		List<BuildingPowerWrapper> toggledBuildings = new();
+		List<BuildingPowerWrapper> toggledBuildings = [];
 
 		sealed class BuildingPowerWrapper
 		{
@@ -170,10 +170,10 @@ namespace OpenRA.Mods.AS.Traits
 			foreach (var tb in toggledBuildings.Where(td => isToggledBuildingsValid(td.Actor)))
 				data.Add(new MiniYamlNode(FieldSaver.FormatValue(tb.Actor.ActorID), FieldSaver.FormatValue(tb.ExpectedPowerChanging)));
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("ToggledBuildings", new MiniYaml("", data))
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)

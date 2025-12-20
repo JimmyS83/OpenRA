@@ -63,8 +63,8 @@ namespace OpenRA.Mods.AS.Warheads
 				if (!IsValidAgainst(a, firedBy))
 					continue;
 
-				var activeShapes = a.TraitsImplementing<HitShape>().Where(Exts.IsTraitEnabled);
-				if (!activeShapes.Any())
+				var activeShapes = a.TraitsImplementing<HitShape>().Where(Exts.IsTraitEnabled).ToArray();
+				if (activeShapes.Length == 0)
 					continue;
 
 				var distance = activeShapes.Min(t => t.DistanceFromEdge(a, pos));

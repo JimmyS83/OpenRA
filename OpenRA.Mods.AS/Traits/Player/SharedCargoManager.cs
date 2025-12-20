@@ -29,8 +29,8 @@ namespace OpenRA.Mods.AS.Traits
 	public class SharedCargoManager
 	{
 		public SharedCargoManagerInfo Info;
-		public List<Actor> Cargo = new();
-		public HashSet<Actor> Reserves = new();
+		public List<Actor> Cargo = [];
+		public HashSet<Actor> Reserves = [];
 
 		public IEnumerable<Actor> Passengers { get { return Cargo; } }
 		public int PassengerCount { get { return Cargo.Count; } }

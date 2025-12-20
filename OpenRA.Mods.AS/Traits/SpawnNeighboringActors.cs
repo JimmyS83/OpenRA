@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Mods.Common.Traits;
@@ -24,11 +23,11 @@ namespace OpenRA.Mods.AS.Traits
 		[FieldLoader.Require]
 		[ActorReference]
 		[Desc("Types of actors to place. If multiple are defined, a random one will be selected for each actor spawned.")]
-		public readonly HashSet<string> ActorTypes = new();
+		public readonly HashSet<string> ActorTypes = [];
 
 		[FieldLoader.Require]
 		[Desc("Locations to spawn the actors relative to the origin (top-left for buildings) of this actor.")]
-		public readonly CVec[] Locations = Array.Empty<CVec>();
+		public readonly CVec[] Locations = [];
 
 		[Desc("Initial delay to create the actors.")]
 		public readonly int InitialDelay = 1;
@@ -59,7 +58,7 @@ namespace OpenRA.Mods.AS.Traits
 
 	public class SpawnNeighboringActors : PausableConditionalTrait<SpawnNeighboringActorsInfo>, INotifyKilled, INotifyOwnerChanged, INotifyActorDisposing, INotifySold, ITick, ISync
 	{
-		readonly List<Actor> actors = new();
+		readonly List<Actor> actors = [];
 
 		[Sync]
 		int ticks;

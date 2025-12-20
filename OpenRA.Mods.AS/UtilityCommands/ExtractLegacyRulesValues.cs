@@ -16,7 +16,7 @@ using OpenRA.Mods.Common.FileFormats;
 
 namespace OpenRA.Mods.AS.UtilityCommands
 {
-	class ExtractLegacyRulesValues : IUtilityCommand
+	sealed class ExtractLegacyRulesValues : IUtilityCommand
 	{
 		bool IUtilityCommand.ValidateArguments(string[] args)
 		{

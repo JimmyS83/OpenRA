@@ -18,7 +18,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Activities
 {
-	class EnterGarrison : Activity
+	sealed class EnterGarrison : Activity
 	{
 		enum EnterState { Approaching, Entering, Exiting, Finished }
 
@@ -46,7 +46,7 @@ namespace OpenRA.Mods.AS.Activities
 			garrisoner = self.Trait<Garrisoner>();
 		}
 
-		protected bool TryStartEnter(Actor self, Actor targetActor)
+		bool TryStartEnter(Actor self, Actor targetActor)
 		{
 			enterActor = targetActor;
 			enterGarrison = targetActor.TraitOrDefault<Garrisonable>();
@@ -66,7 +66,7 @@ namespace OpenRA.Mods.AS.Activities
 			return true;
 		}
 
-		protected void OnEnterComplete(Actor self, Actor targetActor)
+		void OnEnterComplete(Actor self, Actor targetActor)
 		{
 			self.World.AddFrameEndTask(w =>
 			{

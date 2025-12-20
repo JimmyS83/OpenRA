@@ -19,7 +19,7 @@ namespace OpenRA.Mods.AS.Traits
 	public class DelayedWeaponDetectorInfo : ConditionalTraitInfo
 	{
 		[Desc("Type of DelayedWeapons that can be detected.")]
-		public readonly HashSet<string> Types = new() { "bomb" };
+		public readonly HashSet<string> Types = ["bomb"];
 
 		[Desc("Range of detection.")]
 		public readonly WDist Range = WDist.FromCells(1);

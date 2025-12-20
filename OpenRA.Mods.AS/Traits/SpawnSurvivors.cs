@@ -8,8 +8,6 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Primitives;
@@ -23,7 +21,7 @@ namespace OpenRA.Mods.AS.Traits
 		[ActorReference]
 		[FieldLoader.Require]
 		[Desc("The actors spawned.")]
-		public readonly string[] Actors = Array.Empty<string>();
+		public readonly string[] Actors = [];
 
 		[Desc("DeathType(s) that trigger spawning. Leave empty to always spawn.")]
 		public readonly BitSet<DamageType> DeathTypes = default;
@@ -47,7 +45,7 @@ namespace OpenRA.Mods.AS.Traits
 			var buildingInfo = self.Info.TraitInfoOrDefault<BuildingInfo>();
 			var eligibleLocations = buildingInfo != null
 				? buildingInfo.Tiles(self.Location).ToList()
-				: new List<CPos>() { self.World.Map.CellContaining(self.CenterPosition) };
+				: [self.World.Map.CellContaining(self.CenterPosition)];
 
 			self.World.AddFrameEndTask(w =>
 			{

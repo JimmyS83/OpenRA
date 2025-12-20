@@ -16,7 +16,6 @@ using OpenRA.Graphics;
 using OpenRA.Mods.AS.Traits;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Effects;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Effects
@@ -55,7 +54,7 @@ namespace OpenRA.Mods.AS.Effects
 			if (info.DisplayBeacon)
 			{
 				var distance = (target - startEdge).HorizontalLength;
-				var distanceTestActor = aircraft.Last();
+				var distanceTestActor = aircraft[^1];
 
 				beacon = new Beacon(
 					owner,
@@ -147,11 +146,11 @@ namespace OpenRA.Mods.AS.Effects
 			{
 				world.AddFrameEndTask(w =>
 				{
-					camera = w.CreateActor(info.CameraActor, new TypeDictionary
-						{
+					camera = w.CreateActor(info.CameraActor,
+						[
 							new LocationInit(world.Map.CellContaining(target)),
 							new OwnerInit(owner),
-						});
+						]);
 				});
 			}
 
@@ -185,7 +184,7 @@ namespace OpenRA.Mods.AS.Effects
 
 		IEnumerable<IRenderable> IEffect.Render(WorldRenderer r)
 		{
-			return Enumerable.Empty<IRenderable>();
+			return [];
 		}
 	}
 }

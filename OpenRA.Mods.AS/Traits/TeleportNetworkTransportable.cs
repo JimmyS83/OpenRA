@@ -18,7 +18,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Can move actors instantly to primary designated teleport network canal actor.")]
-	class TeleportNetworkTransportableInfo : TraitInfo
+	sealed class TeleportNetworkTransportableInfo : TraitInfo
 	{
 		[VoiceReference]
 		public readonly string Voice = "Action";
@@ -27,7 +27,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new TeleportNetworkTransportable(this); }
 	}
 
-	class TeleportNetworkTransportable : IIssueOrder, IResolveOrder, IOrderVoice
+	sealed class TeleportNetworkTransportable : IIssueOrder, IResolveOrder, IOrderVoice
 	{
 		readonly TeleportNetworkTransportableInfo info;
 
@@ -102,7 +102,7 @@ namespace OpenRA.Mods.AS.Traits
 			self.QueueActivity(new EnterTeleportNetwork(self, order.Target, targettrait.Info.Type));
 		}
 
-		class TeleportNetworkTransportOrderTargeter : UnitOrderTargeter
+		sealed class TeleportNetworkTransportOrderTargeter : UnitOrderTargeter
 		{
 			readonly TeleportNetworkTransportableInfo info;
 

@@ -17,7 +17,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Activities
 {
-	class EnterAirstrikeMaster : Activity
+	sealed class EnterAirstrikeMaster : Activity
 	{
 		readonly Actor master;
 		readonly AirstrikeMaster spawnerMaster;
@@ -59,7 +59,7 @@ namespace OpenRA.Mods.AS.Activities
 		}
 	}
 
-	class ReturnAirstrikeMaster : Activity
+	sealed class ReturnAirstrikeMaster : Activity
 	{
 		readonly Actor master;
 		readonly AirstrikeMaster spawnerMaster;

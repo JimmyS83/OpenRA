@@ -30,7 +30,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new SlaveMinerSlave(this); }
 	}
 
-	class SlaveMinerSlave : BaseSpawnerSlave, ITick
+	sealed class SlaveMinerSlave : BaseSpawnerSlave, ITick
 	{
 		readonly SlaveMinerSlaveInfo info;
 

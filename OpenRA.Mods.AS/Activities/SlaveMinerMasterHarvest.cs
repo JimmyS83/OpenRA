@@ -129,7 +129,7 @@ namespace OpenRA.Mods.AS.Activities
 				// var passable = (uint)mobileInfo.GetMovementClass(self.World.Map.Rules.TileSet);
 				var path = mobile.PathFinder.FindPathToTargetCellByPredicate(
 					self,
-					new[] { searchFromLoc, self.Location },
+					[searchFromLoc, self.Location],
 					loc =>
 						harv.CanHarvestCell(loc) &&
 						claimLayer.CanClaimCell(self, loc),

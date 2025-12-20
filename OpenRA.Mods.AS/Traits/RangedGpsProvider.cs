@@ -27,7 +27,7 @@ namespace OpenRA.Mods.AS.Traits
 		INotifyRemovedFromWorld, INotifyOwnerChanged, INotifyKilled, INotifyActorDisposing
 	{
 		readonly Actor self;
-		readonly List<Actor> actorsInRange = new();
+		readonly List<Actor> actorsInRange = [];
 		protected RangedGpsWatcher Watcher { get; private set; }
 		int proximityTrigger;
 		WPos prevPosition;

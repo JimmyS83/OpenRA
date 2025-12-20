@@ -17,25 +17,25 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Used for silos defined on the player actor.")]
-	class PlayerSiloInfo : TraitInfo, IStoresResourcesInfo
+	sealed class PlayerSiloInfo : TraitInfo, IStoresResourcesInfo
 	{
 		[FieldLoader.Require]
 		[Desc("The amounts of resources that can be stored.")]
 		public readonly int Capacity = 28;
 
 		[Desc("Which resources can be stored.")]
-		public readonly string[] Resources = Array.Empty<string>();
+		public readonly string[] Resources = [];
 
 		string[] IStoresResourcesInfo.ResourceTypes => Resources;
 
 		public override object Create(ActorInitializer init) { return new PlayerSilo(this); }
 	}
 
-	class PlayerSilo : IStoresResources, ISync
+	sealed class PlayerSilo : IStoresResources, ISync
 	{
 		readonly PlayerSiloInfo info;
 
-		readonly Dictionary<string, int> contents = new();
+		readonly Dictionary<string, int> contents = [];
 
 		[Sync]
 		public int ContentHash

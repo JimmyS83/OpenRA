@@ -119,26 +119,30 @@ namespace OpenRA.Mods.Common.Traits
 				homeLocations = [p.HomeLocation];
 			}
 
-			var buildingSpawnCells = w.Map.FindTilesInAnnulus(p.HomeLocation, unitGroup.InnerBuildingRadius + 1, unitGroup.OuterBuildingRadius);
+			var buildingSpawnCells = w.Map
+				.FindTilesInAnnulus(p.HomeLocation, unitGroup.InnerBuildingRadius + 1, unitGroup.OuterBuildingRadius)
+				.ToList();
 
 			foreach (var b in unitGroup.SupportBuildings)
 			{
 				var actorRules = w.Map.Rules.Actors[b.ToLowerInvariant()];
 				var building = actorRules.TraitInfo<BuildingInfo>();
 				var validCells = buildingSpawnCells.Where(c => w.CanPlaceBuilding(c, actorRules, building, null));
-				if (!validCells.Any())
+
+				var validCell = validCells.RandomOrDefault(w.SharedRandom);
+
+				if (validCell == CPos.Zero)
 				{
 					Log.Write("debug", $"No cells available to spawn starting building {b} for player {p}");
 					continue;
 				}
 
-				var cell = validCells.Random(w.SharedRandom);
 				var facing = unitGroup.SupportActorsFacing ?? new WAngle(w.SharedRandom.Next(1024));
 
 				w.CreateActor(b.ToLowerInvariant(),
 				[
 					new OwnerInit(p),
-					new LocationInit(cell),
+					new LocationInit(validCell),
 					new SkipMakeAnimsInit(),
 					new FacingInit(facing)
 				]);

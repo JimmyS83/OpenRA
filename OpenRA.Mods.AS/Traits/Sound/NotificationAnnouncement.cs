@@ -50,7 +50,7 @@ namespace OpenRA.Mods.Common.Traits.Sound
 		public NotificationAnnouncement(Actor self, NotificationAnnouncementInfo info)
 			: base(info)
 		{
-			radarPings = Exts.Lazy(() => self.World.WorldActor.Trait<RadarPings>());
+			radarPings = Exts.Lazy(self.World.WorldActor.Trait<RadarPings>);
 		}
 
 		protected override void TraitEnabled(Actor self)

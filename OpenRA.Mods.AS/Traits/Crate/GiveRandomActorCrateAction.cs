@@ -17,21 +17,21 @@ using OpenRA.Primitives;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Spawns a random actor with the `EligibleForRandomActorCrate` trait when collected.")]
-	class GiveRandomActorCrateActionInfo : CrateActionInfo
+	sealed class GiveRandomActorCrateActionInfo : CrateActionInfo
 	{
 		[Desc("Factions that are allowed to trigger this action.")]
-		public readonly HashSet<string> ValidFactions = new();
+		public readonly HashSet<string> ValidFactions = [];
 
 		[Desc("Override the owner of the newly spawned unit: e.g. Creeps or Neutral")]
 		public readonly string Owner = null;
 
 		[Desc("Valid `EligibleForRandomActorCrate` types this crate can pick from.")]
-		public readonly HashSet<string> Type = new() { "crateunit" };
+		public readonly HashSet<string> Type = ["crateunit"];
 
 		public override object Create(ActorInitializer init) { return new GiveRandomActorCrateAction(init.Self, this); }
 	}
 
-	class GiveRandomActorCrateAction : CrateAction
+	sealed class GiveRandomActorCrateAction : CrateAction
 	{
 		readonly Actor self;
 		readonly GiveRandomActorCrateActionInfo info;

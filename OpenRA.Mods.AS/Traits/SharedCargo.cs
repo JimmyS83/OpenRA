@@ -29,13 +29,13 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int PipCount = 0;
 
 		[Desc("`SharedPassenger.CargoType`s that can be loaded into this actor.")]
-		public readonly HashSet<string> Types = new();
+		public readonly HashSet<string> Types = [];
 
 		[Desc("`SharedCargoManager.Type` thar this actor shares its passengers.")]
 		public readonly string ShareType = "tunnel";
 
 		[Desc("Terrain types that this actor is allowed to eject actors onto. Leave empty for all terrain types.")]
-		public readonly HashSet<string> UnloadTerrainTypes = new();
+		public readonly HashSet<string> UnloadTerrainTypes = [];
 
 		[VoiceReference]
 		[Desc("Voice to play when ordered to unload the passengers.")]
@@ -73,7 +73,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[Desc("Conditions to grant when specified actors are loaded inside the transport.",
 			"A dictionary of [actor id]: [condition].")]
-		public readonly Dictionary<string, string> PassengerConditions = new();
+		public readonly Dictionary<string, string> PassengerConditions = [];
 
 		[GrantedConditionReference]
 		public IEnumerable<string> LinterPassengerConditions { get { return PassengerConditions.Values; } }
@@ -86,7 +86,7 @@ namespace OpenRA.Mods.AS.Traits
 	{
 		readonly Actor self;
 		public readonly SharedCargoManager Manager;
-		readonly Dictionary<string, Stack<int>> passengerTokens = new();
+		readonly Dictionary<string, Stack<int>> passengerTokens = [];
 		readonly Lazy<IFacing> facing;
 		readonly bool checkTerrainType;
 
@@ -260,11 +260,11 @@ namespace OpenRA.Mods.AS.Traits
 			return Info.UnloadVoice;
 		}
 
-		public Actor Peek() { return Manager.Cargo.Last(); }
+		public Actor Peek() { return Manager.Cargo[^1]; }
 
 		public Actor Unload(Actor self, Actor passenger = null)
 		{
-			passenger ??= Manager.Cargo.Last();
+			passenger ??= Manager.Cargo[^1];
 			if (!Manager.Cargo.Remove(passenger))
 				throw new ArgumentException("Attempted to unload an actor that is not a passenger.");
 

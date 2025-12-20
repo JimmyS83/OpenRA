@@ -82,7 +82,7 @@ namespace OpenRA.Mods.AS.Widgets
 			{
 				label = GetOrNull<LabelWidget>("HEALTH_LABEL");
 				if (label != null)
-					label.GetText = () => GetText();
+					label.GetText = GetText;
 
 				labelChecked = true;
 			}

@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Traits;
@@ -23,10 +22,10 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly int Modifier = 1;
 
 		[Desc("Only apply this order change if owner has these prerequisites.")]
-		public readonly string[] Prerequisites = Array.Empty<string>();
+		public readonly string[] Prerequisites = [];
 
 		[Desc("Queues that this order will apply.")]
-		public readonly HashSet<string> Queue = new();
+		public readonly HashSet<string> Queue = [];
 
 		int IBuildPaletteOrderModifierInfo.GetBuildPaletteOrderModifier(TechTree techTree, string queue)
 		{

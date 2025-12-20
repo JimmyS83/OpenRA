@@ -26,7 +26,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[FieldLoader.LoadUsing(nameof(LoadConsiderations))]
 		[Desc("The decisions associated with this power")]
-		public readonly List<Consideration> Considerations = new();
+		public readonly List<Consideration> Considerations = [];
 
 		[Desc("Against whom should this power be used?", "Allowed keywords: Ally, Neutral, Enemy")]
 		public readonly PlayerRelationship Against = PlayerRelationship.Enemy;

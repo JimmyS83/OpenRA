@@ -52,13 +52,13 @@ namespace OpenRA.Mods.AS.Traits
 			: base(self, info)
 		{
 			Info = info;
-			coords = Exts.Lazy(() => self.Trait<BodyOrientation>());
-			actors = new List<Actor>();
-			armaments = new List<Armament>();
-			muzzles = new HashSet<(AnimationWithOffset Animation, string Sequence)>();
-			paxFacing = new Dictionary<Actor, IFacing>();
-			paxPos = new Dictionary<Actor, IPositionable>();
-			paxRender = new Dictionary<Actor, RenderSprites>();
+			coords = Exts.Lazy(self.Trait<BodyOrientation>);
+			actors = [];
+			armaments = [];
+			muzzles = [];
+			paxFacing = [];
+			paxPos = [];
+			paxRender = [];
 		}
 
 		protected override Func<IEnumerable<Armament>> InitializeGetArmaments(Actor self)

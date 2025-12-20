@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.GameRules;
@@ -67,9 +66,9 @@ namespace OpenRA.Mods.AS.Warheads
 
 			if (RandomClusterCount != 0)
 			{
-				var randomTargetCells = CellsMatching(targetCell, true);
-				var clusterCount = RandomClusterCount < 0 ? randomTargetCells.Count() : RandomClusterCount;
-				if (randomTargetCells.Any())
+				var randomTargetCells = CellsMatching(targetCell, true).ToArray();
+				var clusterCount = RandomClusterCount < 0 ? randomTargetCells.Length : RandomClusterCount;
+				if (randomTargetCells.Length != 0)
 					for (var i = 0; i < clusterCount; i++)
 						FireProjectileAtCell(map, firedBy, target, randomTargetCells.Random(firedBy.World.SharedRandom), args);
 			}
@@ -89,8 +88,8 @@ namespace OpenRA.Mods.AS.Warheads
 				CurrentMuzzleFacing = () => (map.CenterOfCell(targetCell) - target.CenterPosition).Yaw,
 
 				DamageModifiers = args.DamageModifiers,
-				InaccuracyModifiers = Array.Empty<int>(),
-				RangeModifiers = Array.Empty<int>(),
+				InaccuracyModifiers = [],
+				RangeModifiers = [],
 
 				Source = target.CenterPosition,
 				CurrentSource = () => target.CenterPosition,

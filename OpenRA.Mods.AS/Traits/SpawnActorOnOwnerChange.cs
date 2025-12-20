@@ -9,7 +9,6 @@
 #endregion
 
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -39,10 +38,10 @@ namespace OpenRA.Mods.AS.Traits
 			if (IsTraitDisabled)
 				return;
 
-			self.World.AddFrameEndTask(w => w.CreateActor(info.ProxyActor, new TypeDictionary
-			{
+			self.World.AddFrameEndTask(w => w.CreateActor(info.ProxyActor,
+			[
 				new OwnerInit(newOwner)
-			}));
+			]));
 		}
 	}
 }

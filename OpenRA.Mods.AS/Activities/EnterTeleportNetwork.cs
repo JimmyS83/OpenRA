@@ -18,7 +18,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Activities
 {
-	class EnterTeleportNetwork : Enter
+	sealed class EnterTeleportNetwork : Enter
 	{
 		readonly string type;
 
@@ -69,8 +69,8 @@ namespace OpenRA.Mods.AS.Activities
 						fi.Facing = initialFacing;
 				}
 
-				exitLocations = rp != null ? rp.Path : new List<CPos> { exit };
-				dest = Target.FromCell(self.World, exitLocations.Last());
+				exitLocations = rp != null ? rp.Path : [exit];
+				dest = Target.FromCell(self.World, exitLocations[^1]);
 			}
 
 			// Teleport myself to primary actor.

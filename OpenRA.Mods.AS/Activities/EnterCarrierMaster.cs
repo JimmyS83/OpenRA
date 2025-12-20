@@ -16,7 +16,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Activities
 {
-	class EnterCarrierMaster : Enter
+	sealed class EnterCarrierMaster : Enter
 	{
 		readonly Actor master;
 		readonly CarrierMaster spawnerMaster;

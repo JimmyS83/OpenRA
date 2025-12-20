@@ -14,7 +14,7 @@ using OpenRA.Widgets;
 
 namespace OpenRA.Mods.AS.Widgets.Logic
 {
-	class CollapsableWidgetLogic : ChromeLogic
+	sealed class CollapsableWidgetLogic : ChromeLogic
 	{
 		[ObjectCreator.UseCtor]
 		public CollapsableWidgetLogic(Widget widget)

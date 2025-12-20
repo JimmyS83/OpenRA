@@ -9,10 +9,8 @@
  */
 #endregion
 
-using System;
 using OpenRA.Mods.Common;
 using OpenRA.Mods.Common.Traits;
-using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -23,7 +21,7 @@ namespace OpenRA.Mods.AS.Traits
 		[ActorReference]
 		[FieldLoader.Require]
 		[Desc("Name of the actor.")]
-		public readonly string[] Actors = Array.Empty<string>();
+		public readonly string[] Actors = [];
 
 		[Desc("Whether another actor should spawn upon re-enabling the trait.")]
 		public readonly bool AllowRespawn = false;
@@ -63,13 +61,13 @@ namespace OpenRA.Mods.AS.Traits
 					if (passenger == null || !cargo.Info.Types.Contains(passenger.CargoType) || !cargo.HasSpace(passenger.Weight))
 						return;
 
-					var a = w.CreateActor(actor, new TypeDictionary
-					{
+					var a = w.CreateActor(actor,
+					[
 						new ParentActorInit(self),
 						new LocationInit(self.Location),
 						new OwnerInit(self.Owner),
 						new FactionInit(faction),
-					});
+					]);
 
 					w.Remove(a);
 					cargo.Load(self, a);

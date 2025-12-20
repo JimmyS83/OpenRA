@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -22,10 +21,10 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly string ExitNotification = null;
 
 		[Desc("List of sounds to be randomly played when the first actor enters this garrison.")]
-		public readonly string[] EnterSounds = Array.Empty<string>();
+		public readonly string[] EnterSounds = [];
 
 		[Desc("List of sounds to be randomly played when the last actor exits this garrison.")]
-		public readonly string[] ExitSounds = Array.Empty<string>();
+		public readonly string[] ExitSounds = [];
 
 		[Desc("Does the sound play under shroud or fog.")]
 		public readonly bool AudibleThroughFog = false;

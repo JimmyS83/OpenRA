@@ -21,13 +21,13 @@ namespace OpenRA.Mods.Common.Traits
 	public class McvManagerASBotModuleInfo : ConditionalTraitInfo
 	{
 		[Desc("Actor types that are considered MCVs (deploy into base builders).")]
-		public readonly HashSet<string> McvTypes = new();
+		public readonly HashSet<string> McvTypes = [];
 
 		[Desc("Actor types that are considered construction yards (base builders).")]
-		public readonly HashSet<string> ConstructionYardTypes = new();
+		public readonly HashSet<string> ConstructionYardTypes = [];
 
 		[Desc("Actor types that are able to produce MCVs.")]
-		public readonly HashSet<string> McvFactoryTypes = new();
+		public readonly HashSet<string> McvFactoryTypes = [];
 
 		[Desc("Try to maintain at least this many ConstructionYardTypes, build an MCV if number is below this.",
 			"Increased by AddtionalConstructionYardCount after AddtionalConstructionYardInterval, max to MaxmiumConstructionYardCount")]
@@ -80,7 +80,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		IBotPositionsUpdated[] notifyPositionsUpdated;
 		IBotRequestUnitProduction[] requestUnitProduction;
-		readonly List<UnitWposWrapper> activeMCV = new();
+		readonly List<UnitWposWrapper> activeMCV = [];
 
 		CPos initialBaseCenter;
 		int scanInterval;
@@ -281,12 +281,12 @@ namespace OpenRA.Mods.Common.Traits
 			if (IsTraitDisabled)
 				return null;
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("InitialBaseCenter", FieldSaver.FormatValue(initialBaseCenter)),
 				new("BaseShouldHave", FieldSaver.FormatValue(baseShouldHave)),
 				new("Countdown", FieldSaver.FormatValue(countdown)),
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)

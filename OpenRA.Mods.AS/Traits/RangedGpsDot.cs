@@ -16,7 +16,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Show an indicator revealing the actor underneath the fog when a RangedGPSProvider is activated.")]
-	class RangedGpsDotInfo : ConditionalTraitInfo
+	sealed class RangedGpsDotInfo : ConditionalTraitInfo
 	{
 		[Desc("Sprite collection for symbols.")]
 		public readonly string Image = "gpsdot";
@@ -33,10 +33,10 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new RangedGpsDot(this); }
 	}
 
-	class RangedGpsDot : ConditionalTrait<RangedGpsDotInfo>, INotifyAddedToWorld, INotifyRemovedFromWorld
+	sealed class RangedGpsDot : ConditionalTrait<RangedGpsDotInfo>, INotifyAddedToWorld, INotifyRemovedFromWorld
 	{
 		RangedGpsDotEffect effect;
-		public readonly List<Actor> Providers = new();
+		public readonly List<Actor> Providers = [];
 
 		public RangedGpsDot(RangedGpsDotInfo info)
 			: base(info) { }

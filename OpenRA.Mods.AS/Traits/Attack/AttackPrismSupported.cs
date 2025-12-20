@@ -158,7 +158,7 @@ namespace OpenRA.Mods.AS.Traits
 			ClearBuffStack(self);
 		}
 
-		class ChargeSupportedAttack : Activity
+		sealed class ChargeSupportedAttack : Activity
 		{
 			readonly AttackPrismSupported attack;
 			readonly Target target;
@@ -263,10 +263,10 @@ namespace OpenRA.Mods.AS.Traits
 						Game.Sound.Play(SoundType.World, attack.info.ChargeAudio, pos, attack.info.SoundVolume);
 				}
 
-				var relays = RecruitSupporters(self); // You need to recruit every time you fire as the battlefield is a very dynamic place.
-				var maxHops = relays.Any() ? relays.MaxBy(x => x.Hops).Hops : 0;
+				var relays = RecruitSupporters(self).ToList(); // You need to recruit every time you fire as the battlefield is a very dynamic place.
+				var maxHops = relays.Count > 0 ? relays.MaxBy(x => x.Hops).Hops : 0;
 
-				if (relays.Any())
+				if (relays.Count > 0)
 				{
 					foreach ((var supporter, var relay, var hop) in relays)
 					{
@@ -290,7 +290,7 @@ namespace OpenRA.Mods.AS.Traits
 			}
 		}
 
-		class ChargeAndFireSupportWeapon : Activity
+		sealed class ChargeAndFireSupportWeapon : Activity
 		{
 			readonly AttackPrismSupported attack;
 			readonly Target target;
@@ -322,7 +322,7 @@ namespace OpenRA.Mods.AS.Traits
 			}
 		}
 
-		class FireSupportingWeapon : Activity
+		sealed class FireSupportingWeapon : Activity
 		{
 			readonly AttackPrismSupported attack;
 			readonly Target target;

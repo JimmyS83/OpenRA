@@ -15,18 +15,18 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
 {
-	class InfiltrateForProxyActorInfo : ConditionalTraitInfo
+	sealed class InfiltrateForProxyActorInfo : ConditionalTraitInfo
 	{
 		[ActorReference]
 		[FieldLoader.Require]
 		public readonly string ProxyActor = null;
 
-		public readonly HashSet<string> Types = new();
+		public readonly HashSet<string> Types = [];
 
 		public override object Create(ActorInitializer init) { return new InfiltrateForProxyActor(this); }
 	}
 
-	class InfiltrateForProxyActor : ConditionalTrait<InfiltrateForProxyActorInfo>, INotifyInfiltrated
+	sealed class InfiltrateForProxyActor : ConditionalTrait<InfiltrateForProxyActorInfo>, INotifyInfiltrated
 	{
 		readonly InfiltrateForProxyActorInfo info;
 
@@ -41,10 +41,10 @@ namespace OpenRA.Mods.AS.Traits
 			if (IsTraitDisabled || !info.Types.Overlaps(types))
 				return;
 
-			infiltrator.World.AddFrameEndTask(w => w.CreateActor(info.ProxyActor, new TypeDictionary
-			{
+			infiltrator.World.AddFrameEndTask(w => w.CreateActor(info.ProxyActor,
+			[
 				new OwnerInit(infiltrator.Owner)
-			}));
+			]));
 		}
 	}
 }

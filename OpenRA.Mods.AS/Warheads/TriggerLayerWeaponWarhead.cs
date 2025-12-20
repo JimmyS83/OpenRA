@@ -24,7 +24,7 @@ namespace OpenRA.Mods.AS.Warheads
 		public readonly WDist Spread = new(1024);
 
 		[Desc("Level percentage at each range step.")]
-		public readonly int[] Falloff = { 100, 75, 50 };
+		public readonly int[] Falloff = [100, 75, 50];
 
 		[Desc("The name of the layer we want to increase the level of.")]
 		public readonly string LayerName = "";

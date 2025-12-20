@@ -141,7 +141,7 @@ namespace OpenRA.Mods.AS.Traits
 					self.QueueActivity(move.MoveWithinRange(order.Target, WDist.FromCells(maximumDistance), targetLineColor: Info.TargetLineColor));
 				self.QueueActivity(
 					new RA2Teleport(
-						self, Info.TeleportType, directDestination, new List<CPos> { directDestination }, Info.MaxSearchCellDistance, maximumDistance, true, () => CanTeleport));
+						self, Info.TeleportType, directDestination, [directDestination], Info.MaxSearchCellDistance, maximumDistance, true, () => CanTeleport));
 				self.QueueActivity(move.MoveTo(directDestination, 5, targetLineColor: Info.TargetLineColor));
 				self.ShowTargetLines();
 			}

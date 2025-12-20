@@ -43,7 +43,7 @@ namespace OpenRA.Mods.AS.Traits
 			gps.UnregisterForOnGpsRefreshed(fufubg.self, fufubg);
 		};
 
-		class Traits
+		sealed class Traits
 		{
 			public readonly FrozenActorLayer FrozenActorLayer;
 			public readonly GpsASWatcher GpsWatcher;

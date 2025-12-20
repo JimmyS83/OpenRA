@@ -39,7 +39,7 @@ namespace OpenRA.Mods.Common.Widgets
 		public readonly string TooltipContainer;
 
 		readonly Lazy<TooltipContainerWidget> tooltipContainer;
-		readonly List<ArmyIcon> armyIcons = new();
+		readonly List<ArmyIcon> armyIcons = [];
 
 		readonly CachedTransform<Player, PlayerStatistics> stats = new(player => player.PlayerActor.TraitOrDefault<PlayerStatistics>());
 
@@ -193,7 +193,7 @@ namespace OpenRA.Mods.Common.Widgets
 			TooltipUnit = null;
 		}
 
-		class ArmyIcon
+		sealed class ArmyIcon
 		{
 			public Rectangle Bounds { get; set; }
 			public ArmyUnit Unit { get; set; }

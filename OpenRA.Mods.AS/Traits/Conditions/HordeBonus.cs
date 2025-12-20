@@ -72,7 +72,7 @@ namespace OpenRA.Mods.AS.Traits
 			this.self = self;
 			cachedRange = Info.Range;
 			cachedVRange = Info.MaximumVerticalOffset;
-			sources = new HashSet<Actor>();
+			sources = [];
 		}
 
 		void INotifyAddedToWorld.AddedToWorld(Actor self)

@@ -25,7 +25,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		[FieldLoader.Require]
 		[Desc("Queues that this condition will apply.")]
-		public readonly HashSet<string> Queue = new();
+		public readonly HashSet<string> Queue = [];
 
 		public override object Create(ActorInitializer init) { return new ConditionPrerequisite(init.Self, this); }
 	}

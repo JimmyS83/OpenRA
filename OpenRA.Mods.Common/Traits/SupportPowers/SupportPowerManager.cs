@@ -131,7 +131,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		void ITechTreeElement.PrerequisitesAvailable(string key)
 		{
-			if (!Powers.TryGetValue(key.Remove(key.Length - 1), out var sp))
+			if (!Powers.TryGetValue(key[..^1], out var sp))
 				return;
 
 			sp.CheckPrerequisites(false);
@@ -139,7 +139,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		void ITechTreeElement.PrerequisitesUnavailable(string key)
 		{
-			if (!Powers.TryGetValue(key.Remove(key.Length - 1), out var sp))
+			if (!Powers.TryGetValue(key[..^1], out var sp))
 				return;
 
 			sp.CheckPrerequisites(false);
@@ -315,8 +315,8 @@ namespace OpenRA.Mods.Common.Traits
 			if (Info == null)
 				return 0;
 
-			var availables = Info.Prerequisites.Where(p => Manager.TechTree.HasPrerequisites(p.Value));
-			var level = availables.Any() ? availables.Max(p => p.Key) : 0;
+			var availables = Info.Prerequisites.Where(p => Manager.TechTree.HasPrerequisites(p.Value)).ToList();
+			var level = availables.Count > 0 ? availables.Max(p => p.Key) : 0;
 
 			return Manager.DevMode.AllTech ? Info.Prerequisites.Max(p => p.Key) : level;
 		}

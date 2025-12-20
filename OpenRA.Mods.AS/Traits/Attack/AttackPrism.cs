@@ -90,7 +90,7 @@ namespace OpenRA.Mods.AS.Traits
 			return new ChargeAttack(this, newTarget, forceAttack, targetLineColor);
 		}
 
-		class ChargeAttack : Activity, IActivityNotifyStanceChanged
+		sealed class ChargeAttack : Activity, IActivityNotifyStanceChanged
 		{
 			readonly AttackPrism attack;
 			readonly Target target;

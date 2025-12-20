@@ -35,7 +35,7 @@ namespace OpenRA.Mods.Common
 			}
 
 			if (mobile.PathFinder.FindPathToTargetCell(
-				unit, new List<CPos> { unit.Location }, destination, blockedByActor, ignoreActor: ignoreActor, laneBias: false).Count > 0)
+				unit, [unit.Location], destination, blockedByActor, ignoreActor: ignoreActor, laneBias: false).Count > 0)
 				return true;
 			else
 				return false;
@@ -121,8 +121,8 @@ namespace OpenRA.Mods.Common
 				var right = bi.Dimensions.X + cellDist - 1;
 				var top = -cellDist;
 				var bottom = bi.Dimensions.Y + cellDist - 1;
-				(int RowStart, int RowEnd)[] rowProcessIndexPairs = { (left, left), (right, right), (left, right), (left, right) };
-				(int ColStart, int ColEnd)[] colProcessIndexPairs = { (top, bottom), (top, bottom), (top, top), (bottom, bottom) };
+				(int RowStart, int RowEnd)[] rowProcessIndexPairs = [(left, left), (right, right), (left, right), (left, right)];
+				(int ColStart, int ColEnd)[] colProcessIndexPairs = [(top, bottom), (top, bottom), (top, top), (bottom, bottom)];
 
 				for (var i = 0; i < rowProcessIndexPairs.Length; i++)
 					for (var rowIndex = rowProcessIndexPairs[i].RowStart; rowIndex <= rowProcessIndexPairs[i].RowEnd; rowIndex++)

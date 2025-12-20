@@ -72,8 +72,8 @@ namespace OpenRA.Mods.AS.Traits
 		readonly Predicate<Actor> unitCannotBeOrderedOrIsIdle;
 		readonly Predicate<Actor> invalidTransport;
 
-		readonly List<UnitWposWrapper> activePassengers = new();
-		readonly List<Actor> stuckPassengers = new();
+		readonly List<UnitWposWrapper> activePassengers = [];
+		readonly List<Actor> stuckPassengers = [];
 		int minAssignRoleDelayTicks;
 
 		public LoadCargoBotModule(Actor self, LoadCargoBotModuleInfo info)

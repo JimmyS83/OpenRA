@@ -16,14 +16,14 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Required for AS GPS-related logic to function. Attach this to the player actor.")]
-	class GpsASWatcherInfo : TraitInfo
+	sealed class GpsASWatcherInfo : TraitInfo
 	{
 		public override object Create(ActorInitializer init) { return new GpsASWatcher(init.Self.Owner); }
 	}
 
 	interface IOnGpsASRefreshed { void OnGpsASRefresh(Actor self, Player player); }
 
-	class GpsASWatcher : ISync, IPreventsShroudReset
+	sealed class GpsASWatcher : ISync, IPreventsShroudReset
 	{
 		[Sync]
 		public bool GrantedAllies { get; private set; }
@@ -33,8 +33,8 @@ namespace OpenRA.Mods.AS.Traits
 
 		readonly Player owner;
 
-		public readonly List<GpsASProvider> Providers = new();
-		readonly HashSet<TraitPair<IOnGpsASRefreshed>> notifyOnRefresh = new();
+		public readonly List<GpsASProvider> Providers = [];
+		readonly HashSet<TraitPair<IOnGpsASRefreshed>> notifyOnRefresh = [];
 
 		public GpsASWatcher(Player owner)
 		{

@@ -18,7 +18,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Effects
 {
-	class RangedGpsDotEffect : IEffect, IEffectAboveShroud
+	sealed class RangedGpsDotEffect : IEffect, IEffectAboveShroud
 	{
 		readonly Actor actor;
 		readonly RangedGpsDot trait;
@@ -28,7 +28,7 @@ namespace OpenRA.Mods.AS.Effects
 		readonly IDefaultVisibility visibility;
 		readonly IVisibilityModifier[] visibilityModifiers;
 
-		class RangedDotState
+		sealed class RangedDotState
 		{
 			public readonly RangedGpsWatcher Watcher;
 			public readonly FrozenActor FrozenActor;

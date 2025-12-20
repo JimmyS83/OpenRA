@@ -20,7 +20,7 @@ namespace OpenRA.Mods.AS.Projectiles
 		public IProjectile Create(ProjectileArgs args) { return new InstantExplode(args); }
 	}
 
-	class InstantExplode : IProjectile
+	sealed class InstantExplode : IProjectile
 	{
 		readonly ProjectileArgs args;
 

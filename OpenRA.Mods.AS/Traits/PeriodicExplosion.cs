@@ -52,7 +52,7 @@ namespace OpenRA.Mods.AS.Traits
 		}
 	}
 
-	class PeriodicExplosion : ConditionalTrait<PeriodicExplosionInfo>, ITick, INotifyCreated
+	sealed class PeriodicExplosion : ConditionalTrait<PeriodicExplosionInfo>, ITick, INotifyCreated
 	{
 		readonly PeriodicExplosionInfo info;
 		readonly WeaponInfo weapon;
@@ -61,7 +61,7 @@ namespace OpenRA.Mods.AS.Traits
 		int fireDelay;
 		int burst;
 		AmmoPool ammoPool;
-		readonly List<(int Delay, Action Action)> delayedActions = new();
+		readonly List<(int Delay, Action Action)> delayedActions = [];
 
 		public PeriodicExplosion(Actor self, PeriodicExplosionInfo info)
 			: base(info)
@@ -163,7 +163,7 @@ namespace OpenRA.Mods.AS.Traits
 			}
 		}
 
-		protected void ScheduleDelayedAction(int t, Action a)
+		void ScheduleDelayedAction(int t, Action a)
 		{
 			if (t > 0)
 				delayedActions.Add((t, a));

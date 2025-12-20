@@ -24,7 +24,7 @@ namespace OpenRA.Mods.AS.Traits
 
 		[FieldLoader.Require]
 		[Desc("Map player names to grant the condition to.")]
-		public readonly HashSet<string> InternalOwners = new();
+		public readonly HashSet<string> InternalOwners = [];
 
 		public override object Create(ActorInitializer init) { return new GrantConditionOnInternalOwner(init.Self, this); }
 	}

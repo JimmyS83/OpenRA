@@ -26,11 +26,11 @@ namespace OpenRA.Mods.AS.Traits
 
 		[FieldLoader.Require]
 		[Desc("Size of the footprint of the affected area.")]
-		public readonly Dictionary<int, CVec> Dimensions = new();
+		public readonly Dictionary<int, CVec> Dimensions = [];
 
 		[FieldLoader.Require]
 		[Desc("Actual footprint. Cells marked as x will be affected.")]
-		public readonly Dictionary<int, string> Footprints = new();
+		public readonly Dictionary<int, string> Footprints = [];
 
 		[PaletteReference]
 		public readonly string TargetOverlayPalette = TileSet.TerrainPaletteInternalName;
@@ -107,7 +107,7 @@ namespace OpenRA.Mods.AS.Traits
 
 	sealed class RA2ChronoshiftPower : SupportPower
 	{
-		readonly Dictionary<int, char[]> footprints = new();
+		readonly Dictionary<int, char[]> footprints = [];
 		readonly Dictionary<int, CVec> dimensions;
 		readonly string teleportType;
 
@@ -232,7 +232,7 @@ namespace OpenRA.Mods.AS.Traits
 		sealed class SelectChronoshiftTarget : OrderGenerator
 		{
 			readonly RA2ChronoshiftPower power;
-			readonly Dictionary<int, char[]> footprints = new();
+			readonly Dictionary<int, char[]> footprints = [];
 			readonly Dictionary<int, CVec> dimensions;
 			readonly Sprite tile;
 			readonly float alpha;
@@ -319,7 +319,7 @@ namespace OpenRA.Mods.AS.Traits
 		{
 			readonly RA2ChronoshiftPower power;
 			readonly CPos sourceLocation;
-			readonly Dictionary<int, char[]> footprints = new();
+			readonly Dictionary<int, char[]> footprints = [];
 			readonly Dictionary<int, CVec> dimensions;
 			readonly Sprite validTile, invalidTile, sourceTile;
 			readonly float validAlpha, invalidAlpha, sourceAlpha;

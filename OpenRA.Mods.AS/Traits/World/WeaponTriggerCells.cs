@@ -42,7 +42,7 @@ namespace OpenRA.Mods.AS.Traits
 		readonly World world;
 		public readonly WeaponTriggerCellsInfo Info;
 
-		readonly Dictionary<CPos, TriggerCell> tiles = new();
+		readonly Dictionary<CPos, TriggerCell> tiles = [];
 
 		public WeaponTriggerCells(Actor self, WeaponTriggerCellsInfo info)
 		{
@@ -81,18 +81,18 @@ namespace OpenRA.Mods.AS.Traits
 
 		public int GetLevel(CPos cell)
 		{
-			if (!tiles.ContainsKey(cell))
+			if (!tiles.TryGetValue(cell, out var value))
 				return 0;
 
-			return tiles[cell].Level;
+			return value.Level;
 		}
 
 		public void SetLevel(CPos cell, int level)
 		{
-			if (!tiles.ContainsKey(cell))
+			if (!tiles.TryGetValue(cell, out var value))
 				return;
 
-			tiles[cell].Level = level;
+			value.Level = level;
 		}
 
 		public void IncreaseLevel(CPos cell, int add_level, int max_level)
@@ -103,8 +103,8 @@ namespace OpenRA.Mods.AS.Traits
 			var currentLevel = 0;
 
 			// Initialize, on fresh impact.
-			if (tiles.ContainsKey(cell))
-				currentLevel = tiles[cell].Level;
+			if (tiles.TryGetValue(cell, out var value))
+				currentLevel = value.Level;
 
 			// the given weapon can't saturate the cell anymore.
 			if ((add_level > 0 && currentLevel >= max_level) ||
@@ -119,10 +119,10 @@ namespace OpenRA.Mods.AS.Traits
 
 			currentLevel = new_level;
 
-			if (!tiles.ContainsKey(cell))
+			if (!tiles.TryGetValue(cell, out value))
 				tiles[cell] = new TriggerCell() { Level = currentLevel };
 			else
-				tiles[cell].Level = currentLevel;
+				value.Level = currentLevel;
 		}
 
 		bool disposed = false;

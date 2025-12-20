@@ -17,7 +17,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Dogs use this attack model.")]
-	class AttackLeapASInfo : AttackFrontalInfo
+	sealed class AttackLeapASInfo : AttackFrontalInfo
 	{
 		[Desc("Leap speed (in units/tick).")]
 		public readonly WDist Speed = new(426);
@@ -33,7 +33,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new AttackLeapAS(init.Self, this); }
 	}
 
-	class AttackLeapAS : AttackFrontal
+	sealed class AttackLeapAS : AttackFrontal
 	{
 		readonly Barrel barrel;
 		public readonly AttackLeapASInfo LeapInfo;

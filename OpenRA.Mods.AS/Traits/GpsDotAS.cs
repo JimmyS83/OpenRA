@@ -15,7 +15,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("Show an indicator revealing the actor underneath the fog when a GpsASProvider is activated.")]
-	class GpsDotASInfo : ConditionalTraitInfo
+	sealed class GpsDotASInfo : ConditionalTraitInfo
 	{
 		[Desc("Sprite collection for symbols.")]
 		public readonly string Image = "gpsdot";
@@ -34,7 +34,7 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new GpsDotAS(this); }
 	}
 
-	class GpsDotAS : ConditionalTrait<GpsDotASInfo>, INotifyAddedToWorld, INotifyRemovedFromWorld
+	sealed class GpsDotAS : ConditionalTrait<GpsDotASInfo>, INotifyAddedToWorld, INotifyRemovedFromWorld
 	{
 		GpsDotEffectAS effect;
 

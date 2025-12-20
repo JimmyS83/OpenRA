@@ -24,25 +24,25 @@ namespace OpenRA.Mods.Common.Traits
 
 		// [SequenceReference(nameof(IconImage))]
 		[Desc("Icon sprite displayed in the support power palette.")]
-		public readonly Dictionary<int, string> Icons = new();
+		public readonly Dictionary<int, string> Icons = [];
 
 		[PaletteReference]
 		[Desc("Palette used for the icon.")]
 		public readonly string IconPalette = "chrome";
 
 		[FluentReference(optional: true)]
-		public readonly Dictionary<int, string> Names = new();
+		public readonly Dictionary<int, string> Names = [];
 
 		[Desc("An optional list of generic names (i.e. \"Ability\" or \"Superpower\")" +
 			"to be shown to chosen players.")]
 		[FluentReference(dictionaryReference: LintDictionaryReference.Values)]
-		public readonly Dictionary<int, string> GenericNames = new();
+		public readonly Dictionary<int, string> GenericNames = [];
 
 		[Desc("Player stances that the generic names should be shown to.")]
 		public readonly PlayerRelationship GenericVisibility = PlayerRelationship.None;
 
 		[FluentReference(dictionaryReference: LintDictionaryReference.Values)]
-		public readonly Dictionary<int, string> Descriptions = new();
+		public readonly Dictionary<int, string> Descriptions = [];
 
 		[Desc("Allow multiple instances of the same support power.")]
 		public readonly bool AllowMultiple = false;
@@ -141,7 +141,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly string BeaconImage = "beacon";
 
 		// [SequenceReference(nameof(BeaconImage))]
-		public readonly Dictionary<int, string> BeaconPosters = new();
+		public readonly Dictionary<int, string> BeaconPosters = [];
 
 		[PaletteReference]
 		public readonly string BeaconPosterPalette = "chrome";
@@ -216,8 +216,8 @@ namespace OpenRA.Mods.Common.Traits
 
 		public int GetLevel()
 		{
-			var availables = Info.Prerequisites.Where(p => techTree.HasPrerequisites(p.Value));
-			var level = availables.Any() ? availables.Max(p => p.Key) : 0;
+			var availables = Info.Prerequisites.Where(p => techTree.HasPrerequisites(p.Value)).ToList();
+			var level = availables.Count > 0 ? availables.Max(p => p.Key) : 0;
 
 			return developerMode.AllTech ? Info.Prerequisites.Max(p => p.Key) : level;
 		}

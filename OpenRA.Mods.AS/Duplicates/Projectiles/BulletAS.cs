@@ -26,7 +26,7 @@ namespace OpenRA.Mods.AS.Projectiles
 	public class BulletASInfo : IProjectileInfo
 	{
 		[Desc("Projectile speed in WDist / tick, two values indicate variable velocity.")]
-		public readonly WDist[] Speed = { new(17) };
+		public readonly WDist[] Speed = [new(17)];
 
 		[Desc("The maximum/constant/incremental inaccuracy used in conjunction with the InaccuracyType property.")]
 		public readonly WDist Inaccuracy = WDist.Zero;
@@ -42,7 +42,7 @@ namespace OpenRA.Mods.AS.Projectiles
 
 		[SequenceReference(nameof(Image), allowNullImage: true)]
 		[Desc("Loop a randomly chosen sequence of Image from this list while this projectile is moving.")]
-		public readonly string[] Sequences = { "idle" };
+		public readonly string[] Sequences = ["idle"];
 
 		[Desc("The palette used to draw this projectile.")]
 		[PaletteReference(nameof(IsPlayerPalette))]
@@ -65,7 +65,7 @@ namespace OpenRA.Mods.AS.Projectiles
 
 		[Desc("Loop a randomly chosen sequence of TrailImage from this list while this projectile is moving.")]
 		[SequenceReference(nameof(TrailImage), allowNullImage: true)]
-		public readonly string[] TrailSequences = { "idle" };
+		public readonly string[] TrailSequences = ["idle"];
 
 		[Desc("Is this blocked by actors with BlocksProjectiles trait.")]
 		public readonly bool Blockable = true;
@@ -74,7 +74,7 @@ namespace OpenRA.Mods.AS.Projectiles
 		public readonly WDist Width = new(1);
 
 		[Desc("Arc in WAngles, two values indicate variable arc.")]
-		public readonly WAngle[] LaunchAngle = { WAngle.Zero };
+		public readonly WAngle[] LaunchAngle = [WAngle.Zero];
 
 		[Desc("Up to how many times does this bullet bounce when touching ground without hitting a target.",
 			"0 implies exploding on contact with the originally targeted position.")]
@@ -84,7 +84,7 @@ namespace OpenRA.Mods.AS.Projectiles
 		public readonly string BounceSound = null;
 
 		[Desc("Terrain where the projectile explodes instead of bouncing.")]
-		public readonly HashSet<string> InvalidBounceTerrain = new();
+		public readonly HashSet<string> InvalidBounceTerrain = [];
 
 		[Desc("Modify distance of each bounce by this percentage of previous distance.")]
 		public readonly int BounceRangeModifier = 60;

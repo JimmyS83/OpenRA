@@ -37,7 +37,7 @@ namespace OpenRA.Mods.AS.Traits.Render
 
 		// TODO: [SequenceReference] isn't smart enough to use Dictionaries.
 		[Desc("Pip sequence to use for specific passenger actors.")]
-		public readonly Dictionary<string, string> CustomPipSequences = new();
+		public readonly Dictionary<string, string> CustomPipSequences = [];
 
 		[PaletteReference]
 		public readonly string Palette = "chrome";

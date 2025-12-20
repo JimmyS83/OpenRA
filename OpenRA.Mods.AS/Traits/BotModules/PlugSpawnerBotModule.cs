@@ -27,7 +27,7 @@ namespace OpenRA.Mods.AS.Traits
 		[ActorReference(typeof(PluggableInfo))]
 		[FieldLoader.Require]
 		[Desc("What actors the AI can spawn this plug on.")]
-		public readonly HashSet<string> Pluggables = new() { };
+		public readonly HashSet<string> Pluggables = [];
 
 		[Desc("Plug spawning interval.")]
 		public readonly int Interval = 50;
@@ -63,9 +63,9 @@ namespace OpenRA.Mods.AS.Traits
 
 			var player = bot.Player;
 
-			var targetActors = world.Actors.Where(x => x.IsInWorld && !x.IsDead && x.Owner == player && Info.Pluggables.Contains(x.Info.Name));
+			var targetActors = world.Actors.Where(x => x.IsInWorld && !x.IsDead && x.Owner == player && Info.Pluggables.Contains(x.Info.Name)).ToList();
 
-			if (!targetActors.Any())
+			if (targetActors.Count == 0)
 				return;
 
 			var target = targetActors

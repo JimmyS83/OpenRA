@@ -70,11 +70,11 @@ namespace OpenRA.Mods.AS.Traits
 
 			Moves = self.TraitsImplementing<IMove>().ToArray();
 
-			var positionables = self.TraitsImplementing<IPositionable>();
-			if (positionables.Count() != 1)
+			var positionables = self.TraitsImplementing<IPositionable>().ToArray();
+			if (positionables.Length != 1)
 				throw new InvalidOperationException($"Actor {self} has multiple (or no) traits implementing IPositionable.");
 
-			Positionable = positionables.First();
+			Positionable = positionables[0];
 
 			IsAircraft = self.Info.HasTraitInfo<AircraftInfo>();
 		}

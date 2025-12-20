@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using OpenRA.Traits;
 
@@ -22,7 +21,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly string[] Prerequisites = [];
 
 		[Desc("Only grant this level for certain factions.")]
-		public readonly HashSet<string> Factions = new();
+		public readonly HashSet<string> Factions = [];
 
 		[Desc("Should it recheck everything when it is captured?")]
 		public readonly bool ResetOnOwnerChange = false;

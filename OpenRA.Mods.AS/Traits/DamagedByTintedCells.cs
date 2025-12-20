@@ -17,7 +17,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.AS.Traits
 {
 	[Desc("This actor receives damage when in TintedCell area.")]
-	class DamagedByTintedCellsInfo : ConditionalTraitInfo, Requires<HealthInfo>, IRulesetLoaded
+	sealed class DamagedByTintedCellsInfo : ConditionalTraitInfo, Requires<HealthInfo>, IRulesetLoaded
 	{
 		[Desc("Receive damage from the TintedCell layer with this name.")]
 		public readonly string LayerName = "radioactivity";
@@ -44,19 +44,19 @@ namespace OpenRA.Mods.AS.Traits
 				throw new YamlException("DamageLevel of DamagedByTintedCells of actor \"" + info.Name + "\" cannot be 0.");
 
 			var layers = rules.Actors["world"].TraitInfos<TintedCellsLayerInfo>()
-				.Where(l => l.Name == LayerName);
+				.Where(l => l.Name == LayerName).ToArray();
 
-			if (!layers.Any())
+			if (layers.Length == 0)
 				throw new InvalidOperationException("There is no TintedCellsLayer named \""
 					+ LayerName + "\" to match DamagedByTintedCells of actor \"" + info.Name + "\"");
 
-			if (layers.Count() > 1)
+			if (layers.Length > 1)
 				throw new InvalidOperationException("There are multiple TintedCellsLayers named \""
 					+ LayerName + "\" to match DamagedByTintedCells of actor \"" + info.Name + "\"");
 		}
 	}
 
-	class DamagedByTintedCells : ConditionalTrait<DamagedByTintedCellsInfo>, ITick, ISync
+	sealed class DamagedByTintedCells : ConditionalTrait<DamagedByTintedCellsInfo>, ITick, ISync
 	{
 		readonly TintedCellsLayer tcLayer;
 

@@ -23,18 +23,18 @@ namespace OpenRA.Mods.AS.Traits
 	{
 		[FieldLoader.Require]
 		[Desc("Actor types that can capture other actors (via `Captures`).")]
-		public readonly HashSet<string> CapturingActorTypes = new();
+		public readonly HashSet<string> CapturingActorTypes = [];
 
 		[Desc("Percentage chance of trying a priority capture.")]
 		public readonly int PriorityCaptureChance = 75;
 
 		[Desc("Actor types that should be priorizited to be captured.",
 			"Leave this empty to include all actors.")]
-		public readonly HashSet<string> PriorityCapturableActorTypes = new();
+		public readonly HashSet<string> PriorityCapturableActorTypes = [];
 
 		[Desc("Actor types that can be targeted for capturing.",
 			"Leave this empty to include all actors.")]
-		public readonly HashSet<string> CapturableActorTypes = new();
+		public readonly HashSet<string> CapturableActorTypes = [];
 
 		[Desc("Minimum delay (in ticks) between trying to capture with CapturingActorTypes.")]
 		public readonly int MinimumCaptureDelay = 375;
@@ -131,17 +131,19 @@ namespace OpenRA.Mods.AS.Traits
 				return;
 
 			var newUnits = world.ActorsHavingTrait<Captures>()
-				.Where(a => a.Owner == player && !a.IsDead && a.IsInWorld);
+				.Where(a => a.Owner == player && !a.IsDead && a.IsInWorld)
+				.ToArray();
 
-			if (!newUnits.Any())
+			if (newUnits.Length == 0)
 				return;
 
 			var capturers = newUnits
 				.Where(a => a.IsIdle && Info.CapturingActorTypes.Contains(a.Info.Name))
 				.Select(a => new TraitPair<CaptureManager>(a, a.TraitOrDefault<CaptureManager>()))
-				.Where(tp => tp.Trait != null);
+				.Where(tp => tp.Trait != null)
+				.ToArray();
 
-			if (!capturers.Any())
+			if (capturers.Length == 0)
 				return;
 
 			var baseCenter = world.Map.CenterOfCell(initialBaseCenter);
@@ -150,21 +152,21 @@ namespace OpenRA.Mods.AS.Traits
 			{
 				var priorityTargets = world.Actors.Where(a =>
 					!a.IsDead && a.IsInWorld && Info.CapturableRelationships.HasRelationship(player.RelationshipWith(a.Owner))
-					&& Info.PriorityCapturableActorTypes.Contains(a.Info.Name.ToLowerInvariant()));
+					&& Info.PriorityCapturableActorTypes.Contains(a.Info.Name.ToLowerInvariant())).ToArray();
 
 				if (Info.CheckCaptureTargetsForVisibility)
-					priorityTargets = priorityTargets.Where(a => a.CanBeViewedByPlayer(player));
+					priorityTargets = priorityTargets.Where(a => a.CanBeViewedByPlayer(player)).ToArray();
 
-				if (priorityTargets.Any())
+				if (priorityTargets.Length != 0)
 				{
-					priorityTargets = priorityTargets.OrderBy(a => (a.CenterPosition - baseCenter).LengthSquared);
+					priorityTargets = priorityTargets.OrderBy(a => (a.CenterPosition - baseCenter).LengthSquared).ToArray();
 
-					var priorityCaptures = Math.Min(capturers.Count(), priorityTargets.Count());
+					var priorityCaptures = Math.Min(capturers.Length, priorityTargets.Length);
 
 					for (var i = 0; i < priorityCaptures; i++)
 					{
-						var capturer = capturers.First();
-						var priorityTarget = priorityTargets.First();
+						var capturer = capturers[0];
+						var priorityTarget = priorityTargets[0];
 
 						var captureManager = priorityTarget.TraitOrDefault<CaptureManager>();
 						if (captureManager != null && capturer.Trait.CanTarget(captureManager))
@@ -173,14 +175,14 @@ namespace OpenRA.Mods.AS.Traits
 							AIUtils.BotDebug("AI ({0}): Ordered {1} {2} to capture {3} {4} in priority mode.",
 								player.ClientIndex, capturer.Actor, capturer.Actor.ActorID, priorityTarget, priorityTarget.ActorID);
 
-							capturers = capturers.Skip(1);
+							capturers = capturers.Skip(1).ToArray();
 						}
 
-						priorityTargets = priorityTargets.Skip(1);
+						priorityTargets = priorityTargets.Skip(1).ToArray();
 					}
 				}
 
-				if (!capturers.Any())
+				if (capturers.Length == 0)
 					return;
 			}
 
@@ -206,12 +208,13 @@ namespace OpenRA.Mods.AS.Traits
 			if (Info.CapturableActorTypes.Count > 0)
 				capturableTargetOptions = capturableTargetOptions.Where(target => Info.CapturableActorTypes.Contains(target.Info.Name.ToLowerInvariant()));
 
-			if (!capturableTargetOptions.Any())
+			var capturableTargetOptionsList = capturableTargetOptions.ToList();
+			if (capturableTargetOptionsList.Count == 0)
 				return;
 
 			foreach (var capturer in capturers)
 			{
-				var targetActor = capturableTargetOptions.MinByOrDefault(target => (target.CenterPosition - capturer.Actor.CenterPosition).LengthSquared);
+				var targetActor = capturableTargetOptionsList.ClosestToWithPathFrom(capturer.Actor);
 				if (targetActor == null)
 					continue;
 
@@ -226,10 +229,10 @@ namespace OpenRA.Mods.AS.Traits
 			if (IsTraitDisabled)
 				return null;
 
-			return new List<MiniYamlNode>()
-			{
+			return
+			[
 				new("InitialBaseCenter", FieldSaver.FormatValue(initialBaseCenter))
-			};
+			];
 		}
 
 		void IGameSaveTraitData.ResolveTraitData(Actor self, MiniYaml data)

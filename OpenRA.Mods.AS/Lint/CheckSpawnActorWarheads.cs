@@ -17,7 +17,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Lint
 {
-	class CheckSpawnActorWarheads : ILintRulesPass
+	sealed class CheckSpawnActorWarheads : ILintRulesPass
 	{
 		public void Run(Action<string> emitError, Action<string> emitWarning, ModData modData, Ruleset rules)
 		{
