@@ -126,6 +126,11 @@ namespace OpenRA.Mods.Common.Graphics
 
 		[Desc("The number of facings that are provided by sprite frames. Use negative values to rotate counter-clockwise.")]
 		protected static readonly SpriteSequenceField<int> Facings = new(nameof(Facings), 1);
+		protected static readonly SpriteSequenceField<bool> ButtonizeField = new(nameof(Buttonize), false);
+		protected static readonly SpriteSequenceField<ProductionButtonStyle> ButtonStyleField = new(nameof(ButtonStyle), ProductionButtonStyle.Ra2);
+		protected static readonly SpriteSequenceField<string> ButtonLabelField = new(nameof(ButtonLabel), null);
+		protected static readonly SpriteSequenceField<string> ButtonLabelFontField = new(nameof(ButtonLabelFont), null);
+		protected int tick;
 
 		[Desc("The total number of facings for the sequence. " +
 			"If >Facings, the closest facing sprite will be rotated to match. " +
@@ -215,7 +220,11 @@ namespace OpenRA.Mods.Common.Graphics
 
 		protected int facings;
 		protected int? interpolatedFacings;
-		protected int tick;
+		protected bool buttonize;
+		protected ProductionButtonStyle buttonStyle;
+		protected string buttonLabel;
+		protected string buttonLabelFont;
+
 		protected int zOffset;
 		protected int shadowZOffset;
 		protected bool ignoreWorldTint;
@@ -258,6 +267,12 @@ namespace OpenRA.Mods.Common.Graphics
 		}
 
 		public string Name { get; }
+
+		public bool Buttonize => buttonize;
+		public ProductionButtonStyle ButtonStyle => buttonStyle;
+		public string ButtonLabel => buttonLabel;
+		public string ButtonLabelFont => buttonLabelFont;
+
 
 		protected static T LoadField<T>(string key, T fallback, MiniYaml data, MiniYaml defaults = null)
 		{
@@ -375,7 +390,12 @@ namespace OpenRA.Mods.Common.Graphics
 
 			stride = LoadField(Stride.Key, length, data, defaults);
 			facings = LoadField(Facings, data, defaults, out var facingsLocation);
+			buttonize = LoadField(ButtonizeField, data, defaults);
+			buttonStyle = LoadField(ButtonStyleField, data, defaults);
+			buttonLabel = LoadField(ButtonLabelField, data, defaults);
+			buttonLabelFont = LoadField(ButtonLabelFontField, data, defaults);
 			interpolatedFacings = LoadField(InterpolatedFacings, data, defaults, out var interpolatedFacingsLocation);
+
 
 			tick = LoadField(Tick, data, defaults);
 			zOffset = LoadField(ZOffset, data, defaults).Length;
@@ -619,3 +639,17 @@ namespace OpenRA.Mods.Common.Graphics
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

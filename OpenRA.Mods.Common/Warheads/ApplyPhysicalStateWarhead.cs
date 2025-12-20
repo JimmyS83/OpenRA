@@ -12,6 +12,7 @@
 using System.Linq;
 using OpenRA.GameRules;
 using OpenRA.Mods.Common.Traits;
+using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Warheads
@@ -26,6 +27,9 @@ namespace OpenRA.Mods.Common.Warheads
 		[Desc("Amount to add to the PhysicalState. Can be negative to subtract.")]
 		public readonly int Amount = 0;
 
+		[Desc("Apply firepower damage modifiers to the PhysicalState change.")]
+		public readonly bool ApplyFirepowerModifiers = true;
+
 		[Desc("Affects actors in a radius. Leave at 0 to only affect the direct target.")]
 		public readonly WDist Range = WDist.Zero;
 
@@ -38,6 +42,10 @@ namespace OpenRA.Mods.Common.Warheads
 			var actors = target.Type == TargetType.Actor ? new[] { target.Actor } :
 				firedBy.World.FindActorsInCircle(target.CenterPosition, Range);
 
+			var change = Amount;
+			if (ApplyFirepowerModifiers && args != null && args.DamageModifiers.Length > 0)
+				change = Util.ApplyPercentageModifiers(Amount, args.DamageModifiers);
+
 			foreach (var actor in actors)
 			{
 				if (!IsValidAgainst(actor, firedBy))
@@ -46,7 +54,7 @@ namespace OpenRA.Mods.Common.Warheads
 				var physicalState = actor.TraitsImplementing<PhysicalState>()
 					.FirstOrDefault(ps => ps.Name == PhysicalStateName);
 
-				physicalState?.ApplyChange(Amount, firedBy);
+				physicalState?.ApplyChange(change, firedBy);
 			}
 		}
 	}

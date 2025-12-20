@@ -38,7 +38,8 @@ namespace OpenRA.Mods.Common.Traits.Render
 		{
 			var matches = ai.TraitInfos<WithSpriteBodyInfo>().Count(w => w.Name == Body);
 			if (matches != 1)
-				throw new YamlException("WithAttackAnimation needs exactly one sprite body with matching name.");
+				throw new YamlException(
+					$"WithAttackAnimation needs exactly one sprite body named '{Body}' on actor '{ai.Name}', found {matches}.");
 
 			base.RulesetLoaded(rules, ai);
 		}
@@ -54,9 +55,15 @@ namespace OpenRA.Mods.Common.Traits.Render
 		public WithAttackAnimation(ActorInitializer init, WithAttackAnimationInfo info)
 			: base(info)
 		{
-			armament = init.Self.TraitsImplementing<Armament>()
-				.Single(a => a.Info.Name == Info.Armament);
-			wsb = init.Self.TraitsImplementing<WithSpriteBody>().Single(w => w.Info.Name == Info.Body);
+			var armaments = init.Self.TraitsImplementing<Armament>().Where(a => a.Info.Name == Info.Armament).ToList();
+			if (armaments.Count != 1)
+				throw new YamlException($"WithAttackAnimation actor '{init.Self.Info.Name}' needs exactly one armament named '{Info.Armament}', found {armaments.Count}.");
+			armament = armaments.Single();
+
+			var bodies = init.Self.TraitsImplementing<WithSpriteBody>().Where(w => w.Info.Name == Info.Body).ToList();
+			if (bodies.Count != 1)
+				throw new YamlException($"WithAttackAnimation actor '{init.Self.Info.Name}' needs exactly one sprite body named '{Info.Body}', found {bodies.Count}.");
+			wsb = bodies.Single();
 		}
 
 		void PlayAttackAnimation(Actor self)

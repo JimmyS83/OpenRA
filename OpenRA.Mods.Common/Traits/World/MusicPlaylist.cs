@@ -10,7 +10,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using OpenRA;
 using OpenRA.GameRules;
 using OpenRA.Graphics;
 using OpenRA.Traits;
@@ -55,6 +57,7 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly bool IsMusicAvailable;
 		public readonly bool AllowMuteBackgroundMusic;
 
+		public bool HasSongsForCurrentMode => FilterSongs(playlist).Length > 0;
 		public bool IsBackgroundMusicMuted => AllowMuteBackgroundMusic && Game.Settings.Sound.MuteBackgroundMusic;
 
 		public bool CurrentSongIsBackground { get; private set; }
@@ -96,6 +99,7 @@ namespace OpenRA.Mods.Common.Traits
 				currentSong = world.Map.Rules.Music[info.StartingMusic];
 				CurrentSongIsBackground = false;
 			}
+			EnsureCurrentSongMatchesMode();
 		}
 
 		void IPostWorldLoaded.PostWorldLoaded(World world, WorldRenderer wr)
@@ -126,13 +130,13 @@ namespace OpenRA.Mods.Common.Traits
 
 		public MusicInfo CurrentSong()
 		{
+			EnsureCurrentSongMatchesMode();
 			return currentSong;
 		}
 
 		public MusicInfo[] AvailablePlaylist()
 		{
-			// TODO: add filter options for faction-specific music
-			return playlist;
+			return FilterSongs(playlist);
 		}
 
 		void IGameOver.GameOver(World world)
@@ -159,7 +163,9 @@ namespace OpenRA.Mods.Common.Traits
 
 		void Play()
 		{
-			if (!SongExists(currentSong) || (CurrentSongIsBackground && IsBackgroundMusicMuted))
+			EnsureCurrentSongMatchesMode();
+
+			if (currentSong == null || !SongExists(currentSong) || (CurrentSongIsBackground && IsBackgroundMusicMuted))
 				return;
 
 			Game.Sound.PlayMusicThen(currentSong, PlayNextSong);
@@ -217,17 +223,185 @@ namespace OpenRA.Mods.Common.Traits
 			if (!IsMusicAvailable)
 				return null;
 
-			var songs = Game.Settings.Sound.Shuffle ? random : playlist;
+			var songs = FilterSongsForPlaybackOrder();
+			if (songs.Length == 0)
+				return null;
 
-			var next = reverse ? songs.Reverse().SkipWhile(m => m != currentSong)
-				.Skip(1).FirstOrDefault() ?? songs.Reverse().FirstOrDefault() :
-				songs.SkipWhile(m => m != currentSong)
-				.Skip(1).FirstOrDefault() ?? songs.FirstOrDefault();
+			if (currentSong == null || !songs.Contains(currentSong))
+				return reverse ? songs.LastOrDefault() : songs.FirstOrDefault();
 
-			if (SongExists(next))
-				return next;
+			var sequence = reverse ? songs.Reverse() : songs.AsEnumerable();
+			var next = sequence.SkipWhile(m => m != currentSong).Skip(1).FirstOrDefault();
+			if (next == null)
+				next = reverse ? songs.LastOrDefault() : songs.FirstOrDefault();
 
-			return null;
+			return SongExists(next) ? next : null;
+		}
+
+
+		public void RefreshForPlaybackModeChange(bool resumePlayback)
+		{
+			if (!IsMusicAvailable || CurrentSongIsBackground)
+				return;
+
+			var ordered = FilterSongsForPlaybackOrder();
+			if (ordered.Length == 0)
+			{
+				currentSong = null;
+				Game.Sound.StopMusic();
+				return;
+			}
+
+			if (currentSong == null || !ordered.Contains(currentSong))
+			{
+				currentSong = ordered.First();
+				CurrentSongIsBackground = false;
+			}
+
+			if (resumePlayback && currentSong != null)
+				Play();
+		}
+
+		void EnsureCurrentSongMatchesMode()
+		{
+			if (!IsMusicAvailable || CurrentSongIsBackground)
+				return;
+
+			var ordered = FilterSongsForPlaybackOrder();
+			if (ordered.Length == 0)
+			{
+				currentSong = null;
+				return;
+			}
+
+			if (currentSong == null || !ordered.Contains(currentSong))
+			{
+				currentSong = ordered.First();
+				CurrentSongIsBackground = false;
+			}
+		}
+
+		MusicInfo[] FilterSongsForPlaybackOrder()
+		{
+			return FilterSongs(Game.Settings.Sound.Shuffle ? random : playlist);
+		}
+
+		MusicInfo[] FilterSongs(IEnumerable<MusicInfo> songs)
+		{
+			var list = songs as IList<MusicInfo> ?? songs.ToList();
+			if (list.Count == 0)
+				return Array.Empty<MusicInfo>();
+
+			switch (Game.Settings.Sound.MusicMode)
+			{
+				case MusicPlaybackMode.MixAll:
+					return list.ToArray();
+				case MusicPlaybackMode.OnlyOldschool:
+					return list.Where(s => s.IsOldschool).ToArray();
+				case MusicPlaybackMode.FactionSpecific:
+					return FilterFactionSongs(list, DetermineFactionCategory());
+				case MusicPlaybackMode.Custom:
+					return FilterCustomSongs(list);
+				default:
+					return list.ToArray();
+			}
+		}
+
+		MusicInfo[] FilterCustomSongs(IList<MusicInfo> songs)
+		{
+			var filters = Game.Settings.Sound.CustomMusicCategories ?? Array.Empty<string>();
+			var normalized = filters
+				.Select(f => MusicCategories.Normalize(f, null))
+				.Where(f => !string.IsNullOrEmpty(f))
+				.Distinct(StringComparer.OrdinalIgnoreCase)
+				.ToArray();
+
+			if (normalized.Length == 0)
+				return Array.Empty<MusicInfo>();
+
+			return songs.Where(s => MatchesCustomCategory(s, normalized)).ToArray();
+		}
+
+		bool MatchesCustomCategory(MusicInfo song, IReadOnlyCollection<string> normalizedCategories)
+		{
+			foreach (var category in normalizedCategories)
+			{
+				switch (category)
+				{
+					case MusicCategories.Generic:
+						if (song.IsGeneric)
+							return true;
+						break;
+					case MusicCategories.Oldschool:
+						if (song.IsOldschool)
+							return true;
+						break;
+					default:
+						if (song.MatchesCategory(category))
+							return true;
+						break;
+				}
+			}
+
+			return false;
+		}
+
+		MusicInfo[] FilterFactionSongs(IList<MusicInfo> songs, string category)
+		{
+			if (songs.Count == 0)
+				return Array.Empty<MusicInfo>();
+
+			if (string.IsNullOrEmpty(category))
+				return songs.ToArray();
+
+			if (category == MusicCategories.Generic)
+			{
+				var genericSongs = songs.Where(s => s.IsGeneric).ToArray();
+				if (genericSongs.Length > 0)
+					return genericSongs;
+
+				var fallback = songs.Where(s => s.IsOldschool).ToArray();
+				return fallback.Length > 0 ? fallback : songs.ToArray();
+			}
+
+			var matched = songs.Where(s => s.MatchesCategory(category)).ToArray();
+			if (matched.Length > 0)
+				return matched;
+
+			return Array.Empty<MusicInfo>();
+		}
+
+		string DetermineFactionCategory()
+		{
+			if (Game.Settings.Sound.MusicMode != MusicPlaybackMode.FactionSpecific)
+				return null;
+
+			if (world?.LocalPlayer == null || !IsActivePlayer())
+				return MusicCategories.Generic;
+
+			var faction = world.LocalPlayer.Faction;
+			if (faction == null)
+				return MusicCategories.Generic;
+
+			if (!string.IsNullOrEmpty(faction.Side))
+				return MusicCategories.Normalize(faction.Side, MusicCategories.Generic);
+
+			if (!string.IsNullOrEmpty(faction.InternalName))
+				return MusicCategories.Normalize(faction.InternalName, MusicCategories.Generic);
+
+			return MusicCategories.Generic;
+		}
+
+		bool IsActivePlayer()
+		{
+			var player = world.LocalPlayer;
+			if (player == null)
+				return false;
+
+			if (world.IsReplay || player.NonCombatant || player.Spectating)
+				return false;
+
+			return true;
 		}
 
 		public void Stop()

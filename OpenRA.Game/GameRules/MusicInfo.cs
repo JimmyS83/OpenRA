@@ -9,6 +9,7 @@
  */
 #endregion
 
+using System;
 using OpenRA.FileSystem;
 
 namespace OpenRA.GameRules
@@ -19,9 +20,19 @@ namespace OpenRA.GameRules
 		public readonly string Title;
 		public readonly bool Hidden;
 		public readonly float VolumeModifier = 1f;
+		public readonly string Category;
 
 		public int Length { get; private set; } // seconds
 		public bool Exists { get; private set; }
+
+		public bool IsOldschool => MatchesCategory(MusicCategories.Oldschool);
+		public bool IsGeneric => MatchesCategory(MusicCategories.Generic);
+
+		public bool MatchesCategory(string category)
+		{
+			return !string.IsNullOrEmpty(category)
+				&& string.Equals(Category, category, StringComparison.OrdinalIgnoreCase);
+		}
 
 		public MusicInfo(string key, MiniYaml value)
 		{
@@ -33,6 +44,10 @@ namespace OpenRA.GameRules
 
 			if (nd.TryGetValue("VolumeModifier", out yaml))
 				VolumeModifier = FieldLoader.GetValue<float>("VolumeModifier", yaml.Value);
+
+			Category = nd.TryGetValue("Category", out yaml)
+				? MusicCategories.Normalize(yaml.Value)
+				: MusicCategories.Oldschool;
 
 			var ext = nd.TryGetValue("Extension", out yaml) ? yaml.Value : "aud";
 			Filename = (nd.TryGetValue("Filename", out yaml) ? yaml.Value : key) + "." + ext;
@@ -60,6 +75,21 @@ namespace OpenRA.GameRules
 			{
 				stream.Dispose();
 			}
+		}
+	}
+
+
+	public static class MusicCategories
+	{
+		public const string Generic = "generic";
+		public const string Oldschool = "oldschool";
+
+		public static string Normalize(string category, string fallback = Oldschool)
+		{
+			if (string.IsNullOrWhiteSpace(category))
+				return fallback;
+
+			return category.Trim().ToLowerInvariant();
 		}
 	}
 }

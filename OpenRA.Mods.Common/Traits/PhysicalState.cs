@@ -37,6 +37,9 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Whether incoming value changes should be scaled relative to unit health (divided by HP/10000).")]
 		public readonly bool RelativeToHealth = false;
 
+		[Desc("Apply damage modifiers when this PhysicalState receives external changes.")]
+		public readonly bool ApplyDamageModifiers = false;
+
 		[Desc("Linear relaxation amount per tick towards RelaxedValue.")]
 		public readonly int RelaxationLinear = 0;
 
@@ -142,9 +145,35 @@ namespace OpenRA.Mods.Common.Traits
 			if (Info.RelativeToHealth && health != null && health.MaxHP > 0)
 				scaledAmount = (int)(amount * health.HP / 10000.0f);
 
+			if (Info.ApplyDamageModifiers && scaledAmount > 0)
+			{
+				var adjustedAmount = (decimal)scaledAmount;
+				var damageContext = new Damage(scaledAmount);
+
+				foreach (var modifier in self.TraitsImplementing<IDamageModifier>())
+				{
+					var modifierPercent = modifier.GetDamageModifier(source, damageContext);
+					if (modifierPercent != 100)
+						adjustedAmount *= modifierPercent / 100m;
+				}
+
+				var owner = self.Owner;
+				var playerActor = owner?.PlayerActor;
+				if (playerActor != null)
+				{
+					foreach (var modifier in playerActor.TraitsImplementing<IDamageModifier>())
+					{
+						var modifierPercent = modifier.GetDamageModifier(source, damageContext);
+						if (modifierPercent != 100)
+							adjustedAmount *= modifierPercent / 100m;
+					}
+				}
+
+				scaledAmount = (int)adjustedAmount;
+			}
+
 			SetValue(currentValue + scaledAmount, true, source);
 		}
-
 
 		void UpdateSource(int oldValue, int newValue, Actor source)
 		{

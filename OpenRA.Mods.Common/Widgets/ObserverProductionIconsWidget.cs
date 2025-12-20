@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using OpenRA.Graphics;
+using OpenRA.Mods.Common.Graphics;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Mods.Common.Traits.Render;
 using OpenRA.Primitives;
@@ -140,6 +141,7 @@ namespace OpenRA.Mods.Common.Widgets
 				var bi = BuildableInfo.GetTraitForQueue(actor, queue.Info.Type);
 
 				icon.Play(bi.Icon);
+				var seq = icon.CurrentSequence as DefaultSpriteSequence;
 				var topLeftOffset = new float2(queueCol * (IconWidth + IconSpacing), 0);
 
 				var iconTopLeft = RenderOrigin + topLeftOffset;
@@ -149,13 +151,24 @@ namespace OpenRA.Mods.Common.Widgets
 				WidgetUtils.DrawSpriteCentered(icon.Image, worldRenderer.Palette(palette), centerPosition, 0.5f);
 
 				var rect = new Rectangle((int)iconTopLeft.X, (int)iconTopLeft.Y, (int)iconSize.X, (int)iconSize.Y);
-				productionIcons.Add(new ProductionIcon
+				var productionIcon = new ProductionIcon
 				{
 					Actor = actor,
+					Name = actor.Name,
 					Pos = new float2(rect.Location),
 					Queued = queued,
 					ProductionQueue = current.Queue
-				});
+				};
+
+				if (seq != null)
+				{
+					productionIcon.Buttonize = seq.Buttonize;
+					productionIcon.ButtonStyle = seq.ButtonStyle;
+					productionIcon.ButtonLabel = seq.ButtonLabel;
+					productionIcon.ButtonLabelFont = seq.ButtonLabelFont;
+				}
+
+				productionIcons.Add(productionIcon);
 
 				productionIconsBounds.Add(rect);
 
@@ -171,6 +184,12 @@ namespace OpenRA.Mods.Common.Widgets
 
 				clock.Tick();
 				WidgetUtils.DrawSpriteCentered(clock.Image, worldRenderer.Palette(ClockPalette), centerPosition, 0.5f);
+
+				ProductionIconButtonizer.Draw(
+					productionIcon,
+					rect,
+					bi.Description ?? actor.Name,
+					seq?.ButtonLabelFont ?? "Tiny");
 
 				queueCol++;
 			}
