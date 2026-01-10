@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Linq;
 using OpenRA.Primitives;
 using OpenRA.Traits;
@@ -17,7 +16,7 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.Common.Traits
 {
 	[Desc("Applies continuous health changes based on a PhysicalState value.")]
-	public class ChangesHealthProportionalToPhysicalStateInfo : ConditionalTraitInfo
+	public class ChangesHealthProportionalToPhysicalStateInfo : ConditionalTraitInfo, Requires<IHealthInfo>
 	{
 		[FieldLoader.Require]
 		[Desc("Name of the PhysicalState to monitor.")]
@@ -44,19 +43,20 @@ namespace OpenRA.Mods.Common.Traits
 		public override object Create(ActorInitializer init) { return new ChangesHealthProportionalToPhysicalState(init.Self, this); }
 	}
 
-	public class ChangesHealthProportionalToPhysicalState : ConditionalTrait<ChangesHealthProportionalToPhysicalStateInfo>, ITick, INotifyPhysicalStateChanged
+	public class ChangesHealthProportionalToPhysicalState : ConditionalTrait<ChangesHealthProportionalToPhysicalStateInfo>, ITick, INotifyPhysicalStateChanged, ISync
 	{
 		readonly Actor self;
-		readonly Health health;
+		readonly IHealth health;
 		readonly PhysicalState physicalState;
 
+		[Sync]
 		int damageTick;
 
 		public ChangesHealthProportionalToPhysicalState(Actor self, ChangesHealthProportionalToPhysicalStateInfo info)
 			: base(info)
 		{
 			this.self = self;
-			health = self.TraitOrDefault<Health>();
+			health = self.Trait<IHealth>();
 			physicalState = self.TraitsImplementing<PhysicalState>()
 				.FirstOrDefault(ps => ps.Name == info.PhysicalStateName);
 		}

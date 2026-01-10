@@ -64,14 +64,14 @@ namespace OpenRA.Mods.Common.Traits
 	public class PhysicalState : ConditionalTrait<PhysicalStateInfo>, ITick, ISync
 	{
 		readonly Actor self;
-		readonly Health health;
+		IHealth health;
 		Actor sourceActor;
 		INotifyPhysicalStateChanged[] notifyPhysicalStateChanged = Array.Empty<INotifyPhysicalStateChanged>();
-
-		int relaxationDelayTicks;
-		int relaxationIntervalTicks;
+		int range;
 
 		[Sync]
+		int relaxationDelayTicks;
+		int relaxationIntervalTicks;
 		int currentValue;
 
 		public string Name => Info.Name;
@@ -98,14 +98,15 @@ namespace OpenRA.Mods.Common.Traits
 			: base(info)
 		{
 			this.self = self;
-			health = self.TraitOrDefault<Health>();
-			currentValue = Math.Clamp(info.InitialValue, info.MinValue, info.MaxValue);
 		}
 
 		protected override void Created(Actor self)
 		{
-			notifyPhysicalStateChanged = self.TraitsImplementing<INotifyPhysicalStateChanged>().ToArray();
 			base.Created(self);
+			health = self.TraitOrDefault<IHealth>();
+			currentValue = Math.Clamp(Info.InitialValue, Info.MinValue, Info.MaxValue);
+			range = Info.MaxValue - Info.MinValue;
+			notifyPhysicalStateChanged = self.TraitsImplementing<INotifyPhysicalStateChanged>().ToArray();
 		}
 
 		void SetValue(int newValue, bool isExternalChange, Actor source = null)
@@ -143,9 +144,9 @@ namespace OpenRA.Mods.Common.Traits
 			var scaledAmount = amount;
 
 			if (Info.RelativeToHealth && health != null && health.MaxHP > 0)
-				scaledAmount = (int)(amount * health.HP / 10000.0f);
+				scaledAmount = amount * range / health.MaxHP;
 
-			if (Info.ApplyDamageModifiers && scaledAmount > 0)
+			if (Info.ApplyDamageModifiers && scaledAmount != 0)
 			{
 				var adjustedAmount = (decimal)scaledAmount;
 				var damageContext = new Damage(scaledAmount);
