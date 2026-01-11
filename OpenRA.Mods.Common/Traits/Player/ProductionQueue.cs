@@ -166,7 +166,6 @@ namespace OpenRA.Mods.Common.Traits
 
 		// CA Additions
 		HashSet<string> lastBuildableNames = new HashSet<string>();
-		string replacedInProduction = null;
 
 		public ProductionQueue(ActorInitializer init, ProductionQueueInfo info)
 		{
@@ -628,10 +627,6 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			Queue.Remove(item);
 
-			// CA Addition
-			if (item.Started && item.Item == replacedInProduction)
-				HideReplacedInProduction();
-
 			if (item.Infinite)
 				Queue.Add(new ProductionItem(this, item.Item, item.TotalCost, playerPower, item.OnComplete) { Infinite = true });
 		}
@@ -744,7 +739,7 @@ namespace OpenRA.Mods.Common.Traits
 
 				if (replacedInQueue != null)
 				{
-					var replacementName = replacedInQueue.Actors.Where(a => buildableNames.Contains(a)).FirstOrDefault();
+					var replacementName = replacedInQueue.Actors.FirstOrDefault(a => buildableNames.Contains(a));
 					if (replacementName != null)
 					{
 						replacement.Info = rules.Actors[replacementName];
@@ -758,15 +753,6 @@ namespace OpenRA.Mods.Common.Traits
 
 			if (replacements[queueItem.Item].Info != null)
 			{
-				// if a replacement is buildable, but we've already started producing, we should be able to finish production (as CompleteUpgradedInProgress is true)
-				if (queueItem.Started)
-				{
-					Producible[Actor.World.Map.Rules.Actors[queueItem.Item]].Visible = true;
-					replacedInProduction = queueItem.Item; // rules.Actors[queueItem.Item];
-					replaced = true;
-					return queueItem;
-				}
-
 				var r = replacements[queueItem.Item];
 
 				var replacementItem = new ProductionItem(this, r.Info.Name, r.Cost, playerPower, () => Actor.World.AddFrameEndTask(_ =>
@@ -775,28 +761,39 @@ namespace OpenRA.Mods.Common.Traits
 					if (!Queue.Any(j => j.Done && j.Item == r.Info.Name))
 						return;
 
-					var isBuilding = r.Info.HasTraitInfo<BuildingInfo>();
-					if (isBuilding)
-						return;
-
 					if (BuildUnit(r.Info))
 						Game.Sound.PlayNotification(rules, Actor.Owner, "Speech", Info.ReadyAudio, Actor.Owner.Faction.InternalName);
 				}));
+
+				// If the item has already started production, transfer progress to the replacement
+				if (queueItem.Started)
+				{
+					var originalSpent = queueItem.TotalCost - queueItem.RemainingCost;
+					var originalProgress = queueItem.TotalTime > 0 ? (float)(queueItem.TotalTime - queueItem.RemainingTime) / queueItem.TotalTime : 0f;
+
+					// Calculate the cost of the replacement item
+					replacementItem.TotalTime = GetBuildTime(r.Info, r.Info.TraitInfo<BuildableInfo>());
+
+					// Apply the money spent to the replacement item
+					var replacementSpent = Math.Min(originalSpent, replacementItem.TotalCost);
+					replacementItem.RemainingCost = replacementItem.TotalCost - replacementSpent;
+
+					// Calculate time remaining based on progress made
+					var timeProgress = (int)(replacementItem.TotalTime * originalProgress);
+					replacementItem.RemainingTime = replacementItem.TotalTime - timeProgress;
+
+					// Transfer paid resources
+					replacementItem.ResourcesPaid = queueItem.ResourcesPaid;
+
+					// Mark as started
+					replacementItem.Started = true;
+				}
 
 				replaced = true;
 				return replacementItem;
 			}
 
 			return queueItem;
-		}
-
-		void HideReplacedInProduction()
-		{
-			if (replacedInProduction != null)
-			{
-				PrerequisitesItemHidden(replacedInProduction);
-				replacedInProduction = null;
-			}
 		}
 
 		TraitPair<Production> MostLikelyProducer(string type)
@@ -828,8 +825,8 @@ namespace OpenRA.Mods.Common.Traits
 		public readonly Action OnComplete;
 
 		public int TotalCost{ get; private set; }
-		public int TotalTime { get; private set; }
-		public int RemainingTime { get; private set; }
+		public int TotalTime { get; set; } // public set for CA replacement in queue
+		public int RemainingTime { get; set; } // public set for CA replacement in queue
 		public int RemainingCost { get; set; }
 		public int ResourcesPaid { get; set; }
 		public int RemainingTimeActual =>
@@ -838,7 +835,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		public bool Paused { get; private set; }
 		public bool Done { get; private set; }
-		public bool Started { get; private set; }
+		public bool Started { get; set; } // public set for CA replacement in queue
 		public int Slowdown { get; private set; }
 		public bool Infinite { get; set; }
 		public int BuildPaletteOrder { get; }
