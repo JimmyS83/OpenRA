@@ -30,6 +30,9 @@ namespace OpenRA.Mods.Common.Warheads
 		[Desc("Apply firepower damage modifiers to the PhysicalState change.")]
 		public readonly bool ApplyFirepowerModifiers = true;
 
+		[Desc("Targets apply damage modifiers to the PhysicalState change.")]
+		public readonly bool ApplyDamageModifiers = true;
+
 		[Desc("Affects actors in a radius. Leave at 0 to only affect the direct target.")]
 		public readonly WDist Range = WDist.Zero;
 
@@ -54,7 +57,7 @@ namespace OpenRA.Mods.Common.Warheads
 				var physicalState = actor.TraitsImplementing<PhysicalState>()
 					.FirstOrDefault(ps => ps.Name == PhysicalStateName);
 
-				physicalState?.ApplyChange(change, firedBy);
+				physicalState?.ApplyChange(change, firedBy, ApplyDamageModifiers);
 			}
 		}
 	}

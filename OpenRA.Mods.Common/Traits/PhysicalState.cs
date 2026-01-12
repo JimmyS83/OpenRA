@@ -43,6 +43,9 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Linear relaxation amount per tick towards RelaxedValue.")]
 		public readonly int RelaxationLinear = 0;
 
+		[Desc("Health-scaled relaxation amount per tick towards RelaxedValue.")]
+		public readonly int RelaxationScaled = 0;
+
 		[Desc("Exponential relaxation rate towards RelaxedValue (0.0 = no exponential relaxation, 1.0 = instant).")]
 		public readonly float RelaxationExp = 0f;
 
@@ -84,6 +87,8 @@ namespace OpenRA.Mods.Common.Traits
 
 		public int MinValue => Info.MinValue;
 		public int MaxValue => Info.MaxValue;
+
+		public int RelaxationDelayTicks => relaxationDelayTicks;
 
 		public Actor SourceActor
 		{
@@ -139,14 +144,14 @@ namespace OpenRA.Mods.Common.Traits
 				notify.PhysicalStateChanged(self, this, oldValue, currentValue);
 		}
 
-		public void ApplyChange(int amount, Actor source = null)
+		public void ApplyChange(int amount, Actor source = null, bool applyModifiers = true, bool scaleToHealth = true)
 		{
 			var scaledAmount = amount;
 
-			if (Info.RelativeToHealth && health != null && health.MaxHP > 0)
-				scaledAmount = amount * range / health.MaxHP;
+			if (scaleToHealth)
+				scaledAmount = ScaleChangeToHealth(scaledAmount);
 
-			if (Info.ApplyDamageModifiers && scaledAmount != 0)
+			if (Info.ApplyDamageModifiers && scaledAmount != 0 && applyModifiers)
 			{
 				var adjustedAmount = (decimal)scaledAmount;
 				var damageContext = new Damage(scaledAmount);
@@ -248,10 +253,10 @@ namespace OpenRA.Mods.Common.Traits
 			var difference = Info.RelaxedValue - currentValue;
 
 			if (Info.RelaxationLinear > 0)
-			{
-				var linearChange = Math.Sign(difference) * Math.Min(Info.RelaxationLinear, Math.Abs(difference));
-				SetValue(currentValue + linearChange, false);
-			}
+				ApplyLinearRelaxation(difference, Info.RelaxationLinear);
+
+			if (Info.RelativeToHealth && Info.RelaxationScaled > 0)
+				ApplyLinearRelaxation(difference, ScaleChangeToHealth(Info.RelaxationScaled));
 
 			if (Info.RelaxationExp > 0f && currentValue != Info.RelaxedValue)
 			{
@@ -259,6 +264,18 @@ namespace OpenRA.Mods.Common.Traits
 				if (expChange != 0)
 					SetValue(currentValue + expChange, false);
 			}
+		}
+
+		public void ApplyLinearRelaxation(int difference, int amount)
+		{
+			var linearChange = Math.Sign(difference) * Math.Min(amount, Math.Abs(difference));
+			SetValue(currentValue + linearChange, false);
+		}
+
+		public int ScaleChangeToHealth(int amount)
+		{
+			if (health == null || health.MaxHP == 0 || !Info.RelativeToHealth) return amount;
+			return amount * range / health.MaxHP;
 		}
 	}
 }
