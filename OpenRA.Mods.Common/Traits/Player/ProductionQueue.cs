@@ -787,6 +787,10 @@ namespace OpenRA.Mods.Common.Traits
 
 					// Mark as started
 					replacementItem.Started = true;
+
+					// If the original item was paused, pause the replacement as well
+					if (queueItem.Paused)
+						replacementItem.Pause(true);
 				}
 
 				replaced = true;
