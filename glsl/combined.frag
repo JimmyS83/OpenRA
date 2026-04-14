@@ -213,8 +213,11 @@ void main()
 	else
 	{
 		// A negative tint alpha indicates that the tint should replace the colour instead of multiplying it
+		// A tint alpha > 1.0 indicates an additive overlay: tint is added on top of the existing colour
 		if (vTint.a < 0.0)
 			c = vec4(vTint.rgb, -vTint.a);
+		else if (vTint.a > 1.0)
+			c = vec4(clamp(c.rgb + vTint.rgb * (vTint.a - 1.0), 0.0, 1.0), c.a);
 		else
 			c *= vTint;
 
