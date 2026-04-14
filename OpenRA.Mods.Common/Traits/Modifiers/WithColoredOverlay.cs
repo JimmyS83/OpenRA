@@ -22,6 +22,12 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Color to overlay.")]
 		public readonly Color Color = Color.FromArgb(128, 128, 0, 0);
 
+		[Desc("Skip applying the color overlay to voxel renderables.")]
+		public readonly bool SkipVoxels = false;
+
+		[Desc("Override alpha for voxel renderables. Use -1 to use the same alpha as sprites.")]
+		public readonly int VoxelAlpha = 30;
+
 		public override object Create(ActorInitializer init) { return new WithColoredOverlay(this); }
 	}
 
@@ -49,10 +55,37 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			foreach (var a in r)
 			{
-				yield return a;
+					var isVoxel = a.GetType().Name == "ModelRenderable";
 
 				if (!a.IsDecoration && a is IModifyableRenderable ma)
-					yield return ma.WithTint(tint, ma.TintModifiers | TintModifiers.ReplaceColor).WithAlpha(alpha);
+				{
+					if (Info.SkipVoxels && isVoxel)
+					{
+						yield return a;
+						continue;
+					}
+
+					if (isVoxel && Info.VoxelAlpha >= 0)
+					{
+						// For voxels: use OverlayTint mode — adds tint colour on top of model without
+						// replacing colours, and draws shadow untinted (handled in ModelRenderable)
+						// Scale tint RGB by VoxelAlpha so the additive strength is controlled by VoxelAlpha
+						var voxelStrength = Info.VoxelAlpha / 255f;
+						var scaledTint = new float3(tint.X * voxelStrength, tint.Y * voxelStrength, tint.Z * voxelStrength);
+						// Pass alpha=2f as sentinel — shader sees vTint.a > 1.0 and uses additive mode
+						yield return ma.WithTint(scaledTint, TintModifiers.OverlayTint).WithAlpha(2f);
+					}
+					else
+					{
+						// For sprites: yield original + tinted overlay copy
+						yield return a;
+						yield return ma.WithTint(tint, ma.TintModifiers | TintModifiers.ReplaceColor).WithAlpha(alpha);
+					}
+				}
+				else
+				{
+					yield return a;
+				}
 			}
 		}
 

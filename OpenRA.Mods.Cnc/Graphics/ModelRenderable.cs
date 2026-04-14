@@ -168,12 +168,23 @@ namespace OpenRA.Mods.Cnc.Graphics
 					t *= wr.TerrainLighting.TintAt(model.Pos);
 
 				// Shader interprets negative alpha as a flag to use the tint colour directly instead of multiplying the sprite colour
+				// Shader interprets alpha > 1.0 as an additive overlay tint on top of the existing colour
 				var a = model.Alpha;
 				if ((model.TintModifiers & TintModifiers.ReplaceColor) != 0)
 					a *= -1;
 
-				wrsr.DrawSprite(renderProxy.ShadowSprite, sa, sb, sc, sd, t, a);
-				wrsr.DrawSprite(renderProxy.Sprite, pxOrigin - 0.5f * renderProxy.Sprite.Size, 1f, t, a);
+				if ((model.TintModifiers & TintModifiers.OverlayTint) != 0)
+				{
+					// Draw shadow without tint, model with additive overlay tint
+					// a passed directly — WithColoredOverlay sets it to 2f as sentinel for shader additive mode
+					wrsr.DrawSprite(renderProxy.ShadowSprite, sa, sb, sc, sd, float3.Ones, 1f);
+					wrsr.DrawSprite(renderProxy.Sprite, pxOrigin - 0.5f * renderProxy.Sprite.Size, 1f, t, a);
+				}
+				else
+				{
+					wrsr.DrawSprite(renderProxy.ShadowSprite, sa, sb, sc, sd, t, a);
+					wrsr.DrawSprite(renderProxy.Sprite, pxOrigin - 0.5f * renderProxy.Sprite.Size, 1f, t, a);
+				}
 			}
 
 			public void RenderDebugGeometry(WorldRenderer wr)
