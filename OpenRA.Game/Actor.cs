@@ -450,7 +450,7 @@ namespace OpenRA
 		/// </summary>
 		public void ChangeOwnerSync(Player newOwner)
 		{
-			if (Disposed)
+			if (Disposed || Owner.PlayerActor.Disposed || newOwner.PlayerActor.Disposed)
 				return;
 
 			var oldOwner = Owner;
