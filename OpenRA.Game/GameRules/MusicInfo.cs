@@ -16,6 +16,7 @@ namespace OpenRA.GameRules
 {
 	public class MusicInfo
 	{
+		public readonly string Key;
 		public readonly string Filename;
 		public readonly string Title;
 		public readonly bool Hidden;
@@ -36,6 +37,7 @@ namespace OpenRA.GameRules
 
 		public MusicInfo(string key, MiniYaml value)
 		{
+			Key = key.ToLowerInvariant();
 			Title = value.Value;
 
 			var nd = value.ToDictionary();

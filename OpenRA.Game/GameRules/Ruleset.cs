@@ -26,6 +26,7 @@ namespace OpenRA
 		public readonly IReadOnlyDictionary<string, SoundInfo> Voices;
 		public readonly IReadOnlyDictionary<string, SoundInfo> Notifications;
 		public readonly IReadOnlyDictionary<string, MusicInfo> Music;
+		public readonly IReadOnlyDictionary<string, PlaylistDefinition> Playlists;
 		public readonly ITerrainInfo TerrainInfo;
 		public readonly IReadOnlyDictionary<string, MiniYamlNode> ModelSequences;
 
@@ -35,6 +36,7 @@ namespace OpenRA
 			IReadOnlyDictionary<string, SoundInfo> voices,
 			IReadOnlyDictionary<string, SoundInfo> notifications,
 			IReadOnlyDictionary<string, MusicInfo> music,
+			IReadOnlyDictionary<string, PlaylistDefinition> playlists,
 			ITerrainInfo terrainInfo,
 			IReadOnlyDictionary<string, MiniYamlNode> modelSequences)
 		{
@@ -43,6 +45,7 @@ namespace OpenRA
 			Voices = voices;
 			Notifications = notifications;
 			Music = music;
+			Playlists = playlists ?? new Dictionary<string, PlaylistDefinition>();
 			TerrainInfo = terrainInfo;
 			ModelSequences = modelSequences;
 
@@ -138,11 +141,14 @@ namespace OpenRA
 				var music = MergeOrDefault("Manifest,Music", fs, m.Music, null, null,
 					k => new MusicInfo(k.Key, k.Value));
 
+				var playlists = MergeOrDefault("Manifest,Playlists", fs, m.Playlists, null, null,
+					k => new PlaylistDefinition(k.Key, k.Value));
+
 				var modelSequences = MergeOrDefault("Manifest,ModelSequences", fs, m.ModelSequences, null, null,
 					k => k);
 
 				// The default ruleset does not include a preferred tileset
-				ruleset = new Ruleset(actors, weapons, voices, notifications, music, null, modelSequences);
+				ruleset = new Ruleset(actors, weapons, voices, notifications, music, playlists, null, modelSequences);
 			}
 
 			if (modData.IsOnMainThread)
@@ -167,7 +173,7 @@ namespace OpenRA
 			var dr = modData.DefaultRules;
 			var terrainInfo = modData.DefaultTerrainInfo[tileSet];
 
-			return new Ruleset(dr.Actors, dr.Weapons, dr.Voices, dr.Notifications, dr.Music, terrainInfo, dr.ModelSequences);
+			return new Ruleset(dr.Actors, dr.Weapons, dr.Voices, dr.Notifications, dr.Music, dr.Playlists, terrainInfo, dr.ModelSequences);
 		}
 
 		public static Ruleset Load(ModData modData, IReadOnlyFileSystem fileSystem, string tileSet,
@@ -196,6 +202,10 @@ namespace OpenRA
 				var music = MergeOrDefault("Music", fileSystem, m.Music, mapMusic, dr.Music,
 					k => new MusicInfo(k.Key, k.Value));
 
+				// Playlists are mod-level only; maps cannot override them
+				var playlists = MergeOrDefault("Playlists", fileSystem, m.Playlists, null, dr.Playlists,
+					k => new PlaylistDefinition(k.Key, k.Value));
+
 				// TODO: Add support for merging custom terrain modifications
 				var terrainInfo = modData.DefaultTerrainInfo[tileSet];
 
@@ -204,7 +214,7 @@ namespace OpenRA
 					modelSequences = MergeOrDefault("ModelSequences", fileSystem, m.ModelSequences, mapModelSequences, dr.ModelSequences,
 						k => k);
 
-				ruleset = new Ruleset(actors, weapons, voices, notifications, music, terrainInfo, modelSequences);
+				ruleset = new Ruleset(actors, weapons, voices, notifications, music, playlists, terrainInfo, modelSequences);
 			}
 
 			if (modData.IsOnMainThread)

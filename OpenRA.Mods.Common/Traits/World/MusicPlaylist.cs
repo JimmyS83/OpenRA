@@ -108,7 +108,20 @@ namespace OpenRA.Mods.Common.Traits
 			Game.Sound.DisableWorldSounds = info.DisableWorldSounds;
 
 			if (!world.IsLoadingGameSave)
+			{
+				// If a track was already playing (e.g. selected in the menu or lobby)
+				// and it is valid for the current mode, keep it rather than jumping
+				// to a random pick from the constructor.
+				var alreadyPlaying = Game.Sound.CurrentMusic;
+				if (alreadyPlaying != null && !CurrentSongIsBackground)
+				{
+					var available = FilterSongsForPlaybackOrder();
+					if (available.Contains(alreadyPlaying))
+						currentSong = alreadyPlaying;
+				}
+
 				Play();
+			}
 		}
 
 		void INotifyGameLoaded.GameLoaded(World world)
@@ -302,6 +315,8 @@ namespace OpenRA.Mods.Common.Traits
 					return FilterFactionSongs(list, DetermineFactionCategory());
 				case MusicPlaybackMode.Custom:
 					return FilterCustomSongs(list);
+				case MusicPlaybackMode.Playlist:
+					return FilterPlaylistSongs();
 				default:
 					return list.ToArray();
 			}
@@ -320,6 +335,32 @@ namespace OpenRA.Mods.Common.Traits
 				return Array.Empty<MusicInfo>();
 
 			return songs.Where(s => MatchesCustomCategory(s, normalized)).ToArray();
+		}
+
+		// Returns tracks in the order the playlist author defined them,
+		// skipping any that aren't installed or are marked Hidden.
+		MusicInfo[] FilterPlaylistSongs()
+		{
+			var tracks = Game.Settings.Sound.UserPlaylistTracks ?? Array.Empty<string>();
+
+			// No playlist defined — fall back to full library respecting shuffle
+			if (tracks.Length == 0)
+				return Game.Settings.Sound.Shuffle ? random : playlist;
+
+			var rules = world.Map.Rules;
+			var result = tracks
+				.Where(t => rules.Music.TryGetValue(t, out var info) && info.Exists && !info.Hidden)
+				.Select(t => rules.Music[t])
+				.ToArray();
+
+			// All saved tracks missing — fall back to full library
+			if (result.Length == 0)
+				return Game.Settings.Sound.Shuffle ? random : playlist;
+
+			// Apply shuffle to the user's playlist
+			return Game.Settings.Sound.Shuffle
+				? result.Shuffle(Game.CosmeticRandom).ToArray()
+				: result;
 		}
 
 		bool MatchesCustomCategory(MusicInfo song, IReadOnlyCollection<string> normalizedCategories)

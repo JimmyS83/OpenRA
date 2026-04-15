@@ -48,7 +48,8 @@ namespace OpenRA
 		MixAll,
 		OnlyOldschool,
 		FactionSpecific,
-		Custom
+		Custom,
+		Playlist
 	}
 
 	public class ServerSettings
@@ -246,8 +247,12 @@ namespace OpenRA
 
 		public bool Shuffle = false;
 		public bool Repeat = false;
-		public MusicPlaybackMode MusicMode = MusicPlaybackMode.FactionSpecific;
+		public MusicPlaybackMode MusicMode = MusicPlaybackMode.MixAll;
 		public string[] CustomMusicCategories = new[] { MusicCategories.Generic, MusicCategories.Oldschool };
+
+		// User-curated track keys for the Playlist mode dual-panel jukebox.
+		// Defaults to the SIDNIFY AoI remix so there's always something to play.
+		public string[] UserPlaylistTracks = ["menu"];
 
 		public string Device = null;
 

@@ -229,6 +229,36 @@ button-music-mode-mix = Mix All
 button-music-mode-oldschool = Only Oldschool
 button-music-mode-faction = Faction Specific
 button-music-mode-custom = Custom
+button-music-mode-playlist = Playlist
+button-load-preset = Load Preset...
+button-add-track = Add Track
+button-add-all = Add All
+button-remove-track = Remove Track
+button-remove-all = Remove All
+button-save-preset = Save Preset
+button-delete-preset = Delete Preset
+
+dialog-save-preset =
+    .title = Save Playlist Preset
+    .prompt = Enter a name for this preset:
+    .confirm = Save
+
+dialog-overwrite-preset =
+    .title = Overwrite Playlist Preset?
+    .prompt = A preset named "{ $preset }" already exists. Overwrite it?
+    .confirm = Overwrite
+
+dialog-delete-preset =
+    .title = Delete Playlist Preset?
+    .prompt = Delete "{ $preset }"? This cannot be undone.
+    .confirm = Delete
+button-load-preset = Load Preset
+button-save-preset = Save As Preset
+button-delete-preset = Delete Preset
+label-preset-name = Name:
+button-ok = OK
+button-yes-delete = Yes, Delete
+button-cancel = Cancel
 label-music-custom-title = Choose categories for the custom playlist
 checkbox-music-custom-allies = Allies
 checkbox-music-custom-soviet = Soviet

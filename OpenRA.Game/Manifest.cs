@@ -71,7 +71,7 @@ namespace OpenRA
 		public readonly string[]
 			Rules, ServerTraits,
 			Sequences, ModelSequences, Cursors, Chrome, ChromeLayout,
-			Weapons, Voices, Notifications, Music, FluentMessages, TileSets,
+			Weapons, Voices, Notifications, Music, Playlists, FluentMessages, TileSets,
 			ChromeMetrics, MapCompatibility, Missions, Hotkeys;
 
 		public readonly IReadOnlyDictionary<string, string> MapFolders;
@@ -95,7 +95,7 @@ namespace OpenRA
 		[
 			"Include", "Metadata", "FileSystem", "MapFolders", "Rules",
 			"Sequences", "ModelSequences", "Cursors", "Chrome", "Assemblies", "ChromeLayout", "Weapons",
-			"Voices", "Notifications", "Music", "FluentMessages", "TileSets", "ChromeMetrics", "Missions", "Hotkeys",
+			"Voices", "Notifications", "Music", "Playlists", "FluentMessages", "TileSets", "ChromeMetrics", "Missions", "Hotkeys",
 			"ServerTraits", "LoadScreen", "DefaultOrderGenerator", "SupportsMapsFrom", "SoundFormats", "SpriteFormats", "VideoFormats",
 			"RequiresMods", "PackageFormats", "AllowUnusedFluentMessagesInExternalPackages", "FontSheetSize", "CursorSheetSize"
 		];
@@ -148,6 +148,7 @@ namespace OpenRA
 			Voices = YamlList(yaml, "Voices");
 			Notifications = YamlList(yaml, "Notifications");
 			Music = YamlList(yaml, "Music");
+			Playlists = YamlList(yaml, "Playlists");
 			FluentMessages = YamlList(yaml, "FluentMessages");
 			TileSets = YamlList(yaml, "TileSets");
 			ChromeMetrics = YamlList(yaml, "ChromeMetrics");
