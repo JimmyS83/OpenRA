@@ -573,7 +573,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		static string AverageOrdersPerMinute(double orders, int tick)
 		{
-			return (tick == 0 ? 0 : orders / (tick / 1500.0)).ToString("F1", NumberFormatInfo.CurrentInfo);
+			return (tick == 0 ? 0 : orders / (tick / 1500.0)).ToString("F1");
 		}
 
 		string Vision(int revealedCells)
