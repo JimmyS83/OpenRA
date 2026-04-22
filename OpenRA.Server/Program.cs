@@ -101,6 +101,13 @@ namespace OpenRA.Server
 					if (server.State == ServerState.GameStarted && server.Conns.Count < 1)
 					{
 						WriteLineWithTimeStamp("No one is playing, shutting down...");
+
+						// Remember the last used map so the next server instance starts on the same map.
+						// This overrides the original Server.Map argument for all subsequent restarts.
+						var lastMap = server.LobbyInfo.GlobalSettings.Map;
+						if (!string.IsNullOrEmpty(lastMap))
+							settings.Map = lastMap;
+
 						server.Shutdown();
 						break;
 					}
