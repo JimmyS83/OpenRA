@@ -17,6 +17,7 @@ ListenPort="${ListenPort:-"1234"}"
 AdvertiseOnline="${AdvertiseOnline:-"True"}"
 AdvertiseOnLocalNetwork="${AdvertiseOnLocalNetwork:-"True"}"
 Password="${Password:-""}"
+AdminPassword="${AdminPassword:-""}"
 RecordReplays="${RecordReplays:-"False"}"
 
 RequireAuthentication="${RequireAuthentication:-"False"}"
@@ -42,6 +43,7 @@ while true; do
      Server.AdvertiseOnLocalNetwork="$AdvertiseOnLocalNetwork" \
      Server.EnableSingleplayer="$EnableSingleplayer" \
      Server.Password="$Password" \
+     Server.AdminPassword="$AdminPassword" \
      Server.RecordReplays="$RecordReplays" \
      Server.RequireAuthentication="$RequireAuthentication" \
      Server.ProfileIDBlacklist="$ProfileIDBlacklist" \
