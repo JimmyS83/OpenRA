@@ -1027,8 +1027,29 @@ namespace OpenRA.Server
 
 					case "Chat":
 					{
-						if (!IsMultiplayer || !playerMessageTracker.IsPlayerAtFloodLimit(conn))
-							DispatchOrdersToClients(conn, 0, o.Serialize());
+						var client = GetClient(conn);
+						if (client != null)
+						{
+							var message = o.TargetString;
+
+							// Lets try interpret messages start with / as commands
+							if (message.StartsWith('/'))
+							{
+								// remove starting /
+								var command = message[1..];
+
+								// allow usage only specific admin command
+								if (command.StartsWith("admin ", StringComparison.OrdinalIgnoreCase)
+									&& serverTraits.WithInterface<IInterpretCommand>().Any(it => it.InterpretCommand(this, conn, client, command)))
+								{
+									break; // Do not print chatline with password for others
+								}
+							}
+
+							// No command (no traits found one), continue as usual
+							if (!IsMultiplayer || !playerMessageTracker.IsPlayerAtFloodLimit(conn))
+								DispatchOrdersToClients(conn, 0, o.Serialize());
+						}
 
 						break;
 					}
@@ -1247,13 +1268,17 @@ namespace OpenRA.Server
 					// Remove any bots controlled by the admin
 					LobbyInfo.Clients.RemoveAll(c => c.Bot != null && c.BotControllerClientIndex == toDrop.PlayerIndex);
 
-					var nextAdmin = LobbyInfo.Clients.Where(c1 => c1.Bot == null)
-						.MinByOrDefault(c => c.Index);
-
-					if (nextAdmin != null)
+					// Is there no admin left? (Leaving player is already removed from list)
+					if (!LobbyInfo.Clients.Any(c => c.IsAdmin))
 					{
-						nextAdmin.IsAdmin = true;
-						SendFluentMessage(NewAdmin, "player", nextAdmin.Name);
+						var nextAdmin = LobbyInfo.Clients.Where(c1 => c1.Bot == null)
+							.MinByOrDefault(c => c.Index);
+
+						if (nextAdmin != null)
+						{
+							nextAdmin.IsAdmin = true;
+							SendFluentMessage(NewAdmin, "player", nextAdmin.Name);
+						}
 					}
 				}
 
@@ -1274,8 +1299,17 @@ namespace OpenRA.Server
 				if (Conns.Any(c => c.Validated) || Type == ServerType.Dedicated)
 					SyncLobbyClients();
 
-				if (Type != ServerType.Dedicated && dropClient.IsAdmin)
-					Shutdown();
+				if (Type != ServerType.Dedicated)
+				{
+					// Shut down if the actual host left (lowest non-bot index),
+					// regardless of their current admin status.
+					var lowestRemainingIndex = LobbyInfo.Clients
+						.Where(c => c.Bot == null)
+						.MinByOrDefault(c => c.Index)?.Index ?? int.MaxValue;
+
+					if (dropClient.Index < lowestRemainingIndex)
+						Shutdown();
+				}
 			}
 
 			toDrop.Dispose();
