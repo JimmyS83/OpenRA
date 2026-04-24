@@ -157,9 +157,22 @@ namespace OpenRA.Mods.Common.Server
 		[FluentReference]
 		const string VoteKickDisabled = "notification-vote-kick-disabled";
 
+		[FluentReference]
+		const string AdminAuthWrong = "notification-admin-auth-wrong";
+
+		[FluentReference]
+		const string AdminAuthAlready = "notification-admin-auth-already";
+
+		[FluentReference]
+		const string AdminAuthSuccess = "notification-admin-auth-success";
+
+		[FluentReference]
+		const string AdminAuthSoleSuccess = "notification-admin-auth-sole-success";
+
 		readonly IDictionary<string, Func<S, Connection, Session.Client, string, bool>> commandHandlers =
 			new Dictionary<string, Func<S, Connection, Session.Client, string, bool>>
 			{
+				{ "admin", AdminAuth },
 				{ "state", State },
 				{ "startgame", StartGame },
 				{ "slot", Slot },
@@ -211,6 +224,7 @@ namespace OpenRA.Mods.Common.Server
 			lock (server.LobbyInfo)
 			{
 				// Kick command is always valid for the host
+				// It is not safe to allow AdminAuth as well yet, because SyncLobbyInfo() is not safe call in the game (yet)
 				if (command.StartsWith("kick ", StringComparison.Ordinal) || command.StartsWith("vote_kick ", StringComparison.Ordinal))
 					return true;
 
@@ -860,6 +874,59 @@ namespace OpenRA.Mods.Common.Server
 
 				return true;
 			}
+		}
+
+		public static bool AdminAuth(S server, Connection conn, Session.Client client, string s)
+		{
+			if (string.IsNullOrEmpty(server.Settings.AdminPassword))
+			{
+				server.SendFluentMessageTo(conn, AdminAuthWrong);
+				return true;
+			}
+
+			// Use LastIndexOf so passwords containing spaces work correctly
+			var lastSpace = s.LastIndexOf(' ');
+			var passwordAttempt = lastSpace >= 0 ? s[..lastSpace].Trim() : s.Trim();
+			var shouldResetOthers = lastSpace >= 0 && s[(lastSpace + 1)..].Trim() == "1";
+
+			if (passwordAttempt == server.Settings.AdminPassword)
+			{
+				var lobbyClient = server.LobbyInfo.Clients.FirstOrDefault(c => c.Index == client.Index);
+				if (lobbyClient == null)
+					return true;
+
+				if (lobbyClient.IsAdmin && !shouldResetOthers)
+				{
+					server.SendFluentMessageTo(conn, AdminAuthAlready);
+					return true;
+				}
+
+				if (shouldResetOthers)
+				{
+					foreach (var c in server.LobbyInfo.Clients)
+						c.IsAdmin = false;
+				}
+
+				lobbyClient.IsAdmin = true;
+				server.SyncLobbyInfo();
+
+				if (shouldResetOthers)
+				{
+					server.SendFluentMessageTo(conn, AdminAuthSoleSuccess);
+					Log.Write("server", $"Player {lobbyClient.Name} forced admin reset.");
+				}
+				else
+				{
+					server.SendFluentMessageTo(conn, AdminAuthSuccess);
+					Log.Write("server", $"Player {lobbyClient.Name} became admin.");
+				}
+			}
+			else
+			{
+				server.SendFluentMessageTo(conn, AdminAuthWrong);
+			}
+
+			return true;
 		}
 
 		static bool VoteKick(S server, Connection conn, Session.Client client, string s)

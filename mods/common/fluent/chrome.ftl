@@ -728,3 +728,10 @@ label-game-admin = Game Admin
 ## gamesave-loading.yaml
 label-gamesave-loading-screen-title = Loading Saved Game
 label-gamesave-loading-screen-desc = Press Escape to cancel loading and return to the main menu
+
+## lobby-adminauth.yaml
+label-admin-auth-panel-title = Admin Authentication
+label-admin-auth-panel-desc = Enter the admin password:
+label-admin-auth-panel-password = Password:
+checkbox-admin-auth-panel-reset-others = Remove other admins
+button-admin-auth-panel-login = Login

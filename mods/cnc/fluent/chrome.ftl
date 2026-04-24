@@ -775,3 +775,9 @@ label-bot-player-tooltip-name = Bot
 label-bot-managed-by-tooltip = Bot managed by { $name }
 label-game-admin = Game Admin
 
+## lobby-adminauth.yaml
+label-admin-auth-panel-title = Admin Authentication
+label-admin-auth-panel-desc = Enter the admin password:
+label-admin-auth-panel-password = Password:
+checkbox-admin-auth-panel-reset-others = Remove other admins
+button-admin-auth-panel-login = Login

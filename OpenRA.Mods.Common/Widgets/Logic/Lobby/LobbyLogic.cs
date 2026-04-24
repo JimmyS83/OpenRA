@@ -540,6 +540,17 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				if (chatTextField.Text.Length == 0)
 					return true;
 
+				// Admin auth popup
+				var text = chatTextField.Text.Trim();
+				if (text.Equals("/admin", StringComparison.OrdinalIgnoreCase))
+				{
+					var wa = new WidgetArgs { { "orderManager", orderManager }, { "world", null } };
+					wa["args"] = wa;
+					Ui.OpenWindow("ADMIN_AUTH_PANEL", wa);
+					chatTextField.Text = "";
+					return true;
+				}
+
 				// Always scroll to bottom when we've typed something
 				lobbyChatPanel.ScrollToBottom();
 

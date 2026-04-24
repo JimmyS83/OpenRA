@@ -79,6 +79,10 @@ notification-blacklisted-server-name = Server name contains a blacklisted word.
 notification-requires-authentication = Server requires players to have an OpenRA forum account.
 notification-no-permission-to-join = You do not have permission to join this server.
 notification-slot-closed = Your slot was closed by the host.
+notification-admin-auth-wrong = Feature disabled, or invalid admin password.
+notification-admin-auth-already = You are already an administrator.
+notification-admin-auth-success = You are now an administrator.
+notification-admin-auth-sole-success = You are now the sole administrator.
 
 ## ServerOrders, UnitOrders
 notification-joined = { $player } has joined the game.
