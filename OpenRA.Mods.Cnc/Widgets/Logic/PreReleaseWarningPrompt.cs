@@ -21,10 +21,7 @@ namespace OpenRA.Mods.Cnc.Widgets.Logic
 		[ObjectCreator.UseCtor]
 		public PreReleaseWarningPrompt(Widget widget, World world, ModData modData)
 		{
-			if (!promptAccepted && modData.Manifest.Metadata.Version != "{DEV_VERSION}")
-				widget.Get<ButtonWidget>("CONTINUE_BUTTON").OnClick = () => ShowMainMenu(world);
-			else
-				ShowMainMenu(world);
+			ShowMainMenu(world);
 		}
 
 		static void ShowMainMenu(World world)
