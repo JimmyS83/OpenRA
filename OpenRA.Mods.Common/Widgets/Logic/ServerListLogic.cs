@@ -122,6 +122,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly int joinButtonY;
 
 		readonly Action<GameServer> onJoin;
+		public Action<GameServer> OnJoinAsAdmin { get; set; }
 
 		GameServer currentServer;
 		MapPreview currentMap;
@@ -734,6 +735,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 						var canJoin = game.IsJoinable;
 						var item = ScrollItemWidget.Setup(serverTemplate, () => currentServer == game, () => SelectServer(game), () => onJoin(game));
+						if (canJoin && OnJoinAsAdmin != null)
+							item.OnRightClick = () => ShowServerContextMenu(game);
 						var title = item.GetOrNull<LabelWithTooltipWidget>("TITLE");
 						if (title != null)
 						{
@@ -888,5 +891,24 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			base.Dispose(disposing);
 		}
+
+		void ShowServerContextMenu(GameServer game)
+		{
+			var panel = Ui.LoadWidget("SERVER_CONTEXT_MENU", null, []);
+
+			// Position at cursor, clamped to screen edges
+			var mousePos = Viewport.LastMousePos;
+			var panelW = panel.Bounds.Width;
+			var panelH = panel.Bounds.Height;
+			var screenW = Game.Renderer.Resolution.Width;
+			var screenH = Game.Renderer.Resolution.Height;
+			var close = LobbyUtils.ShowRootPanel(panel,
+				Math.Min(mousePos.X, screenW - panelW),
+				Math.Min(mousePos.Y, screenH - panelH));
+
+			panel.Get<ButtonWidget>("JOIN_BUTTON").OnClick = () => { close(); onJoin(game); };
+			panel.Get<ButtonWidget>("JOIN_AS_ADMIN_BUTTON").OnClick = () => { close(); OnJoinAsAdmin(game); };
+		}
+
 	}
 }

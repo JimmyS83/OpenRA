@@ -157,9 +157,34 @@ namespace OpenRA.Mods.Common.Server
 		[FluentReference]
 		const string VoteKickDisabled = "notification-vote-kick-disabled";
 
+		[FluentReference]
+		const string AdminAuthWrong = "notification-admin-auth-wrong";
+
+		[FluentReference]
+		const string AdminAuthAlready = "notification-admin-auth-already";
+
+		[FluentReference]
+		const string AdminAuthSuccess = "notification-admin-auth-success";
+
+		[FluentReference]
+		const string AdminAuthSoleSuccess = "notification-admin-auth-sole-success";
+
+		[FluentReference("player")]
+		const string AdminGranted = "notification-admin-granted";
+
+		[FluentReference("player")]
+		const string AdminRevoked = "notification-admin-revoked";
+
+		[FluentReference]
+		const string AdminRevokeLastAdmin = "notification-admin-revoke-last-admin";
+
+		[FluentReference]
+		const string AdminGrantAlready = "notification-admin-grant-already";
+
 		readonly IDictionary<string, Func<S, Connection, Session.Client, string, bool>> commandHandlers =
 			new Dictionary<string, Func<S, Connection, Session.Client, string, bool>>
 			{
+				{ "admin", AdminAuth },
 				{ "state", State },
 				{ "startgame", StartGame },
 				{ "slot", Slot },
@@ -175,6 +200,8 @@ namespace OpenRA.Mods.Common.Server
 				{ "kick", Kick },
 				{ "vote_kick", VoteKick },
 				{ "make_admin", MakeAdmin },
+				{ "grant_admin", GrantAdmin },
+				{ "revoke_admin", RevokeAdmin },
 				{ "make_spectator", MakeSpectator },
 				{ "name", Name },
 				{ "faction", Faction },
@@ -211,7 +238,8 @@ namespace OpenRA.Mods.Common.Server
 			lock (server.LobbyInfo)
 			{
 				// Kick command is always valid for the host
-				if (command.StartsWith("kick ", StringComparison.Ordinal) || command.StartsWith("vote_kick ", StringComparison.Ordinal))
+				if (command.StartsWith("kick ", StringComparison.Ordinal) ||
+					command.StartsWith("vote_kick ", StringComparison.Ordinal))
 					return true;
 
 				if (server.State == ServerState.GameStarted)
@@ -862,6 +890,59 @@ namespace OpenRA.Mods.Common.Server
 			}
 		}
 
+		static bool AdminAuth(S server, Connection conn, Session.Client client, string s)
+		{
+			if (string.IsNullOrEmpty(server.Settings.AdminPassword))
+			{
+				server.SendFluentMessageTo(conn, AdminAuthWrong);
+				return true;
+			}
+
+			// Use LastIndexOf so passwords containing spaces work correctly
+			var lastSpace = s.LastIndexOf(' ');
+			var passwordAttempt = lastSpace >= 0 ? s[..lastSpace].Trim() : s.Trim();
+			var shouldResetOthers = lastSpace >= 0 && s[(lastSpace + 1)..].Trim() == "1";
+
+			if (passwordAttempt == server.Settings.AdminPassword)
+			{
+				var lobbyClient = server.LobbyInfo.Clients.FirstOrDefault(c => c.Index == client.Index);
+				if (lobbyClient == null)
+					return true;
+
+				if (lobbyClient.IsAdmin && !shouldResetOthers)
+				{
+					server.SendFluentMessageTo(conn, AdminAuthAlready);
+					return true;
+				}
+
+				if (shouldResetOthers)
+				{
+					foreach (var c in server.LobbyInfo.Clients)
+						c.IsAdmin = false;
+				}
+
+				lobbyClient.IsAdmin = true;
+				server.SyncLobbyInfo();
+
+				if (shouldResetOthers)
+				{
+					server.SendFluentMessageTo(conn, AdminAuthSoleSuccess);
+					Log.Write("server", $"Player {lobbyClient.Name} forced admin reset.");
+				}
+				else
+				{
+					server.SendFluentMessageTo(conn, AdminAuthSuccess);
+					Log.Write("server", $"Player {lobbyClient.Name} became admin.");
+				}
+			}
+			else
+			{
+				server.SendFluentMessageTo(conn, AdminAuthWrong);
+			}
+
+			return true;
+		}
+
 		static bool VoteKick(S server, Connection conn, Session.Client client, string s)
 		{
 			lock (server.LobbyInfo)
@@ -953,6 +1034,71 @@ namespace OpenRA.Mods.Common.Server
 
 				return true;
 			}
+		}
+
+		static bool GrantAdmin(S server, Connection conn, Session.Client client, string s)
+		{
+			if (!client.IsAdmin)
+			{
+				server.SendFluentMessageTo(conn, NoTransferAdmin);
+				return true;
+			}
+
+			var targetConn = Exts.TryParseInt32Invariant(s, out var targetId)
+				? server.Conns.SingleOrDefault(c => server.GetClient(c)?.Index == targetId) : null;
+
+			if (targetConn == null)
+			{
+				server.SendFluentMessageTo(conn, EmptySlot);
+				return true;
+			}
+
+			var targetClient = server.GetClient(targetConn);
+			if (targetClient.IsAdmin)
+			{
+				server.SendFluentMessageTo(conn, AdminGrantAlready);
+				return true;
+			}
+
+			targetClient.IsAdmin = true;
+			server.SyncLobbyInfo();
+			server.SendFluentMessage(AdminGranted, "player", targetClient.Name);
+			Log.Write("server", $"{client.Name} granted admin to {targetClient.Name}.");
+			return true;
+		}
+
+		static bool RevokeAdmin(S server, Connection conn, Session.Client client, string s)
+		{
+			if (!client.IsAdmin)
+			{
+				server.SendFluentMessageTo(conn, NoTransferAdmin);
+				return true;
+			}
+
+			var targetConn = Exts.TryParseInt32Invariant(s, out var targetId)
+				? server.Conns.SingleOrDefault(c => server.GetClient(c)?.Index == targetId) : null;
+
+			if (targetConn == null)
+			{
+				server.SendFluentMessageTo(conn, EmptySlot);
+				return true;
+			}
+
+			var targetClient = server.GetClient(targetConn);
+
+			// Prevent removing the last admin
+			var adminCount = server.LobbyInfo.Clients.Count(c => c.IsAdmin && c.Bot == null);
+			if (adminCount <= 1)
+			{
+				server.SendFluentMessageTo(conn, AdminRevokeLastAdmin);
+				return true;
+			}
+
+			targetClient.IsAdmin = false;
+			server.SyncLobbyInfo();
+			server.SendFluentMessage(AdminRevoked, "player", targetClient.Name);
+			Log.Write("server", $"{client.Name} revoked admin from {targetClient.Name}.");
+			return true;
 		}
 
 		static bool MakeSpectator(S server, Connection conn, Session.Client client, string s)

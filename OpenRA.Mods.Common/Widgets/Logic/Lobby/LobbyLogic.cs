@@ -79,6 +79,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly bool skirmishMode;
 		readonly Ruleset modRules;
 		readonly WebServices services;
+		readonly bool openAdminAuth;
 
 		enum PanelType { Players, Options, Music, Servers, Kick, ForceStart }
 		PanelType panel = PanelType.Players;
@@ -141,7 +142,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					{
 						{ "onExit", onExit },
 						{ "onStart", onStart },
-						{ "skirmishMode", false }
+						{ "skirmishMode", false },
+						{ "openAdminAuth", openAdminAuth }
 					});
 				}
 
@@ -162,7 +164,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		[ObjectCreator.UseCtor]
 		internal LobbyLogic(Widget widget, ModData modData, WorldRenderer worldRenderer, OrderManager orderManager,
-			Action onExit, Action onStart, bool skirmishMode, Dictionary<string, MiniYaml> logicArgs)
+			Action onExit, Action onStart, bool skirmishMode, bool openAdminAuth, Dictionary<string, MiniYaml> logicArgs)
 		{
 			map = MapCache.UnknownMap;
 			lobby = widget;
@@ -172,6 +174,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			this.onStart = onStart;
 			this.onExit = onExit;
 			this.skirmishMode = skirmishMode;
+			this.openAdminAuth = openAdminAuth;
 
 			// TODO: This needs to be reworked to support per-map tech levels, bots, etc.
 			modRules = modData.DefaultRules;
@@ -593,6 +596,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				lobbyOptionChangedSound = yaml.Value;
 
 			Game.Sound.PlayNotification(modRules, null, "Sounds", playerJoinedSound, null);
+
+			if (openAdminAuth)
+				Game.RunAfterTick(() => LobbyUtils.OpenAdminAuthPanel(orderManager));
 		}
 
 		bool disposed;
@@ -605,6 +611,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				Game.LobbyInfoChanged -= UpdatePlayerList;
 				Game.LobbyInfoChanged -= UpdateDiscordStatus;
 				Game.LobbyInfoChanged -= UpdateSpawnOccupants;
+				Game.LobbyInfoChanged -= UpdateOptions;
 				Game.BeforeGameStart -= OnGameStart;
 				Game.ConnectionStateChanged -= ConnectionStateChanged;
 			}
@@ -805,7 +812,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					if (client.Bot != null)
 						LobbyUtils.SetupEditableSlotWidget(template, slot, client, orderManager, map, modData);
 					else
-						LobbyUtils.SetupEditableNameWidget(template, client, orderManager, worldRenderer);
+						LobbyUtils.SetupEditableNameWidget(template, client, orderManager, worldRenderer,
+							allowAdminLogin: !client.IsAdmin);
 
 					LobbyUtils.SetupEditableColorWidget(template, slot, client, orderManager, worldRenderer, colorManager);
 					LobbyUtils.SetupEditableFactionWidget(template, slot, client, orderManager, factions);
@@ -824,7 +832,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					LobbyUtils.SetupColorWidget(template, client);
 					LobbyUtils.SetupFactionWidget(template, client, factions);
 
-					if (isHost)
+					var localClient = orderManager.LocalClient;
+					if (localClient.IsAdmin)
 					{
 						LobbyUtils.SetupEditableTeamWidget(template, slot, client, orderManager, map);
 						LobbyUtils.SetupEditableHandicapWidget(template, slot, client, orderManager);
@@ -857,19 +866,18 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			foreach (var client in orderManager.LobbyInfo.Clients.Where(client => client.Slot == null))
 			{
 				Widget template = null;
-				var c = client;
 
 				// get template for possible reuse
 				if (idx < players.Children.Count)
 					template = players.Children[idx];
 
 				// Editable spectator
-				if (c.Index == orderManager.LocalClient.Index)
+				if (client.Index == orderManager.LocalClient.Index)
 				{
 					if (template == null || template.Id != editableSpectatorTemplate.Id)
 						template = editableSpectatorTemplate.Clone();
 
-					LobbyUtils.SetupEditableNameWidget(template, c, orderManager, worldRenderer);
+					LobbyUtils.SetupEditableNameWidget(template, client, orderManager, worldRenderer);
 
 					if (client.IsAdmin)
 						LobbyUtils.SetupEditableReadyWidget(template, client, orderManager, map, MapIsPlayable);
@@ -882,7 +890,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					if (template == null || template.Id != nonEditableSpectatorTemplate.Id)
 						template = nonEditableSpectatorTemplate.Clone();
 
-					if (isHost)
+					if (orderManager.LocalClient.IsAdmin)
 						LobbyUtils.SetupPlayerActionWidget(template, client, orderManager, worldRenderer,
 							lobby, () => panel = PanelType.Kick, () => panel = PanelType.Players);
 					else
@@ -894,7 +902,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 						LobbyUtils.HideReadyWidgets(template);
 				}
 
-				LobbyUtils.SetupLatencyWidget(template, c, orderManager);
+				LobbyUtils.SetupLatencyWidget(template, client, orderManager);
 				template.IsVisible = () => true;
 
 				if (idx >= players.Children.Count)

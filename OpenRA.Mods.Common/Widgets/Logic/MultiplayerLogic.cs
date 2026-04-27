@@ -29,17 +29,19 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		{
 			// MultiplayerLogic is a superset of the ServerListLogic
 			// but cannot be a direct subclass because it needs to pass object-level state to the constructor
-			serverListLogic = new ServerListLogic(widget, modData, Join);
+			serverListLogic = new ServerListLogic(widget, modData, server => JoinServer(server));
 
 			this.onStart = onStart;
 			this.onExit = onExit;
+
+			serverListLogic.OnJoinAsAdmin = server => JoinServer(server, true);
 
 			var directConnectButton = widget.Get<ButtonWidget>("DIRECTCONNECT_BUTTON");
 			directConnectButton.OnClick = () =>
 			{
 				Ui.OpenWindow("DIRECTCONNECT_PANEL", new WidgetArgs
 				{
-					{ "openLobby", OpenLobby },
+					{ "openLobby", () => OpenLobby() },
 					{ "onExit", DoNothing },
 					{ "directConnectEndPoint", null },
 				});
@@ -50,7 +52,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			{
 				Ui.OpenWindow("MULTIPLAYER_CREATESERVER_PANEL", new WidgetArgs
 				{
-					{ "openLobby", OpenLobby },
+					{ "openLobby", () => OpenLobby() },
 					{ "onExit", DoNothing }
 				});
 			};
@@ -69,7 +71,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				{
 					Ui.OpenWindow("DIRECTCONNECT_PANEL", new WidgetArgs
 					{
-						{ "openLobby", OpenLobby },
+						{ "openLobby", () => OpenLobby() },
 						{ "onExit", DoNothing },
 						{ "directConnectEndPoint", directConnectEndPoint },
 					});
@@ -79,7 +81,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			}
 		}
 
-		void OpenLobby()
+		void OpenLobby(bool openAdminAuth = false)
 		{
 			// Close the multiplayer browser
 			Ui.CloseWindow();
@@ -102,12 +104,13 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			Game.OpenWindow("SERVER_LOBBY", new WidgetArgs
 			{
 				{ "onStart", onStart },
-				{ "onExit", OnLobbyExit },
-				{ "skirmishMode", false }
+				{ "onExit", (Action)OnLobbyExit },
+				{ "skirmishMode", false },
+				{ "openAdminAuth", openAdminAuth }
 			});
 		}
 
-		void Join(GameServer server)
+		void JoinServer(GameServer server, bool openAdminAuth = false)
 		{
 			if (server == null || !server.IsJoinable)
 				return;
@@ -115,7 +118,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var host = server.Address.Split(':')[0];
 			var port = Exts.ParseInt32Invariant(server.Address.Split(':')[1]);
 
-			ConnectionLogic.Connect(new ConnectionTarget(host, port), "", OpenLobby, DoNothing);
+			ConnectionLogic.Connect(new ConnectionTarget(host, port), "", () => OpenLobby(openAdminAuth), DoNothing);
 		}
 
 		bool disposed;

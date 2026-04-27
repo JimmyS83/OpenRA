@@ -62,6 +62,7 @@ namespace OpenRA.Mods.Common.Widgets
 		public Func<bool> OnAltKey = () => false;
 		public Action OnLoseFocus = () => { };
 		public Action OnTextEdited = () => { };
+		public Action OnRightClick = null;
 		public int CursorPosition { get; set; }
 
 		public Func<bool> IsValid = () => true;
@@ -91,6 +92,7 @@ namespace OpenRA.Mods.Common.Widgets
 			TextColorInvalid = widget.TextColorInvalid;
 			TextColorHighlight = widget.TextColorHighlight;
 			VisualHeight = widget.VisualHeight;
+			OnRightClick = widget.OnRightClick;
 		}
 
 		public override bool YieldKeyboardFocus()
@@ -107,6 +109,13 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public override bool HandleMouseInput(MouseInput mi)
 		{
+			if (mi.Button == MouseButton.Right && mi.Event == MouseInputEvent.Up)
+			{
+				if (OnRightClick != null && RenderBounds.Contains(mi.Location))
+					OnRightClick();
+				return OnRightClick != null;
+			}
+
 			if (IsDisabled())
 				return false;
 
