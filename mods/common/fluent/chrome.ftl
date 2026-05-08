@@ -571,6 +571,7 @@ dropdownbutton-display-selection-container-dropdown = Standard
 checkbox-vsync-container = Enable VSync
 checkbox-frame-limit-gamespeed-container = Limit framerate to game tick rate
 label-gl-profile-dropdown-container = OpenGL Profile:
+label-terrain-lighting-intensity = Terrain Lighting Intensity: { $pct }%
 label-restart-required-container-video-desc = Display and OpenGL changes require restart
 
 ## settings-hotkeys.yaml

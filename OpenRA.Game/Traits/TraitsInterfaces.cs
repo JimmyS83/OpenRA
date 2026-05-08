@@ -441,6 +441,7 @@ namespace OpenRA.Traits
 	{
 		event Action<MPos> CellChanged;
 		float3 TintAt(WPos pos);
+		void RefreshGlobalLighting();
 	}
 
 	public interface IRenderAboveShroud

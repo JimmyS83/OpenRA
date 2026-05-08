@@ -235,6 +235,9 @@ namespace OpenRA
 			"Automatic: Use the first supported profile.")]
 		public GLProfile GLProfile = GLProfile.Automatic;
 
+		[Desc("Terrain lighting intensity multiplier.")]
+		public float TerrainLightingIntensity = 0.66f;
+
 		public int BatchSize = 8192;
 		public int SheetSize = 2048;
 	}

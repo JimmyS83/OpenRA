@@ -67,6 +67,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		[FluentReference("fps")]
 		const string FrameLimiter = "checkbox-frame-limiter";
+
+		[FluentReference("pct")]
+		const string TerrainLightingLabel = "label-terrain-lighting-intensity";
 		static readonly int OriginalVideoDisplay;
 		static readonly WindowMode OriginalGraphicsMode;
 		static readonly int2 OriginalGraphicsWindowedSize;
@@ -149,6 +152,15 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			SettingsUtils.BindCheckboxPref(panel, "FRAME_LIMIT_CHECKBOX", ds, "CapFramerate");
 			SettingsUtils.BindCheckboxPref(panel, "FRAME_LIMIT_GAMESPEED_CHECKBOX", ds, "CapFramerateToGameFps");
 			SettingsUtils.BindIntSliderPref(panel, "FRAME_LIMIT_SLIDER", ds, "MaxFramerate");
+			SettingsUtils.BindSliderPref(panel, "TERRAIN_LIGHTING_SLIDER", ds, "TerrainLightingIntensity");
+			var lightingLabel = new CachedTransform<int, string>(pct => FluentProvider.GetMessage(TerrainLightingLabel, "pct", pct));
+			panel.Get<LabelWidget>("TERRAIN_LIGHTING_LABEL").GetText = () => lightingLabel.Update((int)(ds.TerrainLightingIntensity * 100));
+			var lightingSlider = panel.Get<SliderWidget>("TERRAIN_LIGHTING_SLIDER");
+			lightingSlider.OnChange += _ =>
+			{
+				var tl = world.WorldActor.TraitOrDefault<ITerrainLighting>();
+				tl?.RefreshGlobalLighting();
+			};
 			SettingsUtils.BindCheckboxPref(panel, "PLAYER_STANCE_COLORS_CHECKBOX", gs, "UsePlayerStanceColors");
 
 			var cb = panel.Get<CheckboxWidget>("PLAYER_STANCE_COLORS_CHECKBOX");
@@ -325,6 +337,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				ds.MaxFramerate = dds.MaxFramerate;
 				ds.CapFramerateToGameFps = dds.CapFramerateToGameFps;
 				ds.GLProfile = dds.GLProfile;
+				ds.TerrainLightingIntensity = dds.TerrainLightingIntensity;
 				ds.Mode = dds.Mode;
 				ds.VideoDisplay = dds.VideoDisplay;
 				ds.WindowedSize = dds.WindowedSize;
