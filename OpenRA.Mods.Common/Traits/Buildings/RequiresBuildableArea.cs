@@ -23,6 +23,9 @@ namespace OpenRA.Mods.Common.Traits
 
 		[Desc("Maximum range from the actor with 'GivesBuildableArea' this can be placed at.")]
 		public readonly int Adjacent = 2;
+
+		[Desc("Use Euclidean (circular) distance instead of Chebyshev (square) distance.")]
+		public readonly bool IsCircular = false;
 	}
 
 	public class RequiresBuildableArea { }
