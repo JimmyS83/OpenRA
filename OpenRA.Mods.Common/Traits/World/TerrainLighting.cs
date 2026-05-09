@@ -53,6 +53,13 @@ namespace OpenRA.Mods.Common.Traits
 
 		public event Action<MPos> CellChanged = null;
 
+		public void RefreshGlobalLighting()
+		{
+			if (CellChanged != null)
+				foreach (var c in map.AllCells)
+					CellChanged(c.ToMPos(map));
+		}
+
 		public TerrainLighting(World world, TerrainLightingInfo info)
 		{
 			this.info = info;
@@ -109,7 +116,7 @@ namespace OpenRA.Mods.Common.Traits
 				if (!map.Height.Contains(uv))
 					return tint;
 
-				var intensity = info.Intensity + info.HeightStep * map.Height[uv];
+				var intensity = Game.Settings.Graphics.TerrainLightingIntensity + info.HeightStep * map.Height[uv];
 				if (lightSources.Count > 0)
 				{
 					foreach (var source in partitionedLightSources.At(new int2(pos.X, pos.Y)))
