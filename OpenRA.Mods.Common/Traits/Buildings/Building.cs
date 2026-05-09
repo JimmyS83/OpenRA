@@ -263,10 +263,12 @@ namespace OpenRA.Mods.Common.Traits
 			}
 
 			var buildingTiles = Tiles(topLeft).ToList();
+			var adjacentSq = adjacent * adjacent;
 			return nearnessCandidates
 				.Any(a => buildingTiles
-					.Any(b => Math.Abs(a.X - b.X) <= adjacent
-						&& Math.Abs(a.Y - b.Y) <= adjacent));
+					.Any(b => requiresBuildableArea.IsCircular
+						? (a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y) <= adjacentSq
+						: Math.Abs(a.X - b.X) <= adjacent && Math.Abs(a.Y - b.Y) <= adjacent));
 		}
 
 		public IReadOnlyDictionary<CPos, SubCell> OccupiedCells(ActorInfo info, CPos topLeft, SubCell subCell = SubCell.Any)
