@@ -45,6 +45,16 @@ namespace OpenRA.Graphics
 		readonly WorldViewportSizes viewportSizes;
 		readonly GraphicSettings graphicSettings;
 
+		// Optional env override to allow zooming out further on Close/Medium/Far
+		private static readonly float? CustomMinZoom = GetCustomMinZoom();
+		private static float? GetCustomMinZoom()
+		{
+			if (float.TryParse(Environment.GetEnvironmentVariable("OPENRA_MIN_ZOOM"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsed) && parsed > 0f)
+				return parsed;
+			
+			return null;
+		}
+
 		// Map bounds (world-px)
 		readonly Rectangle mapBounds;
 		readonly Size tileSize;
@@ -223,16 +233,27 @@ namespace OpenRA.Graphics
 
 			var vd = graphicSettings.ViewportDistance;
 			if (overrideUserScale || (viewportSizes.AllowNativeZoom && vd == WorldViewport.Native))
+			{
 				MinZoom = defaultScale;
+				MaxZoom = Math.Min(MinZoom * viewportSizes.MaxZoomScale, Game.Renderer.NativeResolution.Height * defaultScale / viewportSizes.MaxZoomWindowHeight);
+			}
+			
 			else
 			{
 				var range = viewportSizes.GetSizeRange(vd);
 				MinZoom = CalculateMinimumZoom(range.X, range.Y) * defaultScale;
+				
+				// Optional env override to allow zooming out further on Close/Medium/Far
+				if (CustomMinZoom.HasValue)
+				{
+					MinZoom = Math.Min(MinZoom, CustomMinZoom.Value * defaultScale);
+					MaxZoom = Math.Min(viewportSizes.MaxZoomScale, Game.Renderer.NativeResolution.Height * defaultScale / viewportSizes.MaxZoomWindowHeight);
+				}
+				else 
+				{
+					MaxZoom = Math.Min(MinZoom * viewportSizes.MaxZoomScale, Game.Renderer.NativeResolution.Height * defaultScale / viewportSizes.MaxZoomWindowHeight);
+				}
 			}
-
-			MaxZoom = Math.Min(
-				MinZoom * viewportSizes.MaxZoomScale,
-				Game.Renderer.NativeResolution.Height * defaultScale / viewportSizes.MaxZoomWindowHeight);
 
 			if (unlockMinZoom)
 			{
