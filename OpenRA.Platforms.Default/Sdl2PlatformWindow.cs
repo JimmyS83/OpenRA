@@ -184,9 +184,8 @@ namespace OpenRA.Platforms.Default
 				{
 					// Launch the game with OPENRA_DISPLAY_SCALE to force a specific scaling factor
 					// Otherwise fall back to Windows's DPI configuration
-					// If OPENRA_DISPLAY_SCALE not defined, use default 1f windowScale
 					var scaleVariable = Environment.GetEnvironmentVariable("OPENRA_DISPLAY_SCALE");
-					if ( scaleVariable != null && ( !float.TryParse(scaleVariable, NumberStyles.Float, NumberFormatInfo.InvariantInfo, out windowScale) || windowScale <= 0) )
+					if (scaleVariable == null || !float.TryParse(scaleVariable, NumberStyles.Float, NumberFormatInfo.InvariantInfo, out windowScale) || windowScale <= 0)
 						if (SDL.SDL_GetDisplayDPI(videoDisplay, out var ddpi, out _, out _) == 0)
 							windowScale = ddpi / 96;
 				}
@@ -194,9 +193,8 @@ namespace OpenRA.Platforms.Default
 				{
 					// Launch the game with OPENRA_DISPLAY_SCALE to force a specific scaling factor
 					// Otherwise fall back to GDK_SCALE or parsing the x11 DPI configuration
-					// If OPENRA_DISPLAY_SCALE not defined, use default 1f windowScale
 					var scaleVariable = Environment.GetEnvironmentVariable("OPENRA_DISPLAY_SCALE") ?? Environment.GetEnvironmentVariable("GDK_SCALE");
-					if ( scaleVariable != null && ( !float.TryParse(scaleVariable, NumberStyles.Float, NumberFormatInfo.InvariantInfo, out windowScale) || windowScale <= 0) )
+					if (scaleVariable == null || !float.TryParse(scaleVariable, NumberStyles.Float, NumberFormatInfo.InvariantInfo, out windowScale) || windowScale <= 0)
 					{
 						// Attempt to automatically detect DPI
 						try
@@ -212,7 +210,7 @@ namespace OpenRA.Platforms.Default
 
 							foreach (var line in lines)
 								if (line.StartsWith("Xft.dpi") && int.TryParse(line.AsSpan(8), out var dpi))
-								windowScale = dpi / 96f;
+									windowScale = dpi / 96f;
 						}
 						catch { }
 					}
