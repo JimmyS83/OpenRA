@@ -77,6 +77,7 @@ namespace OpenRA.Server
 				new[] { Path.Combine(Platform.EngineDir, "mods") };
 
 			var mods = new InstalledMods(modSearchPaths, explicitModPaths);
+			IReadOnlyDictionary<string, Session.LobbyOptionState> savedLobbyOptions = null;
 
 			WriteLineWithTimeStamp($"Starting dedicated server for mod: {modID}");
 			while (true)
@@ -92,7 +93,7 @@ namespace OpenRA.Server
 				settings.Map = modData.MapCache.ChooseInitialMap(settings.Map, new MersenneTwister());
 
 				var endpoints = new List<IPEndPoint> { new IPEndPoint(IPAddress.IPv6Any, settings.ListenPort), new IPEndPoint(IPAddress.Any, settings.ListenPort) };
-				var server = new Server(endpoints, settings, modData, ServerType.Dedicated);
+				var server = new Server(endpoints, settings, modData, ServerType.Dedicated, savedLobbyOptions);
 
 				GC.Collect();
 				while (true)
@@ -114,6 +115,7 @@ namespace OpenRA.Server
 				}
 
 				modData.Dispose();
+				savedLobbyOptions = server.LobbyInfo.GlobalSettings.LobbyOptions;
 				WriteLineWithTimeStamp("Starting a new server instance...");
 			}
 		}

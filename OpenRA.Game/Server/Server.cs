@@ -233,7 +233,12 @@ namespace OpenRA.Server
 			}
 		}
 
-		public Server(List<IPEndPoint> endpoints, ServerSettings settings, ModData modData, ServerType type)
+		public Server(
+			List<IPEndPoint> endpoints,
+			ServerSettings settings,
+			ModData modData,
+			ServerType type,
+			IReadOnlyDictionary<string, Session.LobbyOptionState> initialLobbyOptions = null)
 		{
 			Log.AddChannel("server", "server.log", true);
 
@@ -336,6 +341,10 @@ namespace OpenRA.Server
 					Dedicated = Type == ServerType.Dedicated
 				}
 			};
+
+			if (initialLobbyOptions != null)
+				foreach (var kv in initialLobbyOptions)
+					LobbyInfo.GlobalSettings.LobbyOptions[kv.Key] = kv.Value;
 
 			if (Settings.RecordReplays && Type == ServerType.Dedicated)
 			{
