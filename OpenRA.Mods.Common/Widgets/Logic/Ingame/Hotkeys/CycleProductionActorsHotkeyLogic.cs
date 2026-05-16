@@ -44,10 +44,15 @@ namespace OpenRA.Mods.Common.Widgets.Logic.Ingame
 		{
 			var player = world.RenderPlayer ?? world.LocalPlayer;
 
+			var palette = Ui.Root.GetOrNull<ProductionPaletteWidget>("PRODUCTION_PALETTE");
+			var currentProductionType = palette?.CurrentQueue?.Info.Type;
+
 			var facilities = world.ActorsHavingTrait<Production>()
 				.Where(a => a.Owner == player && a.OccupiesSpace != null && !a.Info.HasTraitInfo<BaseBuildingInfo>()
-					&& a.TraitsImplementing<Production>().Any(t => !t.IsTraitDisabled))
-				.OrderBy(f => f.TraitsImplementing<Production>().First(t => !t.IsTraitDisabled).Info.Produces[0])
+					&& a.TraitsImplementing<Production>().Any(t => !t.IsTraitDisabled
+						&& (currentProductionType == null || t.Info.Produces.Contains(currentProductionType))))
+				.OrderBy(f => f.TraitsImplementing<Production>().First(t => !t.IsTraitDisabled
+						&& (currentProductionType == null || t.Info.Produces.Contains(currentProductionType))).Info.Produces[0])
 				.ToList();
 
 			if (facilities.Count == 0)
@@ -63,7 +68,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic.Ingame
 			Game.Sound.PlayNotification(world.Map.Rules, null, "Sounds", clickSound, null);
 
 			selection.Combine(world, [next], false, true);
-			viewport.Center(selection.Actors);
 
 			return true;
 		}
