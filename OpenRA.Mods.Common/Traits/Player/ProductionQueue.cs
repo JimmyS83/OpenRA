@@ -759,6 +759,7 @@ namespace OpenRA.Mods.Common.Traits
 			var bi = BuildableInfo.GetTraitForQueue(unit, Info.Type);
 			var type = developerMode.AllTech ? Info.Type : (bi.BuildAtProductionType ?? Info.Type);
 			var item = Queue.First(i => i.Done && i.Item == unit.Name);
+			var anyProducers = false;
 			foreach (var candidate in OrderedProducers(type))
 			{
 				var producerActor = candidate.Actor;
@@ -770,6 +771,8 @@ namespace OpenRA.Mods.Common.Traits
 				if (!producerActor.IsInWorld || producerActor.IsDead)
 					continue;
 
+				anyProducers = true;
+
 				if (producerTrait.Produce(producerActor, unit, type, inits, item.TotalCost))
 				{
 					EndProduction(item);
@@ -777,7 +780,9 @@ namespace OpenRA.Mods.Common.Traits
 				}
 			}
 
-			CancelProduction(unit.Name, 1);
+			if (!anyProducers)
+				CancelProduction(unit.Name, 1);
+
 			return false;
 		}
 	}
