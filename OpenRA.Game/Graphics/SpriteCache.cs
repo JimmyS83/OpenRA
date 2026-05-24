@@ -223,7 +223,11 @@ namespace OpenRA.Graphics
 			// Phase A2: serial post-processing — builds pendingResolve from the parallel-decoded frames.
 			foreach (var (filename, tokens) in reservationsByFilename)
 			{
-				fileFrames.TryGetValue(filename, out var loadedFrames);
+				// Fall back to the full TryOpen search for any file the parallel pass didn't decode.
+				// TryGetPackageContaining only searches the fileIndex; TryOpen has an additional
+				// fallback that scans all mounted packages, which can find files that weren't indexed.
+				if (!fileFrames.TryGetValue(filename, out var loadedFrames))
+					loadedFrames = GetFrames(fileSystem, filename, loaders);
 
 				if (pool != null && loadedFrames != null)
 					pool.FrameCounts[filename] = loadedFrames.Length;
