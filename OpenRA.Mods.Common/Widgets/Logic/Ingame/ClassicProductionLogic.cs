@@ -128,7 +128,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var ticker = widget.Get<LogicTickerWidget>("PRODUCTION_TICKER");
 			ticker.OnTick = () =>
 			{
-				if (palette.CurrentQueue == null || palette.DisplayedIconCount == 0)
+				if (palette.CurrentQueue == null || (palette.DisplayedIconCount == 0 && !palette.CurrentQueue.AlwaysVisible))
 				{
 					// Select the first active tab
 					foreach (var b in typesContainer.Children)
