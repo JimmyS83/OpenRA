@@ -241,6 +241,9 @@ namespace OpenRA
 		[Desc("Enable screen-space glow effect along laser beams.")]
 		public bool LaserGlow = false;
 
+		[Desc("Enable screen-space heat-haze distortion effect for superweapons and flame impacts.")]
+		public bool HeatDistortion = false;
+
 		public int BatchSize = 8192;
 		public int SheetSize = 2048;
 
