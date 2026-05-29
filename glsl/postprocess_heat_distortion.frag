@@ -31,14 +31,13 @@ void main()
 		float falloff = exp(-d * d / (r * r));
 		float s = DistortionStrengths[i] * falloff;
 
-		// Rising heat-haze. A horizontal shimmer for the ripple, plus an ALWAYS-positive vertical lift
-		// (0..s) whose intensity scrolls in travelling bands. The constant upward bias advects content
-		// upward (reads as rising) while the scroll animates it. offset.y positive samples from below in
-		// the y-down framebuffer, so content appears to move up; flip the Time sign / offset.y sign if it
-		// sinks instead. Most visible over detailed content (buildings, units) — flat terrain hides it.
-		float vscroll = fc.y * 0.05 - Time * 5.0;
-		offset.x += sin(vscroll) * s * 0.6;
-		offset.y += (0.5 + 0.5 * sin(vscroll)) * s;
+		// Heat-haze on a DIAGONAL axis to match OpenRA's isometric terrain grid (a pure horizontal
+		// axis fights the grid and reads unnaturally). The fc.x term tilts the ripple bands diagonally,
+		// and the combined x (full) + y (partial) offset gives a bottom-left<->top-right shimmer that
+		// scrolls over time. Flip the Time sign to reverse the crawl direction.
+		float phase = fc.y * 0.06 - Time * 4.0;
+		offset.x += sin(phase + fc.x * 0.02) * s;
+		offset.y += cos(phase) * s * 0.35;
 	}
 
 	vec2 maxCoord = sz - vec2(1.0);
