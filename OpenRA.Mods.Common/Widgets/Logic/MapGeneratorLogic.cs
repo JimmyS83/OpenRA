@@ -11,7 +11,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenRA.FileSystem;
 using OpenRA.Mods.Common.MapGenerator;
@@ -76,21 +78,25 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly Widget dropdownSettingTemplate;
 		readonly Widget tilesetSetting;
 		readonly Widget sizeSetting;
-		readonly IReadWritePackage package;
+		readonly Widget parentWidget;
 
 		ITerrainInfo selectedTerrain;
 		string selectedSize;
 		Size size;
+		bool initialGenerationDone;
 
-		volatile bool generating;
 		volatile bool failed;
+		volatile uint generationCounter = 0;
+		volatile uint lastGeneration = 0;
+
+		bool IsGenerating => lastGeneration != generationCounter;
 
 		[ObjectCreator.UseCtor]
 		internal MapGeneratorLogic(Widget widget, ModData modData, MapGenerationArgs initialSettings, Action<MapGenerationArgs, IReadWritePackage> onGenerate)
 		{
 			this.modData = modData;
 			this.onGenerate = onGenerate;
-			package = new ZipFileLoader.ReadWriteZipFile();
+			parentWidget = widget.Parent;
 
 			generator = modData.DefaultRules.Actors[SystemActors.EditorWorld].TraitInfos<IEditorMapGeneratorInfo>().First();
 			settings = generator.GetSettings();
@@ -100,7 +106,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			var title = new CachedTransform<string, string>(id => FluentProvider.GetMessage(id));
 			var previewTitleLabel = widget.Get<LabelWidget>("TITLE");
-			previewTitleLabel.GetText = () => title.Update(generating ? Generating : failed ? GenerationFailed : RandomMap);
+			previewTitleLabel.GetText = () => title.Update(IsGenerating ? Generating : failed ? GenerationFailed : RandomMap);
 
 			var previewDetailsLabel = widget.GetOrNull<LabelWidget>("DETAILS");
 			if (previewDetailsLabel != null)
@@ -152,7 +158,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					{
 						selectedTerrain = terrainInfo;
 						RefreshSettings();
-						GenerateMap();
 					}
 
 					var item = ScrollItemWidget.Setup(template, IsSelected, OnClick);
@@ -180,7 +185,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					{
 						selectedSize = size;
 						RandomizeSize();
-						GenerateMap();
 					}
 
 					var item = ScrollItemWidget.Setup(template, IsSelected, OnClick);
@@ -193,17 +197,31 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			};
 
 			var generateButton = widget.Get<ButtonWidget>("BUTTON_GENERATE");
-			generateButton.IsDisabled = () => generating;
-			generateButton.OnClick = () =>
+			generateButton.IsDisabled = () => IsGenerating;
+
+			// Generate with the current settings and seed (no implicit randomization), so a
+			// seed that was typed in or randomized by the user is honoured - the same seed and
+			// settings always produce the same map.
+			generateButton.OnClick = GenerateMap;
+
+			// Randomizes only the seed (Randomize leaves the user's other settings untouched).
+			// Does not generate - the user clicks Generate themselves.
+			var randomizeSeedButton = widget.GetOrNull<ButtonWidget>("BUTTON_RANDOMIZE_SEED");
+			if (randomizeSeedButton != null)
 			{
-				settings.Randomize(Game.CosmeticRandom);
-				RandomizeSize();
-				GenerateMap();
-			};
+				randomizeSeedButton.IsDisabled = () => IsGenerating;
+				randomizeSeedButton.OnClick = () =>
+				{
+					settings.Randomize(Game.CosmeticRandom);
+					RefreshSettings();
+				};
+			}
 
 			selectedSize = MapSizes.Keys.Skip(1).First();
-			if (initialSettings != null)
+
+			if (initialSettings != null && modData.DefaultTerrainInfo.ContainsKey(initialSettings.Tileset))
 			{
+				// The lobby preselected a generated map - restore it and show its cached preview.
 				selectedTerrain = modData.DefaultTerrainInfo[initialSettings.Tileset];
 				size = initialSettings.Size;
 				foreach (var kv in MapSizes)
@@ -219,8 +237,12 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					preview.Update(map);
 					onGenerate(initialSettings, null);
 				}
-				else
-					GenerateMap();
+			}
+			else if (TryLoadPersistedSettings())
+			{
+				// Restored the last settings the user generated with (persisted to disk).
+				// Leave the preview empty until the user clicks Generate (no auto-generation).
+				RefreshSettings();
 			}
 			else
 			{
@@ -228,15 +250,118 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				settings.Randomize(Game.CosmeticRandom);
 				RandomizeSize();
 				RefreshSettings();
+			}
+
+			initialGenerationDone = true;
+		}
+
+		public override void Tick()
+		{
+			if (!initialGenerationDone && !IsGenerating && parentWidget.IsVisible())
+			{
+				initialGenerationDone = true;
 				GenerateMap();
+			}
+		}
+
+		string PersistedSettingsPath => Path.Combine(Platform.SupportDir, "map-generator-" + modData.Manifest.Id + ".yaml");
+
+		// Writes the current tileset, size and option values (incl. the seed) to disk so the
+		// generator can restore them next time it is opened, surviving game restarts.
+		void PersistSettings()
+		{
+			try
+			{
+				var optionNodes = new List<MiniYamlNode>();
+				foreach (var o in settings.Options)
+				{
+					switch (o)
+					{
+						case MapGeneratorBooleanOption bo: optionNodes.Add(new MiniYamlNode(o.Id, FieldSaver.FormatValue(bo.Value))); break;
+						case MapGeneratorIntegerOption io: optionNodes.Add(new MiniYamlNode(o.Id, FieldSaver.FormatValue(io.Value))); break;
+						case MapGeneratorMultiIntegerChoiceOption mio: optionNodes.Add(new MiniYamlNode(o.Id, FieldSaver.FormatValue(mio.Value))); break;
+						case MapGeneratorMultiChoiceOption mo: optionNodes.Add(new MiniYamlNode(o.Id, mo.Value ?? "")); break;
+					}
+				}
+
+				var nodes = new List<MiniYamlNode>()
+				{
+					new("Tileset", selectedTerrain.Id),
+					new("Size", FieldSaver.FormatValue(size)),
+					new("Options", new MiniYaml(null, optionNodes)),
+				};
+
+				File.WriteAllText(PersistedSettingsPath, nodes.WriteToString());
+			}
+			catch (Exception e)
+			{
+				Log.Write("debug", $"Failed to save map generator settings: {e}");
+			}
+		}
+
+		// Restores tileset, size and option values previously written by PersistSettings.
+		// Returns false (leaving state untouched) if there is nothing valid to restore.
+		bool TryLoadPersistedSettings()
+		{
+			try
+			{
+				var path = PersistedSettingsPath;
+				if (!File.Exists(path))
+					return false;
+
+				var root = new MiniYaml(null, MiniYaml.FromString(File.ReadAllText(path), path));
+				var tilesetNode = root.NodeWithKeyOrDefault("Tileset");
+				var sizeNode = root.NodeWithKeyOrDefault("Size");
+				var optionsNode = root.NodeWithKeyOrDefault("Options");
+				if (tilesetNode == null || sizeNode == null || optionsNode == null)
+					return false;
+
+				var tileset = tilesetNode.Value.Value;
+				if (!modData.DefaultTerrainInfo.ContainsKey(tileset))
+					return false;
+
+				selectedTerrain = modData.DefaultTerrainInfo[tileset];
+				size = FieldLoader.GetValue<Size>("Size", sizeNode.Value.Value);
+				foreach (var kv in MapSizes)
+					if (kv.Value.X > size.Width && kv.Value.Y <= size.Width)
+						selectedSize = kv.Key;
+
+				foreach (var o in settings.Options)
+				{
+					var node = optionsNode.Value.NodeWithKeyOrDefault(o.Id);
+					var value = node?.Value.Value;
+					if (string.IsNullOrEmpty(value))
+						continue;
+
+					switch (o)
+					{
+						case MapGeneratorBooleanOption bo: bo.Value = FieldLoader.GetValue<bool>(o.Id, value); break;
+						case MapGeneratorIntegerOption io: io.Value = FieldLoader.GetValue<int>(o.Id, value); break;
+						case MapGeneratorMultiIntegerChoiceOption mio: mio.Value = FieldLoader.GetValue<int>(o.Id, value); break;
+						case MapGeneratorMultiChoiceOption mo: mo.Value = value; break;
+					}
+				}
+
+				return true;
+			}
+			catch (Exception e)
+			{
+				Log.Write("debug", $"Failed to load map generator settings: {e}");
+				return false;
 			}
 		}
 
 		void RandomizeSize()
 		{
+			var mapGrid = modData.Manifest.Get<MapGrid>();
 			var sizeRange = MapSizes[selectedSize];
 			var width = Game.CosmeticRandom.Next(sizeRange.X, sizeRange.Y);
-			size = new Size(width + 2, width + 2);
+			var height =
+				mapGrid.Type == MapGridType.RectangularIsometric
+					? width * 2
+					: width;
+
+			size = new Size(width + 2, height + mapGrid.MaximumTerrainHeight * 2 + 2);
 		}
 
 		void RefreshSettings()
@@ -249,9 +374,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var playerCount = settings.PlayerCount;
 			foreach (var o in settings.Options)
 			{
-				if (o.Id == "Seed")
-					continue;
-
 				Widget settingWidget = null;
 				switch (o)
 				{
@@ -265,7 +387,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 						checkboxWidget.OnClick = () =>
 						{
 							bo.Value ^= true;
-							GenerateMap();
 						};
 						break;
 					}
@@ -287,7 +408,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 						textFieldWidget.OnEscKey = _ => { textFieldWidget.YieldKeyboardFocus(); return true; };
 						textFieldWidget.OnEnterKey = _ => { textFieldWidget.YieldKeyboardFocus(); return true; };
-						textFieldWidget.OnLoseFocus = GenerateMap;
 						break;
 					}
 
@@ -311,7 +431,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 									mio.Value = choice;
 									if (o.Id == "Players")
 										RefreshSettings();
-									GenerateMap();
 								}
 
 								var item = ScrollItemWidget.Setup(template, IsSelected, OnClick);
@@ -321,7 +440,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 								return item;
 							}
 
-							dropDownWidget.ShowDropDown("LABEL_DROPDOWN_WITH_TOOLTIP_TEMPLATE", mio.Choices.Length * 30, mio.Choices, SetupItem);
+							dropDownWidget.ShowDropDown("LABEL_DROPDOWN_WITH_TOOLTIP_TEMPLATE", 250, mio.Choices, SetupItem);
 						};
 						break;
 					}
@@ -330,7 +449,11 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					{
 						var validChoices = mo.ValidChoices(selectedTerrain, playerCount);
 						if (!validChoices.Contains(mo.Value))
-							mo.Value = mo.Default?.FirstOrDefault(validChoices.Contains) ?? validChoices.FirstOrDefault();
+						{
+							if (mo.Default != null)
+								mo.Value = mo.Default.FirstOrDefault(validChoices.Contains);
+							mo.Value ??= validChoices.FirstOrDefault();
+						}
 
 						if (mo.Label != null && validChoices.Count > 0)
 						{
@@ -350,7 +473,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 									void OnClick()
 									{
 										mo.Value = choice;
-										GenerateMap();
 									}
 
 									var item = ScrollItemWidget.Setup(template, IsSelected, OnClick);
@@ -365,7 +487,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 									return item;
 								}
 
-								dropDownWidget.ShowDropDown("LABEL_DROPDOWN_WITH_TOOLTIP_TEMPLATE", validChoices.Count * 30, validChoices, SetupItem);
+								dropDownWidget.ShowDropDown("LABEL_DROPDOWN_WITH_TOOLTIP_TEMPLATE", 250, validChoices, SetupItem);
 							};
 						}
 
@@ -386,46 +508,72 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		void GenerateMap()
 		{
-			generating = true;
-			onGenerate(null, null);
+			var currentGeneration = Interlocked.Increment(ref generationCounter);
+
 			failed = false;
+			onGenerate(null, null);
 			preview.Clear();
+
 			Task.Run(() =>
 			{
+				// Tasks don't run in parallel, so we may be able to cancel some outdated requests here.
+				if (currentGeneration != generationCounter)
+					return;
+
+				MapGenerationArgs args;
+				Map map;
 				try
 				{
-					var args = settings.Compile(selectedTerrain, size);
-					var map = generator.Generate(modData, args);
-
-					// Map UID and preview image are generated on save
-					map.Save(package);
-					args.Uid = map.Uid;
-
-					Game.RunAfterTick(() =>
-					{
-						preview.Update(map);
-						onGenerate(args, package);
-						generating = false;
-					});
+					args = settings.Compile(selectedTerrain, size);
+					map = generator.Generate(modData, args);
 				}
-				catch (MapGenerationException)
+				catch (MapGenerationException e)
 				{
-					failed = true;
-					generating = false;
+					Log.Write("debug", $"Map generation failed: {e}");
+					// We are the lastest generation request, mark as failed.
+					if (currentGeneration == generationCounter)
+					{
+						lastGeneration = currentGeneration;
+						failed = true;
+					}
+
+					return;
 				}
+
+				// Need to invoke widgets from the main thread.
+				Game.RunAfterTick(() =>
+				{
+					// A newer generation will be set after us, discard.
+					if (currentGeneration == generationCounter)
+					{
+						var package = new ZipFileLoader.ReadWriteZipFile();
+						map.Save(package);
+
+						args.Uid = map.Uid;
+
+						// Save into the actual User map folder the MapCache scans (version-specific
+						// subdir), not the parent maps/<mod> directory which is never enumerated.
+						var userMapFolder = modData.Manifest.MapFolders.FirstOrDefault(kv => kv.Value == "User").Key;
+						if (userMapFolder != null)
+						{
+							var folderName = userMapFolder.StartsWith('~') ? userMapFolder[1..] : userMapFolder;
+							var mapsDir = Platform.ResolvePath(folderName);
+							Directory.CreateDirectory(mapsDir);
+							File.WriteAllBytes(Path.Combine(mapsDir, "generated.oramap"), package.GetBytes());
+						}
+
+						preview.Update(map);
+						lastGeneration = currentGeneration;
+
+						// Remember these settings (incl. seed) so reopening the generator - even
+						// after restarting the game - restores them.
+						PersistSettings();
+
+						// `onGenerate` assumed to take ownership of package here.
+						onGenerate(args, package);
+					}
+				});
 			});
-		}
-
-		bool disposed;
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && !disposed)
-			{
-				disposed = true;
-				package.Dispose();
-			}
-
-			base.Dispose(disposing);
 		}
 	}
 }
