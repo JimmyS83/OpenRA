@@ -208,7 +208,7 @@ namespace OpenRA
 
 		public bool CursorDouble = false;
 		public WorldViewport ViewportDistance = WorldViewport.Medium;
-		public float UIScale = 1.5f;
+		public float UIScale = 1.0f;
 
 		[Desc("Add a frame rate limiter.")]
 		public bool CapFramerate = false;
@@ -239,7 +239,7 @@ namespace OpenRA
 		public float TerrainLightingIntensity = 0.66f;
 
 		[Desc("Enable screen-space glow effect along laser beams.")]
-		public bool LaserGlow = false;
+		public bool LaserGlow = true;
 
 		[Desc("Enable screen-space heat-haze distortion effect for superweapons and flame impacts.")]
 		public bool HeatDistortion = true;
