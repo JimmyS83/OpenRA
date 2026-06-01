@@ -57,6 +57,9 @@ namespace OpenRA.Traits
 
 		public void AddEffect(int time, WPos position, int intensity, float2 multiplier)
 		{
+			if (!Game.Settings.Graphics.ScreenShake)
+				return;
+
 			shakeEffects.Add(new ShakeEffect { ExpiryTime = ticks + time, Position = position, Intensity = intensity, Multiplier = multiplier });
 		}
 
