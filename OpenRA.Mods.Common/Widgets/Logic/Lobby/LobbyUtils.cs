@@ -256,7 +256,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var options = filteredFactions.GroupBy(f => f.Value.Side)
 				.ToDictionary(g => g.Key != null ? FluentProvider.GetMessage(g.Key) : "", g => g.Select(f => FluentProvider.GetMessage(f.Key)));
 
-			dropdown.ShowDropDown("FACTION_DROPDOWN_TEMPLATE", 154, options, SetupItem);
+			dropdown.ShowDropDown("FACTION_DROPDOWN_TEMPLATE", 300, options, SetupItem);
 		}
 
 		public static void SelectSpawnPoint(OrderManager orderManager, MapPreviewWidget mapPreview, MapPreview preview, MouseInput mi)
