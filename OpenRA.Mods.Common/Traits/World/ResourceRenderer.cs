@@ -54,6 +54,9 @@ namespace OpenRA.Mods.Common.Traits
 		[FieldLoader.LoadUsing(nameof(LoadResourceTypes))]
 		public readonly FrozenDictionary<string, ResourceTypeInfo> ResourceTypes = null;
 
+		[Desc("Resource types shown by the map editor overlay selector. Leave empty to show all rendered resources.")]
+		public readonly ImmutableArray<string> EditorResourceTypes = [];
+
 		// Copied from ResourceLayerInfo
 		protected static object LoadResourceTypes(MiniYaml yaml)
 		{
@@ -283,7 +286,9 @@ namespace OpenRA.Mods.Common.Traits
 			return FluentProvider.GetMessage(info.Name);
 		}
 
-		IEnumerable<string> IResourceRenderer.ResourceTypes => Info.ResourceTypes.Keys;
+		IEnumerable<string> IResourceRenderer.ResourceTypes => Info.EditorResourceTypes.Length == 0
+			? Info.ResourceTypes.Keys
+			: Info.EditorResourceTypes.Where(Info.ResourceTypes.ContainsKey);
 
 		string IResourceRenderer.GetRenderedResourceType(CPos cell) { return GetRenderedResourceType(cell); }
 

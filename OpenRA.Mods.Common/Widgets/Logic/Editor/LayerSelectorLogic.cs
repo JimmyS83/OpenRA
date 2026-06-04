@@ -18,6 +18,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 	[IncludeStaticFluentReferences(typeof(AddResourcesEditorAction))]
 	public class LayerSelectorLogic : ChromeLogic
 	{
+		const int MinimumPreviewCellSize = 24;
+
 		readonly EditorViewportControllerWidget editor;
 		readonly WorldRenderer worldRenderer;
 
@@ -65,9 +67,17 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					preview.Scale = scale;
 					preview.Bounds.Width = (int)(scale * preview.IdealPreviewSize.Width);
 					preview.Bounds.Height = (int)(scale * preview.IdealPreviewSize.Height);
-
 					item.Bounds.Width = preview.Bounds.Width + 2 * preview.Bounds.X;
 					item.Bounds.Height = preview.Bounds.Height + 2 * preview.Bounds.Y;
+
+					if (item.Bounds.Width < MinimumPreviewCellSize)
+						item.Bounds.Width = MinimumPreviewCellSize;
+
+					if (item.Bounds.Height < MinimumPreviewCellSize)
+						item.Bounds.Height = MinimumPreviewCellSize;
+
+					preview.Bounds.X = (item.Bounds.Width - preview.Bounds.Width) / 2;
+					preview.Bounds.Y = (item.Bounds.Height - preview.Bounds.Height) / 2;
 					item.IsVisible = () => true;
 					item.GetTooltipText = () => resourceType;
 
