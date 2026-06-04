@@ -301,6 +301,9 @@ namespace OpenRA
 		[Desc("Enable screen shake effects from explosions and impacts.")]
 		public bool ScreenShake = true;
 
+		[Desc("Enable dark smoke rising from flame-weapon ground fire.")]
+		public bool GroundFireSmoke = true;
+
 		public int BatchSize = 8192;
 		public int SheetSize = 2048;
 
