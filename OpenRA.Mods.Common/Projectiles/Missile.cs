@@ -188,6 +188,11 @@ namespace OpenRA.Mods.Common.Projectiles
 			"not trigger fast enough, causing the missile to fly past the target.")]
 		public readonly WDist CloseEnough = new(298);
 
+		[Desc("Detonate at the closest approach to the aim point once a locked-on target is lost",
+			"(e.g. destroyed mid-flight). Without this the missile stops steering and flies straight",
+			"on to its fuel limit, stranding orphaned missiles far from where the target was.")]
+		public readonly bool DetonateOnTargetLoss = true;
+
 		public IProjectile Create(ProjectileArgs args) { return new Missile(this, args); }
 	}
 
@@ -240,6 +245,10 @@ namespace OpenRA.Mods.Common.Projectiles
 		int loopRadius;
 		WDist distanceCovered;
 		readonly WDist rangeLimit;
+
+		// Distance to the aim point on the previous tick, used to detect the closest approach
+		// after a locked-on target is lost. Starts at "infinity" so the first tick never triggers.
+		int lastTargetDistance = int.MaxValue;
 
 		WAngle renderFacing;
 
@@ -823,7 +832,7 @@ namespace OpenRA.Mods.Common.Projectiles
 				desiredHFacing = hFacing + world.SharedRandom.Next(-info.JammedDiversionRange, info.JammedDiversionRange + 1);
 				desiredVFacing = vFacing + world.SharedRandom.Next(-info.JammedDiversionRange, info.JammedDiversionRange + 1);
 			}
-			else if (!args.GuidedTarget.IsValidFor(args.SourceActor))
+			else if (!args.GuidedTarget.IsValidFor(args.SourceActor) && !info.DetonateOnTargetLoss)
 				desiredHFacing = hFacing;
 
 			// Compute new direction the projectile will be facing
@@ -920,10 +929,22 @@ namespace OpenRA.Mods.Common.Projectiles
 				contrail.Update(pos);
 
 			distanceCovered += new WDist(speed);
+
+			// Once a locked-on target is lost the missile stops steering (desiredHFacing = hFacing) and
+			// flies straight on, which would strand it far away when the target dies mid-flight. Detonate
+			// at the closest approach to the frozen aim point: the tick its distance starts growing again,
+			// having been within a single tick's travel. Only kicks in while the target is invalid, so
+			// live-target behaviour is unchanged.
+			var targetLost = info.DetonateOnTargetLoss && state != States.Freefall
+				&& !args.GuidedTarget.IsValidFor(args.SourceActor)
+				&& relTarDist > lastTargetDistance && lastTargetDistance <= move.Length;
+			lastTargetDistance = relTarDist;
+
 			var cell = world.Map.CellContaining(pos);
 			var height = world.Map.DistanceAboveTerrain(pos);
 			shouldExplode |= height.Length < 0 // Hit the ground
 				|| relTarDist < info.CloseEnough.Length // Within range
+				|| targetLost // Lost the locked-on target and reached the closest approach to its last position
 				|| (info.ExplodeWhenEmpty && rangeLimit >= WDist.Zero && distanceCovered > rangeLimit) // Ran out of fuel
 				|| !world.Map.Contains(cell) // This also avoids an IndexOutOfRangeException in GetTerrainInfo below.
 				|| (!string.IsNullOrEmpty(info.BoundToTerrainType) && world.Map.GetTerrainInfo(cell).Type != info.BoundToTerrainType) // Hit incompatible terrain

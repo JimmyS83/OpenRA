@@ -445,9 +445,11 @@ namespace OpenRA
 					foreach (var a in actors.Values)
 						a.Tick();
 
-				ApplyToActorsWithTraitTimed<ITick>((actor, trait) => trait.Tick(actor), "Trait");
+				using (new PerfSample("tick_traits"))
+					ApplyToActorsWithTraitTimed<ITick>((actor, trait) => trait.Tick(actor), "Trait");
 
-				effects.DoTimed(e => e.Tick(this), "Effect");
+				using (new PerfSample("tick_effects"))
+					effects.DoTimed(e => e.Tick(this), "Effect");
 			}
 
 			while (frameEndActions.Count != 0)
