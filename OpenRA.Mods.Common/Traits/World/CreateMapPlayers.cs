@@ -44,6 +44,11 @@ namespace OpenRA.Mods.Common.Traits
 			// Create the regular playable players.
 			var bots = map.PlayerActorInfo.TraitInfos<IBotInfo>();
 
+			// Shared deck so that multiple Random slots are dealt distinct factions (a permutation),
+			// refilling once the pool is exhausted. Must mirror the client-side pass in CreatePlayers
+			// (same order, only playable slots) so server and client resolve identical factions.
+			var deck = new RandomFactionDeck();
+
 			foreach (var kv in lobbyInfo.Slots)
 			{
 				var client = lobbyInfo.ClientInSlot(kv.Key);
@@ -51,7 +56,7 @@ namespace OpenRA.Mods.Common.Traits
 					continue;
 
 				var clientFaction = factions.First(f => client.Faction == f.InternalName);
-				var resolvedFaction = Player.ResolveFaction(client.Faction, factions, playerRandom, !kv.Value.LockFaction);
+				var resolvedFaction = Player.ResolveFaction(client.Faction, factions, playerRandom, !kv.Value.LockFaction, deck);
 				var resolvedSpawnPoint = assignSpawnLocations?.AssignSpawnPoint(spawnState, lobbyInfo, client, playerRandom) ?? 0;
 				var player = new GameInformation.Player
 				{
@@ -108,6 +113,10 @@ namespace OpenRA.Mods.Common.Traits
 
 			Player localPlayer = null;
 
+			// Shared deck so that multiple Random slots are dealt distinct factions (a permutation),
+			// refilling once the pool is exhausted. Only playable slots draw from it.
+			var deck = new RandomFactionDeck();
+
 			// Create the regular playable players.
 			foreach (var kv in w.LobbyInfo.Slots)
 			{
@@ -115,7 +124,7 @@ namespace OpenRA.Mods.Common.Traits
 				if (client == null)
 					continue;
 
-				var player = new Player(w, client, players[kv.Value.PlayerReference], playerRandom);
+				var player = new Player(w, client, players[kv.Value.PlayerReference], playerRandom, deck);
 				worldPlayers.Add(player);
 
 				if (client.Index == Game.LocalClientId)

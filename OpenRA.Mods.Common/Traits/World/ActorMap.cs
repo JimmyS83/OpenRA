@@ -14,7 +14,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Primitives;
-using OpenRA.Support;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -475,20 +474,17 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			// Position updates are done in one pass
 			// to ensure consistency during a tick
-			using (new PerfSample("actormap_removal"))
+			if (removeActorPosition.Count > 0)
 			{
-				if (removeActorPosition.Count > 0)
+				foreach (var bin in bins)
 				{
-					foreach (var bin in bins)
-					{
-						var removed = bin.Actors.RemoveAll(actorShouldBeRemoved);
-						if (removed > 0)
-							foreach (var t in bin.ProximityTriggers)
-								t.Dirty = true;
-					}
-
-					removeActorPosition.Clear();
+					var removed = bin.Actors.RemoveAll(actorShouldBeRemoved);
+					if (removed > 0)
+						foreach (var t in bin.ProximityTriggers)
+							t.Dirty = true;
 				}
+
+				removeActorPosition.Clear();
 			}
 
 			foreach (var a in addActorPosition)
@@ -505,17 +501,11 @@ namespace OpenRA.Mods.Common.Traits
 
 			addActorPosition.Clear();
 
-			using (new PerfSample("actormap_cell_triggers"))
-			{
-				foreach (var t in cellTriggers)
-					t.Value.Tick(this);
-			}
+			foreach (var t in cellTriggers)
+				t.Value.Tick(this);
 
-			using (new PerfSample("actormap_proximity_triggers"))
-			{
-				foreach (var t in proximityTriggers)
-					t.Value.Tick(this);
-			}
+			foreach (var t in proximityTriggers)
+				t.Value.Tick(this);
 		}
 
 		public int AddCellTrigger(CPos[] cells, Action<Actor> onEntry, Action<Actor> onExit)
