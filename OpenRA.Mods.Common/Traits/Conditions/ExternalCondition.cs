@@ -41,7 +41,7 @@ namespace OpenRA.Mods.Common.Traits
 		public override object Create(ActorInitializer init) { return new ExternalCondition(this); }
 	}
 
-	public class ExternalCondition : INotifyCreated, INotifyOwnerChanged, INotifyRemovedFromWorld
+	public class ExternalCondition : INotifyCreated, INotifyOwnerChanged, INotifyAddedToWorld, INotifyRemovedFromWorld
 	{
 		readonly struct TimedToken(int token, Actor self, object source, int duration)
 		{
@@ -254,6 +254,21 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			this.self = self;
 			watchers = self.TraitsImplementing<IConditionTimerWatcher>().Where(Notifies).ToArray();
+		}
+
+		void INotifyAddedToWorld.AddedToWorld(Actor self)
+		{
+			// An actor can be removed and re-added (e.g. ChangeOwner from mind-control/chaos/deviator,
+			// or transport load/unload). RemovedFromWorld latches 'removed', which would otherwise stay
+			// set forever and stop TickTimed from ever revoking the timer -> a permanent, never-expiring
+			// condition. Clear it on re-entry, and re-join the ticker if a timer is still pending and we
+			// were dropped from the active set while out of world.
+			removed = false;
+			if (!registered && timedTokens.Count > 0)
+			{
+				registered = true;
+				ExternalConditionTicker.ForWorld(self.World).Register(this);
+			}
 		}
 
 		void INotifyRemovedFromWorld.RemovedFromWorld(Actor self)
