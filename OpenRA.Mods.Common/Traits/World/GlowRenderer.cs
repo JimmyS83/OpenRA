@@ -91,6 +91,12 @@ namespace OpenRA.Mods.Common.Traits
 			if (scaleEnd < 0f)
 				scaleEnd = scale;
 
+			// If no glow is currently active, Draw has been idle (it only runs while effects exist) so
+			// lastWorldTick is stale; reset it, otherwise the first Draw would advance the fade by the whole
+			// idle gap and instantly expire this glow.
+			if (pendingGlows.Count == 0 && fadingGlows.Count == 0)
+				lastWorldTick = -1;
+
 			if (fadeFrames > 0)
 			{
 				var totalTicks = fadeFrames * FramesToTicks;

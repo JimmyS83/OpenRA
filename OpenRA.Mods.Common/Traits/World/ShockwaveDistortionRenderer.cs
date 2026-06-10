@@ -79,6 +79,12 @@ namespace OpenRA.Mods.Common.Traits
 
 		public void RegisterShockwave(WPos center, float scale = 1f, int fadeFrames = 0, int fadeInFrames = 0)
 		{
+			// If no shockwave is currently active, Draw has been idle (it only runs while effects exist) so
+			// lastWorldTick is stale; reset it, otherwise the first Draw would advance the ring by the whole
+			// idle gap and instantly expire this shockwave.
+			if (pendingDistortions.Count == 0 && fadingDistortions.Count == 0)
+				lastWorldTick = -1;
+
 			if (fadeFrames > 0)
 			{
 				var totalTicks = fadeFrames * FramesToTicks;
