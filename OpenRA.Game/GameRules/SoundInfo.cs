@@ -79,6 +79,8 @@ namespace OpenRA.GameRules
 			this.clips = clips;
 		}
 
+		public ImmutableArray<string> Clips => clips;
+
 		public string GetNext()
 		{
 			if (liveclips.Count == 0)

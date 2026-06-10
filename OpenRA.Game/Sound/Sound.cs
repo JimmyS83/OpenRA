@@ -406,10 +406,6 @@ namespace OpenRA
 				pool = p;
 			}
 
-			var clip = pool.GetNext();
-			if (string.IsNullOrEmpty(clip))
-				return false;
-
 			if (variant != null)
 			{
 				if (rules.Variants.TryGetValue(variant, out var v) && !rules.DisableVariants.Contains(definition))
@@ -418,7 +414,33 @@ namespace OpenRA
 					prefix = p[(int)(id % p.Length)];
 			}
 
-			var name = prefix + clip + suffix;
+			var clip = pool.GetNext();
+			if (string.IsNullOrEmpty(clip))
+				return false;
+
+			// Prefer the randomly-rolled clip, but fall back if this voice set doesn't provide it.
+			// This lets a notification or voice list extra clips that only some voice sets supply:
+			// a set lacking the rolled clip plays the first listed clip it does have (usually the
+			// canonical first entry) instead of going silent. Only fully-absent pools stay silent.
+			string name = null;
+			var candidate = prefix + clip + suffix;
+			if (sounds[candidate] != null)
+				name = candidate;
+			else
+			{
+				foreach (var fallback in pool.Clips)
+				{
+					candidate = prefix + fallback + suffix;
+					if (sounds[candidate] != null)
+					{
+						name = candidate;
+						break;
+					}
+				}
+			}
+
+			if (name == null)
+				return false;
 			var actorId = voicedActor != null && voicedActor.World.Selection.Contains(voicedActor) ? 0 : id;
 
 			if (!string.IsNullOrEmpty(name) && (player == null || player == player.World.LocalPlayer))
