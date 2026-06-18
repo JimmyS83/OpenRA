@@ -70,7 +70,22 @@ namespace OpenRA.Mods.Common.Widgets
 
 			if (mi.Button == MouseButton.Left && mi.Event != MouseInputEvent.Up && resourceLayer.CanAddResource(ResourceType, cell))
 			{
-				action.Add(new CellResource(cell, resourceLayer.GetResource(cell), ResourceType));
+				if (mi.Modifiers.HasModifier(Modifiers.Shift))
+				{
+					var currentResourceType = resourceLayer.GetResource(cell);
+					var mapCells = world.Map.AllCells;
+					foreach (var mapCell in mapCells)
+					{
+						if (resourceLayer.GetResource(mapCell).Type == currentResourceType.Type)
+						{
+							action.Add(new CellResource(mapCell, currentResourceType, ResourceType));
+						}
+					}
+				}
+				else
+				{
+					action.Add(new CellResource(cell, resourceLayer.GetResource(cell), ResourceType));
+				}
 				resourceAdded = true;
 			}
 			else if (resourceAdded && mi.Button == MouseButton.Left && mi.Event == MouseInputEvent.Up)
