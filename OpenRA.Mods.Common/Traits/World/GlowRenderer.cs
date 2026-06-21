@@ -35,6 +35,21 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		const int MaxBeamsPerBatch = 16;
 
+		// Hard upper bound on the number of queued (pending + fading) glows. Draw is the only place
+		// these lists are drained, and it runs only on the render tick. If rendering stops (window
+		// minimized) or merely falls behind (replay running faster than it can draw), the simulation
+		// keeps registering glows with nothing to drain them. Capping the lists means the worst case is
+		// a handful of extra shader batches in one frame instead of an unbounded flush that freezes the game.
+		const int MaxActiveEffects = 64;
+
+		// Fade timing follows logical game ticks, not render frames, so a glow lasts the same wall-clock
+		// duration regardless of framerate (and freezes while the game is paused).
+		// The fadeFrames/fadeInFrames values in YAML were tuned as render frames at ReferenceFps; convert
+		// them to ticks (at normal-speed sim rate) so the original look is preserved at that framerate.
+		const float ReferenceFps = 60f;
+		const float TicksPerSecond = 1000f / 40f; // normal game speed = 40ms timestep = 25 ticks/sec
+		const float FramesToTicks = TicksPerSecond / ReferenceFps;
+
 		static readonly string[] BeamStartsKeys = Enumerable.Range(0, MaxBeamsPerBatch).Select(i => $"BeamStarts[{i}]").ToArray();
 		static readonly string[] BeamEndsKeys = Enumerable.Range(0, MaxBeamsPerBatch).Select(i => $"BeamEnds[{i}]").ToArray();
 		static readonly string[] GlowColorsKeys = Enumerable.Range(0, MaxBeamsPerBatch).Select(i => $"GlowColors[{i}]").ToArray();
@@ -72,9 +87,33 @@ namespace OpenRA.Mods.Common.Traits
 		// intensity is a brightness-only multiplier (independent of scale, which also drives radius).
 		public void RegisterGlow(WPos source, WPos target, Color color, float scale = 1f, int fadeFrames = 0, int fadeInFrames = 0, float intensity = 1f)
 		{
+			// Render-only cosmetic state that is drained exclusively by Draw (render tick). While the
+			// window is minimized the render tick never runs, so nothing drains these lists, yet the
+			// simulation keeps detonating warheads and ticking searchlights that call this. Dropping the
+			// registration while suspended is what keeps the lists from growing without bound and flushing
+			// in one frame on restore. Sync is unaffected: the simulation never reads this state.
+			if (Game.Renderer.WindowIsSuspended)
+				return;
+
+			if (scaleEnd < 0f)
+				scaleEnd = scale;
+
+			// If no glow is currently active, Draw has been idle (it only runs while effects exist) so
+			// lastWorldTick is stale; reset it, otherwise the first Draw would advance the fade by the whole
+			// idle gap and instantly expire this glow.
+			if (pendingGlows.Count == 0 && fadingGlows.Count == 0)
+				lastWorldTick = -1;
+
 			if (fadeFrames > 0)
 			{
-				fadingGlows.Add((source, target, color, scale, intensity, fadeFrames, fadeFrames, fadeInFrames));
+				// Defensive bound for the render-starved (not suspended) case: drop the oldest, most-faded
+				// glow rather than let the list grow without limit.
+				if (fadingGlows.Count >= MaxActiveEffects)
+					fadingGlows.RemoveAt(0);
+
+				var totalTicks = fadeFrames * FramesToTicks;
+				var fadeInTicks = fadeInFrames * FramesToTicks;
+				fadingGlows.Add((source, target, color, scale, scaleEnd, intensity, endpointBoost, totalTicks, totalTicks, fadeInTicks));
 				return;
 			}
 
@@ -82,6 +121,9 @@ namespace OpenRA.Mods.Common.Traits
 			// Rapid-fire weapons that produce more than 2 beams per tick skip the extras.
 			glowsPerSource.TryGetValue(source, out var count);
 			if (count >= 2)
+				return;
+
+			if (pendingGlows.Count >= MaxActiveEffects)
 				return;
 
 			glowsPerSource[source] = count + 1;
