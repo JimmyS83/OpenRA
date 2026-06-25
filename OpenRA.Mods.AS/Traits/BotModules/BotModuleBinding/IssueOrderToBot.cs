@@ -10,6 +10,7 @@
 
 using System;
 using OpenRA.Mods.Common.Traits;
+using OpenRA.Primitives;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
@@ -25,8 +26,7 @@ namespace OpenRA.Mods.AS.Traits
 		BecomingIdle = 16
 	}
 
-	[Desc("Allow this actor to automatically issue orders to bot player," +
-		"and processed by " + nameof(ExternalBotOrdersManager) + ". Only support orders without a target.")]
+	[Desc("Allow this actor to automatically issue orders to bot player and processed by " + nameof(ExternalBotOrdersManager))]
 	public class IssueOrderToBotInfo : ConditionalTraitInfo
 	{
 		[Desc("Events leading to the actor issue order. Possible values are: None, Attack, Damage, Heal, Periodically, BecomingIdle.")]
@@ -36,29 +36,41 @@ namespace OpenRA.Mods.AS.Traits
 		[Desc("Order name to issue.")]
 		public readonly string OrderName = null;
 
-		[Desc("Second order name to issue.")]
-		public readonly string SecondOrderName = null;
-
 		[Desc("Chance of the order take effect.")]
 		public readonly int OrderChance = 50;
 
-		[Desc("Chance of the second order take effect.")]
-		public readonly int SecondOrderChance = 50;
+		[Desc("Order's target range. <0 means disable targeting.")]
+		public readonly int TargetRangeInCell = -1;
+
+		[Desc("Should the player be the subject of the order. It is the actor by default.", "Can use this to issue support power order.")]
+		public readonly bool IsIssuerOwner = false;
+
+		[Desc("What player relationships are affected.")]
+		public readonly PlayerRelationship ValidRelationships = PlayerRelationship.Enemy;
+
+		[Desc("What types of targets are affected.")]
+		public readonly BitSet<TargetableType> ValidTargets;
+
+		[Desc("What types of targets are unaffected.", "Overrules ValidTargets.")]
+		public readonly BitSet<TargetableType> InvalidTargets;
+
+		[Desc("Use Target's Location.")]
+		public readonly bool UseTargetLocation = true;
 
 		[Desc("Delay between two successful issued orders.")]
 		public readonly int OrderInterval = 2500;
 
-		[Desc("Delay to issue second order after a first order.",
-			"Note: if set > 0, next issued order will be OrderInterval + SecondOrderDelay")]
-		public readonly int SecondOrderDelay = -1;
+		[Desc("Should attack the furthest or closest target. Possible values are Closest, Furthest, Random",
+			"Multiple values mean the distance randomizes between them")]
+		public readonly TargetDistance TargetDistance = TargetDistance.Closest;
 
 		public override object Create(ActorInitializer init) { return new IssueOrderToBot(this); }
 	}
 
 	public class IssueOrderToBot : ConditionalTrait<IssueOrderToBotInfo>, INotifyAttack, ITick, INotifyDamage,
-		INotifyCreated, ISync, INotifyOwnerChanged, INotifyBecomingIdle
+		INotifyCreated, INotifyOwnerChanged, INotifyBecomingIdle
 	{
-		int secondOrderTicks = -1, firstOrderTicks;
+		int orderTicks;
 		ExternalBotOrdersManager orderManager;
 
 		public IssueOrderToBot(IssueOrderToBotInfo info)
@@ -69,23 +81,13 @@ namespace OpenRA.Mods.AS.Traits
 			orderManager = self.Owner.PlayerActor.Trait<ExternalBotOrdersManager>();
 		}
 
-		void TryIssueFirstOrder(Actor self)
+		void TryIssueOrder(Actor self)
 		{
-			if (!orderManager.ManagerRunning || firstOrderTicks > 0 || orderManager.IsTraitDisabled)
+			if (!orderManager.ManagerRunning || orderTicks > 0 || orderManager.IsTraitDisabled)
 				return;
 
-			orderManager.AddEntry(self, Info.OrderName, Info.OrderChance);
-
-			firstOrderTicks = Info.OrderInterval;
-			secondOrderTicks = Info.SecondOrderDelay;
-		}
-
-		void TryIssueSecondOrder(Actor self)
-		{
-			if (!orderManager.ManagerRunning || orderManager.IsTraitDisabled)
-				return;
-
-			orderManager.AddEntry(self, Info.SecondOrderName, Info.SecondOrderChance);
+			orderManager.AddEntryFromIssueOrderToBot(self, Info);
+			orderTicks = Info.OrderInterval;
 		}
 
 		void INotifyAttack.Attacking(Actor self, in Target target, Armament a, Barrel barrel)
@@ -94,7 +96,7 @@ namespace OpenRA.Mods.AS.Traits
 				return;
 
 			if (Info.OrderTrigger.HasFlag(OrderTriggers.Attack))
-				TryIssueFirstOrder(self);
+				TryIssueOrder(self);
 		}
 
 		void INotifyAttack.PreparingAttack(Actor self, in Target target, Armament a, Barrel barrel) { }
@@ -104,16 +106,8 @@ namespace OpenRA.Mods.AS.Traits
 			if (!orderManager.ManagerRunning || IsTraitDisabled || orderManager.IsTraitDisabled)
 				return;
 
-			if (Info.SecondOrderDelay > -1)
-			{
-				if (--secondOrderTicks < 0)
-					TryIssueSecondOrder(self);
-
-				return;
-			}
-
-			if (--firstOrderTicks < 0 && Info.OrderTrigger.HasFlag(OrderTriggers.Periodically))
-				TryIssueFirstOrder(self);
+			if (--orderTicks < 0 && Info.OrderTrigger.HasFlag(OrderTriggers.Periodically))
+				TryIssueOrder(self);
 		}
 
 		void INotifyDamage.Damaged(Actor self, AttackInfo e)
@@ -122,10 +116,10 @@ namespace OpenRA.Mods.AS.Traits
 				return;
 
 			if (e.Damage.Value > 0 && Info.OrderTrigger.HasFlag(OrderTriggers.Damage))
-				TryIssueFirstOrder(self);
+				TryIssueOrder(self);
 
 			if (e.Damage.Value < 0 && Info.OrderTrigger.HasFlag(OrderTriggers.Heal))
-				TryIssueFirstOrder(self);
+				TryIssueOrder(self);
 		}
 
 		void INotifyOwnerChanged.OnOwnerChanged(Actor self, Player oldOwner, Player newOwner)
@@ -139,7 +133,7 @@ namespace OpenRA.Mods.AS.Traits
 				return;
 
 			if (Info.OrderTrigger.HasFlag(OrderTriggers.BecomingIdle))
-				TryIssueFirstOrder(self);
+				TryIssueOrder(self);
 		}
 	}
 }
