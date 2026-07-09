@@ -22,6 +22,12 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.AS.Traits
 {
+	public enum PriorityType
+	{
+		Distance,
+		Value
+	}
+
 	[Desc("Support power type to fire a burst of armaments.")]
 	public class FireArmamentPowerInfo : SupportPowerInfo
 	{
@@ -31,6 +37,30 @@ namespace OpenRA.Mods.AS.Traits
 		[Desc("If `AllowMultiple` is `false`, how many instances of this support power are allowed to fire.",
 			  "Actual instances might end up less due to range/etc.")]
 		public readonly int MaximumFiringInstances = 1;
+
+		[Desc("If true, the power will target actors.")]
+		public readonly bool TargetActors = false;
+
+		[Desc("If TargetsActors is true, defines how targets are prioritized.")]
+		public readonly PriorityType PrioritizeTargetsBy = PriorityType.Distance;
+
+		[Desc("If TargetsActors is true, defines the target types that can be targeted. Leave empty for all types.")]
+		public readonly BitSet<TargetableType> ValidTargets = default;
+
+		[Desc("If TargetsActors is true, defines the target types that cannot be targeted.")]
+		public readonly BitSet<TargetableType> InvalidTargets = default;
+
+		[Desc("If TargetsActors is true, defines the player relationships of actors that can be targeted.")]
+		public readonly PlayerRelationship ValidRelationships = PlayerRelationship.Enemy | PlayerRelationship.Neutral;
+
+		// [Desc("If TargetsActors is true, maximum number of targets. Zero for no limit.")]
+		// public readonly int MaxTargets = 0;
+
+		// [Desc("If TargetsActors is true, minimum targets for power to activate.")]
+		// public readonly int MinTargets = 1;
+
+		[Desc("If true, target actors must not be under shroud/fog.")]
+		public readonly bool TargetMustBeVisible = true;
 
 		[Desc("Amount of time before detonation to remove the beacon.")]
 		public readonly int BeaconRemoveAdvance = 25;
@@ -57,6 +87,15 @@ namespace OpenRA.Mods.AS.Traits
 		public readonly Color TargetCircleBorderColor = Color.FromArgb(96, Color.Black);
 		public readonly float TargetCircleBorderWidth = 3;
 
+		[Desc("Display selection boxes for target actor.")]
+		public readonly bool ShowSelectionBoxes = false;
+
+		[Desc("Target actor selection box colour.")]
+		public readonly Color SelectionBoxColor = Color.Red;
+
+		[Desc("Target actor tint colour.")]
+		public readonly Color? TargetTintColor = null;
+
 		public override object Create(ActorInitializer init) { return new FireArmamentPower(init.Self, this); }
 	}
 
@@ -71,16 +110,20 @@ namespace OpenRA.Mods.AS.Traits
 		HashSet<Turreted> turrets;
 
 		bool enabled;
+		Target target;
 		int ticks;
 		int estimatedTicks;
-		Target target;
 
 		public Armament[] Armaments;
+		WDist findTargetActorRange;
+		// Queue<Target> targetQueue;
+		CPos targetCell;
 
 		public FireArmamentPower(Actor self, FireArmamentPowerInfo info)
 			: base(self, info)
 		{
 			FireArmamentPowerInfo = info;
+			// targetQueue = new Queue<Target>();
 			enabled = false;
 		}
 
@@ -92,6 +135,8 @@ namespace OpenRA.Mods.AS.Traits
 
 			var armamentturrets = Armaments.Select(x => x.Info.Turret).ToHashSet();
 			turreted = self.TraitsImplementing<Turreted>().Any(x => armamentturrets.Contains(x.Name));
+
+			findTargetActorRange = FireArmamentPowerInfo.TargetCircleRange != WDist.Zero ? FireArmamentPowerInfo.TargetCircleRange : new(1024);
 
 			base.Created(self);
 		}
@@ -130,7 +175,9 @@ namespace OpenRA.Mods.AS.Traits
 			else
 				Game.Sound.Play(SoundType.World, FireArmamentPowerInfo.IncomingSound);
 
-			target = order.Target;
+			targetCell = self.World.Map.CellContaining(order.Target.CenterPosition);
+
+			target = FireArmamentPowerInfo.TargetActors ? GetActorTargets(targetCell).Select(t => Target.FromActor(t)).FirstOrDefault() : Target.FromCell(self.World, targetCell);
 
 			enabled = true;
 
@@ -142,7 +189,7 @@ namespace OpenRA.Mods.AS.Traits
 				var type = FireArmamentPowerInfo.RevealGeneratedShroud ? Shroud.SourceType.Visibility
 					: Shroud.SourceType.PassiveVisibility;
 
-				self.World.AddFrameEndTask(w => w.Add(new RevealShroudEffect(target.CenterPosition, FireArmamentPowerInfo.CameraRange, type, self.Owner,
+				self.World.AddFrameEndTask(w => w.Add(new RevealShroudEffect(order.Target.CenterPosition, FireArmamentPowerInfo.CameraRange, type, self.Owner,
 					FireArmamentPowerInfo.CameraStances, estimatedTicks - FireArmamentPowerInfo.CameraSpawnAdvance,
 					FireArmamentPowerInfo.CameraSpawnAdvance + FireArmamentPowerInfo.CameraRemoveDelay)));
 			}
@@ -155,7 +202,7 @@ namespace OpenRA.Mods.AS.Traits
 
 				var beacon = new Beacon(
 					order.Player,
-					target.CenterPosition,
+					order.Target.CenterPosition,
 					FireArmamentPowerInfo.BeaconPaletteIsPlayerPalette,
 					FireArmamentPowerInfo.BeaconPalette,
 					FireArmamentPowerInfo.BeaconImage,
@@ -184,6 +231,31 @@ namespace OpenRA.Mods.AS.Traits
 		{
 			Game.Sound.PlayToPlayer(SoundType.UI, manager.Self.Owner, FireArmamentPowerInfo.SelectTargetSound);
 			self.World.OrderGenerator = new SelectArmamentPowerTarget(self, order, manager, this);
+		}
+
+		public IEnumerable<Actor> GetActorTargets(CPos xy)
+		{
+			var centerPos = Self.World.Map.CenterOfCell(xy);
+
+			var actorsInRange = Self.World.FindActorsInCircle(centerPos, findTargetActorRange)
+				.Where(a => a.IsInWorld
+					&& !a.IsDead
+					&& FireArmamentPowerInfo.ValidRelationships.HasRelationship(Self.Owner.RelationshipWith(a.Owner))
+					&& (FireArmamentPowerInfo.ValidTargets.IsEmpty || FireArmamentPowerInfo.ValidTargets.Overlaps(a.GetEnabledTargetTypes()))
+					&& (FireArmamentPowerInfo.InvalidTargets.IsEmpty || !FireArmamentPowerInfo.InvalidTargets.Overlaps(a.GetEnabledTargetTypes()))
+					&& (!FireArmamentPowerInfo.TargetMustBeVisible || Self.Owner.Shroud.IsVisible(a.Location))
+					&& a.CanBeViewedByPlayer(Self.Owner))
+				.OrderByDescending(a => {
+					if (FireArmamentPowerInfo.PrioritizeTargetsBy == PriorityType.Value)
+						return a.Info.TraitInfoOrDefault<ValuedInfo>()?.Cost ?? 0;
+					else
+						return 0;
+				}).ThenBy(a => (a.CenterPosition - centerPos).LengthSquared);
+
+			// if (FireArmamentPowerInfo.MaxTargets > 0)
+			//	return actorsInRange.Take(FireArmamentPowerInfo.MaxTargets);
+
+			return actorsInRange.Take(1);
 		}
 
 		void ITick.Tick(Actor self)
@@ -283,7 +355,7 @@ namespace OpenRA.Mods.AS.Traits
 			var pos = world.Map.CenterOfCell(xy);
 
 			world.CancelInputMode();
-			if (mi.Button == MouseButton.Left && IsValidTargetCell(xy))
+			if (mi.Button == MouseButton.Left && IsValidTargetCell(xy) && (!power.FireArmamentPowerInfo.TargetActors || power.GetActorTargets(xy).Any())) // power.FireArmamentPowerInfo.MinTargets
 			{
 				yield return new Order(order, manager.Self, Target.FromCell(world, xy), false) { SuppressVisualFeedback = true };
 
@@ -305,7 +377,33 @@ namespace OpenRA.Mods.AS.Traits
 				world.CancelInputMode();
 		}
 
-		protected override IEnumerable<IRenderable> Render(WorldRenderer wr, World world) { yield break; }
+		protected override IEnumerable<IRenderable> Render(WorldRenderer wr, World world)
+		{
+			var xy = wr.Viewport.ViewToWorld(Viewport.LastMousePos);
+
+			if (power.FireArmamentPowerInfo.TargetActors && power.FireArmamentPowerInfo.TargetTintColor != null)
+			{
+				var targetUnits = power.GetActorTargets(xy);
+
+				foreach (var unit in targetUnits)
+				{
+					var renderables = unit.Render(wr)
+						.Where(r => !r.IsDecoration && r is IModifyableRenderable)
+						.Select(r =>
+						{
+							var mr = (IModifyableRenderable)r;
+							var tint = new float3(power.FireArmamentPowerInfo.TargetTintColor.Value.R, power.FireArmamentPowerInfo.TargetTintColor.Value.G, power.FireArmamentPowerInfo.TargetTintColor.Value.B) / 255f;
+							mr = mr.WithTint(tint, mr.TintModifiers | TintModifiers.ReplaceColor).WithAlpha(power.FireArmamentPowerInfo.TargetTintColor.Value.A / 255f);
+							return mr;
+						});
+
+					foreach (var r in renderables)
+					{
+						yield return r;
+					}
+				}
+			}
+		}
 
 		protected override IEnumerable<IRenderable> RenderAboveShroud(WorldRenderer wr, World world) { yield break; }
 
@@ -335,10 +433,10 @@ namespace OpenRA.Mods.AS.Traits
 				}
 			}
 
+			var xy = wr.Viewport.ViewToWorld(Viewport.LastMousePos);
+
 			if (power.FireArmamentPowerInfo.TargetCircleRange > WDist.Zero)
 			{
-				var xy = wr.Viewport.ViewToWorld(Viewport.LastMousePos);
-
 				var targetRangeColor = power.FireArmamentPowerInfo.TargetCircleUsePlayerColor
 					? power.Self.Owner.Color : power.FireArmamentPowerInfo.TargetCircleColor;
 
@@ -350,6 +448,24 @@ namespace OpenRA.Mods.AS.Traits
 					power.FireArmamentPowerInfo.TargetCircleWidth,
 					power.FireArmamentPowerInfo.TargetCircleBorderColor,
 					power.FireArmamentPowerInfo.TargetCircleBorderWidth);
+			}
+
+			if (power.FireArmamentPowerInfo.TargetActors)
+			{
+				var targetUnits = power.GetActorTargets(xy);
+
+				if (power.FireArmamentPowerInfo.ShowSelectionBoxes)
+				{
+					foreach (var unit in targetUnits)
+					{
+						var decorations = unit.TraitsImplementing<ISelectionDecorations>().FirstEnabledTraitOrDefault();
+						if (decorations != null)
+						{
+							foreach (var d in decorations.RenderSelectionAnnotations(unit, wr, power.FireArmamentPowerInfo.SelectionBoxColor))
+								yield return d;
+						}
+					}
+				}
 			}
 		}
 

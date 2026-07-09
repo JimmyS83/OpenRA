@@ -175,6 +175,9 @@ namespace OpenRA.Mods.AS.Traits
 				carrierSlaveEntry.SpawnerSlave.Stop(carrierSlaveEntry.Actor);
 
 				carrierSlaveEntry.SpawnerSlave.Attack(carrierSlaveEntry.Actor, delayedTarget);
+
+				if (CarrierMasterInfo.SpawnIsMissile)
+					carrierSlaveEntry = null;
 			});
 		}
 
@@ -206,6 +209,9 @@ namespace OpenRA.Mods.AS.Traits
 		}
 		void Recall()
 		{
+			if (CarrierMasterInfo.SpawnIsMissile)
+				return;
+
 			// Tell launched slaves to come back and enter me.
 			foreach (var slaveEntry in SlaveEntries)
 				if (slaveEntry.IsLaunched && slaveEntry.IsValid)
