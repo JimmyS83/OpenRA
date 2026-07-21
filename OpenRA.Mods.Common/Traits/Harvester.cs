@@ -208,10 +208,12 @@ namespace OpenRA.Mods.Common.Traits
 			// After having docked at a refinery make sure we are running FindAndDeliverResources activity.
 			if (GetDockType.Overlaps(dock.GetDockType))
 			{
-				// var currentActivity = self.CurrentActivity;
-				// if (currentActivity == null || (currentActivity is not FindAndDeliverResources && currentActivity.NextActivity == null))
-				var lastCell = (self.CurrentActivity as FindAndDeliverResources)?.LastHarvestedCell;
-				self.QueueActivity(false, new FindAndDeliverResources(self, lastCell));
+				var currentActivity = self.CurrentActivity;
+				if (currentActivity == null || (currentActivity is not FindAndDeliverResources && currentActivity.NextActivity == null))
+				{
+					var lastCell = (self.CurrentActivity as FindAndDeliverResources)?.LastHarvestedCell;
+					self.QueueActivity(false, new FindAndDeliverResources(self, lastCell));
+				}
 			}
 		}
 

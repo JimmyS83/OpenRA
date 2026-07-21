@@ -49,10 +49,10 @@ namespace OpenRA.Mods.AS.Activities
 			if (facing != null)
 				facing.Facing = host.Info.DockAngle;
 
-			if (hostActor == null)
-				self.QueueActivity(new FindAndDeliverResources(self, harvestedField));
-			else
+			if (hostActor != null)
 				self.QueueActivity(new MoveToDock(self, hostActor, host, forceEnter));
+
+			self.QueueActivity(new FindAndDeliverResources(self, harvestedField));
 
 			return true;
 		}
