@@ -202,7 +202,7 @@ namespace OpenRA.Mods.Common.Traits
 			});
 		}
 
-		static int GetWeight(Actor a)
+		internal static int GetWeight(Actor a)
 		{
 			var weight = a.Info.TraitInfo<PassengerInfo>().Weight;
 			if (weight > 0)

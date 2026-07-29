@@ -27,7 +27,8 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("If defined, use a custom pip type defined on the transport's WithCargoPipsDecoration.CustomPipSequences list.")]
 		public readonly string CustomPipType = null;
 
-		public readonly int Weight = 1;
+		[Desc("Space this actor occupies in a transport. When 0, auto-computed: infantry=1, vehicles scale with HP.")]
+		public readonly int Weight = 0;
 
 		[GrantedConditionReference]
 		[Desc("The condition to grant to when this actor is loaded inside any transport.")]
@@ -89,7 +90,7 @@ namespace OpenRA.Mods.Common.Traits
 					Info.EnterCursor,
 					Info.EnterBlockedCursor,
 					IsCorrectCargoType,
-					CanEnter);
+					CanEnterCursor);
 			}
 		}
 
@@ -115,14 +116,20 @@ namespace OpenRA.Mods.Common.Traits
 			return cargo != null && !cargo.IsTraitDisabled && cargo.Info.Types.Contains(Info.CargoType);
 		}
 
-		bool CanEnter(Cargo cargo)
+		bool CanEnter(Actor self, Cargo cargo)
 		{
-			return cargo != null && !cargo.IsTraitDisabled && !cargo.IsTraitPaused && cargo.HasSpace(Info.Weight);
+			return cargo != null && !cargo.IsTraitDisabled && !cargo.IsTraitPaused && cargo.HasSpace(Cargo.GetWeight(self));
 		}
 
-		bool CanEnter(Actor target)
+		bool CanEnter(Actor self, Actor target)
 		{
-			return CanEnter(target.TraitOrDefault<Cargo>());
+			return CanEnter(self, target.TraitOrDefault<Cargo>());
+		}
+
+		bool CanEnterCursor(Actor target)
+		{
+			var cargo = target.TraitOrDefault<Cargo>();
+			return cargo != null && !cargo.IsTraitDisabled && !cargo.IsTraitPaused;
 		}
 
 		public string VoicePhraseForOrder(Actor self, Order order)
@@ -130,7 +137,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (order.OrderString != "EnterTransport")
 				return null;
 
-			if (order.Target.Type != TargetType.Actor || !CanEnter(order.Target.Actor))
+			if (order.Target.Type != TargetType.Actor || !CanEnter(self, order.Target.Actor))
 				return null;
 
 			return Info.Voice;
@@ -175,7 +182,7 @@ namespace OpenRA.Mods.Common.Traits
 				return;
 
 			var targetActor = order.Target.Actor;
-			if (!CanEnter(targetActor))
+			if (!CanEnter(self, targetActor))
 				return;
 
 			if (!IsCorrectCargoType(targetActor))
