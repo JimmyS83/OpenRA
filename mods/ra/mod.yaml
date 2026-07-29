@@ -1,6 +1,6 @@
 Metadata:
 	Title: mod-title
-	Version: {DEV_VERSION}
+	Version: 1.09
 	Website: https://www.openra.net
 	WebIcon32: https://www.openra.net/images/icons/ra_32x32.png
 	WindowTitle: mod-windowtitle
@@ -68,7 +68,7 @@ FileSystem: ContentInstallerFileSystem
 
 MapFolders:
 	ra|maps: System
-	~^SupportDir|maps/ra/{DEV_VERSION}: User
+	~^SupportDir|maps/ra/1.09: User
 
 Rules:
 	ra|rules/misc.yaml
