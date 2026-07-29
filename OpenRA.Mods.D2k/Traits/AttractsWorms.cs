@@ -14,10 +14,11 @@ using OpenRA.Mods.Common.Traits;
 
 namespace OpenRA.Mods.D2k.Traits
 {
-	[Desc("This actor makes noise, which causes them to be targeted by actors with the Sandworm trait.")]
-	public class AttractsWormsInfo : ConditionalTraitInfo
+	[Desc("This actor makes noise, which causes them to be targeted by actors with the Sandworm trait.",
+		"When Intensity is 0 (default), it is auto-computed from the actor's max HP so worms prefer larger prey.")]
+	public class AttractsWormsInfo : ConditionalTraitInfo, Requires<HealthInfo>
 	{
-		[Desc("How much noise this actor produces.")]
+		[Desc("How much noise this actor produces. When 0, auto-scales from Health.HP.")]
 		public readonly int Intensity = 0;
 
 		[Desc("Noise percentage at Range step away from the actor.")]
@@ -36,6 +37,7 @@ namespace OpenRA.Mods.D2k.Traits
 	{
 		readonly Actor self;
 		readonly ImmutableArray<WDist> effectiveRange;
+		readonly int effectiveIntensity;
 
 		public AttractsWorms(ActorInitializer init, AttractsWormsInfo info)
 			: base(info)
@@ -43,6 +45,15 @@ namespace OpenRA.Mods.D2k.Traits
 			self = init.Self;
 
 			effectiveRange = info.Range != null ? info.Range : Exts.MakeArray(info.Falloff.Length, i => i * info.Spread).ToImmutableArray();
+
+			// Auto-scale Intensity from HP when not explicitly set
+			if (info.Intensity > 0)
+				effectiveIntensity = info.Intensity;
+			else
+			{
+				var hp = self.Info.TraitInfo<HealthInfo>().HP;
+				effectiveIntensity = hp / 100;
+			}
 		}
 
 		int GetNoisePercentageAtDistance(int distance)
@@ -75,7 +86,7 @@ namespace OpenRA.Mods.D2k.Traits
 			var direction = 1024 * distance / length;
 			var percentage = GetNoisePercentageAtDistance(length);
 
-			return direction * Info.Intensity * percentage / 100;
+			return direction * effectiveIntensity * percentage / 100;
 		}
 	}
 }

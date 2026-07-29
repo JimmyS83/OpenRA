@@ -19,10 +19,10 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.Common.Traits
 {
 	[Desc("Donate money to actors with the `" + nameof(AcceptsDeliveredCash) + "` trait.")]
-	sealed class DeliversCashInfo : TraitInfo
+	sealed class DeliversCashInfo : TraitInfo, Requires<ValuedInfo>
 	{
-		[Desc("The amount of cash the owner receives.")]
-		public readonly int Payload = 500;
+		[Desc("The amount of cash the owner receives. When -1, auto-computes as 50% of the actor's Valued.Cost.")]
+		public readonly int Payload = -1;
 
 		[Desc("The amount of experience the donating player receives.")]
 		public readonly int PlayerExperience = 0;
@@ -43,16 +43,22 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Color to use for the target line.")]
 		public readonly Color TargetLineColor = Color.Yellow;
 
-		public override object Create(ActorInitializer init) { return new DeliversCash(this); }
+		public override object Create(ActorInitializer init) { return new DeliversCash(init, this); }
 	}
 
 	sealed class DeliversCash : IIssueOrder, IResolveOrder, IOrderVoice, INotifyCashTransfer
 	{
 		readonly DeliversCashInfo info;
+		readonly int payload;
 
-		public DeliversCash(DeliversCashInfo info)
+		public DeliversCash(ActorInitializer init, DeliversCashInfo info)
 		{
 			this.info = info;
+
+			if (info.Payload >= 0)
+			payload = info.Payload;
+			else
+			payload = init.Self.Info.TraitInfo<ValuedInfo>().Cost / 2;
 		}
 
 		public IEnumerable<IOrderTargeter> Orders
@@ -81,7 +87,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (order.OrderString != "DeliverCash")
 				return;
 
-			self.QueueActivity(order.Queued, new DonateCash(self, order.Target, info.Payload, info.PlayerExperience, info.TargetLineColor));
+			self.QueueActivity(order.Queued, new DonateCash(self, order.Target, payload, info.PlayerExperience, info.TargetLineColor));
 			self.ShowTargetLines();
 		}
 

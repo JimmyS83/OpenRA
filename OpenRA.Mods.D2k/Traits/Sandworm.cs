@@ -96,7 +96,7 @@ namespace OpenRA.Mods.D2k.Traits
 
 			bool IsValidTarget(Actor a)
 			{
-				if (!a.Info.HasTraitInfo<AttractsWormsInfo>())
+				if (!a.Info.HasTraitInfo<HealthInfo>())
 					return false;
 
 				return mobile.CanEnterCell(a.Location, null, BlockedByActor.None);

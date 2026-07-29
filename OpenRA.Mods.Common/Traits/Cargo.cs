@@ -16,6 +16,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using OpenRA.Mods.Common.Activities;
 using OpenRA.Mods.Common.Orders;
+using OpenRA.Mods.Common.Traits.Render;
 using OpenRA.Primitives;
 using OpenRA.Traits;
 
@@ -201,7 +202,20 @@ namespace OpenRA.Mods.Common.Traits
 			});
 		}
 
-		static int GetWeight(Actor a) { return a.Info.TraitInfo<PassengerInfo>().Weight; }
+		static int GetWeight(Actor a)
+		{
+			var weight = a.Info.TraitInfo<PassengerInfo>().Weight;
+			if (weight > 0)
+				return weight;
+
+			// Auto-compute: infantry = 1, vehicles = log2(HP/32768) clamped to [2,8]
+			if (a.Info.HasTraitInfo<WithInfantryBodyInfo>())
+				return 1;
+
+			var hp = a.Info.TraitInfo<HealthInfo>().HP;
+			var log2 = (int)Math.Floor(Math.Log2(hp / 32768.0));
+			return Math.Clamp(2 + log2, 2, 8);
+		}
 
 		public IEnumerable<IOrderTargeter> Orders
 		{
