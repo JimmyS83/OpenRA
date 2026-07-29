@@ -150,7 +150,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (passengerInfo == null)
 				return false;
 
-			var candidates = GatherCargoTargets(self, passengerInfo.Weight);
+			var candidates = GatherCargoTargets(self, Cargo.GetWeight(producee));
 			if (candidates == null)
 				return false;
 
