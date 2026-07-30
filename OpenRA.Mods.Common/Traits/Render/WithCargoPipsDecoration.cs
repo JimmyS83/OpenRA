@@ -66,7 +66,8 @@ namespace OpenRA.Mods.Common.Traits.Render
 			foreach (var c in cargo.Passengers)
 			{
 				var pi = c.Info.TraitInfo<PassengerInfo>();
-				if (n < pi.Weight)
+				var weight = Cargo.GetWeight(c);
+				if (n < weight)
 				{
 					if (pi.CustomPipType != null && Info.CustomPipSequences.TryGetValue(pi.CustomPipType, out var sequence))
 						return sequence;
@@ -74,7 +75,7 @@ namespace OpenRA.Mods.Common.Traits.Render
 					return Info.FullSequence;
 				}
 
-				n -= pi.Weight;
+				n -= weight;
 			}
 
 			return Info.EmptySequence;
