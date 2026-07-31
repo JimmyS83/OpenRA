@@ -223,7 +223,9 @@ namespace OpenRA.Mods.Common.Scripting
 				if (factory.Owner != player)
 					return;
 
-				var queue = GetBuildableInfo(unit.Info.Name).Queue.First();
+				var queue = GetBuildableInfo(unit.Info.Name).Queue.FirstOrDefault();
+				if (queue == null)
+					return;
 
 				if (productionHandlers.TryGetValue(queue, out var productionHandler))
 					productionHandler(factory, unit);
@@ -243,7 +245,12 @@ namespace OpenRA.Mods.Common.Scripting
 		{
 			var typeToQueueMap = new Dictionary<string, string>();
 			foreach (var actorType in actorTypes.Distinct())
-				typeToQueueMap.Add(actorType, GetBuildableInfo(actorType).Queue.First());
+			{
+				var queue = GetBuildableInfo(actorType).Queue.FirstOrDefault();
+				if (queue == null)
+					throw new LuaException($"Actor of type {actorType} has no production queue assigned.");
+				typeToQueueMap.Add(actorType, queue);
+			}
 
 			// PERF: queues tend to live for a long time so cast to array.
 			var queueTypes = typeToQueueMap.Values.Distinct().ToArray();
@@ -290,7 +297,9 @@ namespace OpenRA.Mods.Common.Scripting
 			"Note: it does not check whether this particular type of actor is being produced.")]
 		public bool IsProducing(string actorType)
 		{
-			var queue = GetBuildableInfo(actorType).Queue.First();
+			var queue = GetBuildableInfo(actorType).Queue.FirstOrDefault();
+			if (queue == null)
+				return true;
 
 			if (!queues.TryGetValue(queue, out var cpq))
 				return true;
