@@ -55,7 +55,10 @@ namespace OpenRA.Mods.Common.Widgets
 				WidgetUtils.BindButtonIcon(attackMoveButton);
 
 				attackMoveButton.IsDisabled = () => { UpdateStateIfNecessary(); return attackMoveDisabled; };
-				attackMoveButton.IsHighlighted = () => world.OrderGenerator is AttackMoveOrderGenerator;
+
+				// Attack-move is now the default click behaviour, so this button/key is repurposed
+				// to force a plain Move for the next order instead (same mechanism as Force Move/Alt).
+				attackMoveButton.IsHighlighted = () => !attackMoveButton.IsDisabled() && IsForceModifiersActive(Modifiers.Alt);
 
 				void Toggle(bool allowCancel)
 				{
@@ -65,7 +68,7 @@ namespace OpenRA.Mods.Common.Widgets
 							world.CancelInputMode();
 					}
 					else
-						world.OrderGenerator = new AttackMoveOrderGenerator(world, selectedActors);
+						world.OrderGenerator = new ForceModifiersOrderGenerator(world, Modifiers.Alt, true);
 				}
 
 				attackMoveButton.OnClick = () => Toggle(true);
@@ -287,7 +290,7 @@ namespace OpenRA.Mods.Common.Widgets
 				.Where(a => a.Owner == world.LocalPlayer && a.IsInWorld && !a.IsDead)
 				.ToArray();
 
-			attackMoveDisabled = !selectedActors.Any(a => a.Info.HasTraitInfo<AttackMoveInfo>() && a.Info.HasTraitInfo<AutoTargetInfo>());
+			attackMoveDisabled = !selectedActors.Any(a => a.Info.HasTraitInfo<MobileInfo>() || a.Info.HasTraitInfo<AircraftInfo>());
 			guardDisabled = !selectedActors.Any(a => a.Info.HasTraitInfo<GuardInfo>() && a.Info.HasTraitInfo<AutoTargetInfo>());
 			forceMoveDisabled = !selectedActors.Any(a => a.Info.HasTraitInfo<MobileInfo>() || a.Info.HasTraitInfo<AircraftInfo>());
 			forceAttackDisabled = !selectedActors.Any(a => a.Info.HasTraitInfo<AttackBaseInfo>());

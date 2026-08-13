@@ -1281,7 +1281,7 @@ Container@PLAYER_WIDGETS:
 							X: 7
 							Y: 1
 							ImageCollection: command-icons
-							ImageName: attack-move
+							ImageName: force-move
 						Image@SEPARATOR:
 							Logic: AddFactionSuffixLogic
 							X: 38

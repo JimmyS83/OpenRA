@@ -277,15 +277,16 @@ supportpowers-support-powers-palette =
     .hold = ON HOLD
 
 button-command-bar-attack-move =
-    .tooltip = Attack Move
+    .tooltip = Force Move
     .tooltipdesc =
-    Selected units will move to the desired location
-    and attack any enemies they encounter en route.
+    Selected units will move to the desired location.
+    Default activity for the target is suppressed.
 
-    Hold <(Ctrl)> while targeting to order an Assault Move
-    that attacks any units or structures encountered en route.
+    Attack Move (attacking any enemies encountered en route)
+    is now the default when no key is held.
 
-    Left-click icon then right-click on target location.
+    Left-click icon then right-click on target.
+    Hold <(Alt)> to activate temporarily while commanding units.
 
 button-command-bar-guard =
     .tooltip = Guard

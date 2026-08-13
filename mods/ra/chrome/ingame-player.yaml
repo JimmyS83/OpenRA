@@ -73,7 +73,7 @@ Container@PLAYER_WIDGETS:
 							X: 5
 							Y: 1
 							ImageCollection: command-icons
-							ImageName: attack-move
+							ImageName: force-move
 				Button@FORCE_MOVE:
 					Logic: AddFactionSuffixLogic
 					X: 34

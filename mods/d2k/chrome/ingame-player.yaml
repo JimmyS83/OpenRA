@@ -57,7 +57,7 @@ Container@PLAYER_WIDGETS:
 							X: 4
 							Y: 8
 							ImageCollection: command-icons
-							ImageName: attack-move
+							ImageName: force-move
 				Button@FORCE_MOVE:
 					X: 35
 					Width: 34
