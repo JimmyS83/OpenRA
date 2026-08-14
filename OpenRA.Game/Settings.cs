@@ -275,6 +275,7 @@ namespace OpenRA
 
 		public bool UseClassicMouseStyle = false;
 		public bool UseAlternateScrollButton = false;
+		public bool AttackMoveIsDefault = false;
 
 		public bool HideReplayChat = false;
 
