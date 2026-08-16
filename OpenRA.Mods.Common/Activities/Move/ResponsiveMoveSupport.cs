@@ -78,7 +78,6 @@ namespace OpenRA.Mods.Common.Activities
 			CPos fromCell, SubCell fromSubCell, CPos toCell, SubCell toSubCell,
 			out ResponsiveLanding landing)
 		{
-			landing = default;
 			if (TryGetActivityTarget(self, currentActivity, out var targetPosition))
 				return TryChooseLanding(self, mobile, fromCell, fromSubCell, toCell, toSubCell,
 					self.CenterPosition, preferNearest: false, targetPosition, out landing);
