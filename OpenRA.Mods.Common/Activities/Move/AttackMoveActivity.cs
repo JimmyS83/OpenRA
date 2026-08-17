@@ -18,7 +18,7 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Activities
 {
-	public class AttackMoveActivity : Activity
+	public class AttackMoveActivity : Activity, IResponsiveMoveTarget
 	{
 		readonly Func<Activity> getMove;
 		readonly bool isAssaultMove;
@@ -119,6 +119,16 @@ namespace OpenRA.Mods.Common.Activities
 		{
 			foreach (var n in getMove().TargetLineNodes(self))
 				yield return n;
+		}
+
+		bool IResponsiveMoveTarget.TryGetResponsiveMoveTarget(Actor self, out WPos targetPosition)
+		{
+			var moveActivity = getMove();
+			if (moveActivity is IResponsiveMoveTarget responsiveTarget)
+				return responsiveTarget.TryGetResponsiveMoveTarget(self, out targetPosition);
+
+			targetPosition = default;
+			return false;
 		}
 	}
 }
