@@ -53,7 +53,7 @@
 			"windows": {
 				"program": "${workspaceRoot}/bin/OpenRA.Utility.exe",
 			},
-			"args": ["all", "--docs", "{DEV_VERSION}"],
+			"args": ["all", "--docs", "playtest-20260222"],
 			"env": {
 				"ENGINE_DIR": ".."
 			},
