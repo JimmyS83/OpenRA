@@ -62,7 +62,8 @@ namespace OpenRA.Mods.AS.Traits
 		public override object Create(ActorInitializer init) { return new Shielded(init, this); }
 	}
 
-	public class Shielded : PausableConditionalTrait<ShieldedInfo>, ITick, ISync, ISelectionBar, IDamageModifier, INotifyDamage
+	public class Shielded : PausableConditionalTrait<ShieldedInfo>, ITick, ISync, ISelectionBar, IDamageModifier, INotifyDamage,
+		ITransformActorInitModifier
 	{
 		int conditionToken = Actor.InvalidConditionToken;
 		readonly Actor self;
@@ -75,10 +76,40 @@ namespace OpenRA.Mods.AS.Traits
 
 		IHealth health;
 
+		// ⭐ THE SHIELD IS CARRIED AS A PERCENTAGE, exactly the way health is.
+		//
+		// `Transform.cs` sends `health.HP * 100 / health.MaxHP` in a HealthInit, which is why a
+		// damaged MCV deploys into an equally damaged construction yard: a percentage is the
+		// only quantity that means anything across two actors with different maxima. The shield
+		// had no such handling, so a transform rebuilt it from InitialStrength -- and because
+		// TraitEnabled did the same, toggling the trait refilled the bar outright.
+		//
+		// null until either a transform hands one over or the trait is disabled, so a genuine
+		// first grant still uses InitialStrength.
+		int? retainedPercentage;
+
 		public Shielded(ActorInitializer init, ShieldedInfo info)
 			: base(info)
 		{
 			self = init.Self;
+			retainedPercentage = init.GetOrDefault<ShieldInit>()?.Value;
+		}
+
+		void ITransformActorInitModifier.ModifyTransformActorInit(Actor self, TypeDictionary init)
+		{
+			if (MaxStrength <= 0)
+				return;
+
+			init.Add(new ShieldInit((int)(Strength * 100L / MaxStrength)));
+		}
+
+		// The strength a (re)grant should hand over: the retained fraction of the CURRENT
+		// maximum when there is one, otherwise the configured initial strength.
+		int GrantedStrength()
+		{
+			return retainedPercentage != null
+				? ((int)(MaxStrength * (long)retainedPercentage.Value / 100)).Clamp(0, MaxStrength)
+				: InitialStrength;
 		}
 
 		protected override void Created(Actor self)
@@ -87,7 +118,7 @@ namespace OpenRA.Mods.AS.Traits
 			health = self.TraitOrDefault<IHealth>();
 			MaxStrength = Info.MaxStrength + Info.MaxPercentageStrength * health.MaxHP / 100;
 			InitialStrength = Info.InitialStrength + Info.InitialPercentageStrength * health.MaxHP / 100;
-			Strength = InitialStrength;
+			Strength = GrantedStrength();
 			ticks = Info.InitialRegenDelay;
 		}
 
@@ -202,7 +233,11 @@ namespace OpenRA.Mods.AS.Traits
 		protected override void TraitEnabled(Actor self)
 		{
 			ticks = Info.InitialRegenDelay;
-			Strength = InitialStrength;
+
+			// ⛔ NOT `InitialStrength`. That refilled the bar every time the trait switched on,
+			// so anything a player can toggle -- a deploy, an upgrade flickering -- was an
+			// unlimited-shield exploit: disable, enable, full bar.
+			Strength = GrantedStrength();
 
 			if (conditionToken == Actor.InvalidConditionToken && Strength > 0)
 				conditionToken = self.GrantCondition(Info.ShieldsUpCondition);
@@ -210,10 +245,23 @@ namespace OpenRA.Mods.AS.Traits
 
 		protected override void TraitDisabled(Actor self)
 		{
+			// Remember the fraction that survived, so switching back on restores what was left
+			// rather than a full shield.
+			retainedPercentage = MaxStrength > 0 ? (int)(Strength * 100L / MaxStrength) : 0;
+
 			if (conditionToken == Actor.InvalidConditionToken)
 				return;
 
 			conditionToken = self.RevokeCondition(conditionToken);
 		}
+	}
+
+	// Percentage (0-100) of the shield pool an actor starts with, mirroring HealthInit's
+	// contract. Emitted by Transform via ITransformActorInitModifier so a transformed actor
+	// keeps the FRACTION of shield it had instead of being handed a fresh one.
+	public class ShieldInit : ValueActorInit<int>, ISingleInstanceInit
+	{
+		public ShieldInit(int value)
+			: base(value) { }
 	}
 }
