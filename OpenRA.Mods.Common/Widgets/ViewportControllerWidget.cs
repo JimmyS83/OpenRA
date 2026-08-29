@@ -187,11 +187,18 @@ namespace OpenRA.Mods.Common.Widgets
 		{
 			if (IsJoystickScrolling)
 			{
-				// Base the JoystickScrolling speed on the Scroll Speed slider
+				// Base the JoystickScrolling speed on the Scroll Speed slider, scaled by the actual
+				// elapsed time (same 25ms reference interval as the edge/keyboard scroll below) so the
+				// pan speed stays constant regardless of how often this is called. Previously this
+				// applied a fixed increment per call, which implicitly assumed it was only ever called
+				// once per rendered frame - calling it more often (as we now do) would otherwise make
+				// Joystick-mode panning speed scale up with the call rate instead of with real time.
 				var rate = 0.01f * Game.Settings.Game.ViewportEdgeScrollStep;
+				var deltaScale = Math.Min(Game.RunTime - lastScrollTime, 25f);
 
-				var scroll = (joystickScrollEnd.Value - joystickScrollStart.Value).ToVector2() * rate;
+				var scroll = (joystickScrollEnd.Value - joystickScrollStart.Value).ToVector2() * rate * (deltaScale / 25f);
 				worldRenderer.Viewport.Scroll(scroll, false);
+				lastScrollTime = Game.RunTime;
 			}
 			else if (!isStandardScrolling)
 			{

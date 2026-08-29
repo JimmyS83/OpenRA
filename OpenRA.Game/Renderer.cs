@@ -337,7 +337,10 @@ namespace OpenRA
 				r.SetPalette(palette);
 		}
 
-		public void EndFrame(IInputHandler inputHandler)
+		// Presents the finished frame without pumping input. Use this from the main game
+		// loop, where input is pumped independently (and more frequently) via PumpInput
+		// below, so that mouse/keyboard handling is not throttled by the render interval.
+		public void EndFrame()
 		{
 			if (renderType != RenderType.UI)
 				throw new InvalidOperationException($"EndFrame called with renderType = {renderType}, expected RenderType.UI.");
@@ -353,10 +356,39 @@ namespace OpenRA
 				new Vector3(lastBufferSize.Width / screenSprite.Size.X, -lastBufferSize.Height / screenSprite.Size.Y, 1f));
 			Flush();
 
+			Context.Present();
+
+			renderType = RenderType.None;
+		}
+
+		// Kept for callers (e.g. load screens) that pump input and present in the same,
+		// unthrottled place. Do not use this from the main game loop - see EndFrame()/PumpInput().
+		public void EndFrame(IInputHandler inputHandler)
+		{
+			if (renderType != RenderType.UI)
+				throw new InvalidOperationException($"EndFrame called with renderType = {renderType}, expected RenderType.UI.");
+
+			Flush();
+
+			screenBuffer.Unbind();
+
+			RgbaSpriteRenderer.DrawSprite(screenSprite, new Vector3(0, lastBufferSize.Height, 0),
+				new Vector3(lastBufferSize.Width / screenSprite.Size.X, -lastBufferSize.Height / screenSprite.Size.Y, 1f));
+			Flush();
+
 			Window.PumpInput(inputHandler);
 			Context.Present();
 
 			renderType = RenderType.None;
+		}
+
+		// Polls and dispatches queued OS input events (mouse/keyboard/text) without presenting
+		// a frame. Safe to call as often as desired - it is cheap when the event queue is empty -
+		// so the main loop can call it every iteration to keep camera dragging, cursor tracking,
+		// etc. responsive even when rendering itself is throttled (e.g. "Cap framerate to game FPS").
+		public void PumpInput(IInputHandler inputHandler)
+		{
+			Window.PumpInput(inputHandler);
 		}
 
 		public void DrawBatch<T>(IVertexBuffer<T> vertices, IShader shader,

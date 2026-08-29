@@ -710,11 +710,11 @@ namespace OpenRA
 					worldRenderer?.BeginFrame();
 
 					// World rendering is disabled while the loading screen is displayed
+					// Viewport.Tick() (camera position/zoom, edge/keyboard/joystick scrolling) is
+					// no longer ticked here - see the main Loop(), where it now runs every loop
+					// iteration instead of only when a frame is actually rendered.
 					if (worldRenderer != null && !worldRenderer.World.IsLoadingGameSave)
-					{
-						worldRenderer.Viewport.Tick();
 						worldRenderer.PrepareRenderables();
-					}
 
 					Ui.PrepareRenderables();
 					worldRenderer?.EndFrame();
@@ -750,7 +750,7 @@ namespace OpenRA
 				}
 
 				using (new PerfSample("render_flip"))
-					Renderer.EndFrame(new DefaultInputHandler(OrderManager.World));
+					Renderer.EndFrame();
 
 				if (takeScreenshot)
 				{
@@ -807,6 +807,14 @@ namespace OpenRA
 			// than this, then that limit will be used.
 			const int MinReplayFps = 10;
 
+			// Upper bound on how long we sleep between loop iterations when there is nothing
+			// to tick or render yet. Input is pumped once per iteration (see below), so this
+			// value is effectively the worst-case input latency / mouse-drag responsiveness -
+			// independent of the render or logic interval. 8ms (~125Hz) is comfortably below
+			// what's needed to make camera dragging feel smooth, and pumping the (usually empty)
+			// SDL event queue this often costs a negligible amount of CPU time.
+			const int MaxInputPumpIntervalMs = 8;
+
 			// Timestamps for when the next logic and rendering should run
 			var nextLogic = RunTime;
 			var nextRender = RunTime;
@@ -815,6 +823,27 @@ namespace OpenRA
 
 			while (state == RunStatus.Running)
 			{
+				// Pump OS input (mouse/keyboard/text) every iteration, regardless of whether this
+				// iteration also ticks logic or renders a frame. Previously this only happened as
+				// part of RenderTick, so enabling "Cap framerate to game FPS" (or any framerate cap
+				// below the display's refresh rate) throttled mouse-drag camera panning down to the
+				// render rate too. Pumping it here decouples input responsiveness from that cap.
+				//
+				// Viewport.Tick() (camera position/zoom, and - via the ViewportTick event - edge-scroll,
+				// keyboard-scroll and "Joystick" mouse-scroll) is ticked here for the same reason: it
+				// used to run only inside RenderTick, so all of those were throttled by the render/tick
+				// cap just like mouse-drag panning was. None of this touches game logic/simulation
+				// (World.Tick, orders, sync state) - it is purely local camera/UI state, same as input
+				// handling above, so ticking it more often cannot cause a desync with unpatched clients.
+				if (!Renderer.WindowIsSuspended)
+				{
+					var inputHandler = OrderManager?.World != null ? (IInputHandler)new DefaultInputHandler(OrderManager.World) : new NullInputHandler();
+					Renderer.PumpInput(inputHandler);
+
+					if (worldRenderer != null && !worldRenderer.World.IsLoadingGameSave)
+						worldRenderer.Viewport.Tick();
+				}
+
 				var logicInterval = Ui.Timestep;
 				var logicWorld = worldRenderer?.World;
 
@@ -892,7 +921,7 @@ namespace OpenRA
 					}
 				}
 				else
-					Thread.Sleep((int)(nextUpdate - now));
+					Thread.Sleep(Math.Min((int)(nextUpdate - now), MaxInputPumpIntervalMs));
 			}
 		}
 
