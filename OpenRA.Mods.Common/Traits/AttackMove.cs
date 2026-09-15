@@ -294,6 +294,14 @@ namespace OpenRA.Mods.Common.Traits
 
 		public bool TargetOverridesSelection(Actor self, in Target target, List<Actor> actorsAt, CPos xy, TargetModifiers modifiers)
 		{
+			// Always prioritise orders over selecting other players' actors or own actors that
+			// are already selected - mirrors Mobile.MoveOrderTargeter's own fallback for the same
+			// "clicked directly on an actor we can't otherwise act on" scenario (e.g. a unit that
+			// can't attack the actor under the cursor still attack-moves toward it instead of
+			// just reselecting it).
+			if (target.Type == TargetType.Actor && (target.Actor.Owner != self.Owner || self.World.Selection.Contains(target.Actor)))
+				return true;
+
 			return modifiers.HasModifier(TargetModifiers.ForceMove);
 		}
 	}
