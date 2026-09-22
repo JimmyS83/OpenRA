@@ -51,6 +51,8 @@ namespace OpenRA.Mods.Common.Orders
 			// is queueing multiple waypoints (Shift) - matches AttackMoveOrderGenerator.
 			if (!mi.Modifiers.HasModifier(Modifiers.Shift))
 				world.CancelInputMode();
+			else
+				HasIssuedQueuedCommand = true;
 
 			return orders;
 		}
